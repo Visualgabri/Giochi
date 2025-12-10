@@ -169,7 +169,7 @@
                 p.vy += gravityY * 0.05;
 
                 // Limite velocità massima (Terminal Velocity) per non farli impazzire
-                const maxSpeed = 10;
+                const maxSpeed = 3;
                 p.vx = Math.max(-maxSpeed, Math.min(maxSpeed, p.vx));
                 p.vy = Math.max(-maxSpeed, Math.min(maxSpeed, p.vy));
 
