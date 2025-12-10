@@ -1,0 +1,23 @@
+<!DOCTYPE html>
+<html>
+<body>
+<h2>Lista giochi</h2>
+<ul id="lista"></ul>
+
+<script>
+fetch("https://api.github.com/repos/visualgabri/Giochi/contents/Giochi")
+  .then(res => res.json())
+  .then(files => {
+    const ul = document.getElementById("lista");
+    files
+      .filter(f => f.name.endsWith(".html"))
+      .forEach(file => {
+        const li = document.createElement("li");
+        li.innerHTML = `<a href="${file.name}">${file.name}</a>`;
+        ul.appendChild(li);
+      });
+  });
+</script>
+
+</body>
+</html>

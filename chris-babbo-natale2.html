@@ -1,0 +1,213 @@
+<!DOCTYPE html>
+<html lang="it">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+    <title>Babbo Natale Super Fun per Chris</title>
+    <style>
+        body {
+            margin: 0;
+            padding: 0;
+            background: linear-gradient(to bottom, #1a2a6c, #b21f1f, #fdbb2d);
+            height: 100vh;
+            display: flex;
+            flex-direction: column;
+            justify-content: center;
+            align-items: center;
+            font-family: 'Comic Sans MS', 'Arial', sans-serif;
+            overflow: hidden;
+            touch-action: manipulation;
+        }
+
+        h1 {
+            color: white;
+            text-shadow: 2px 2px 4px #000;
+            font-size: 1.8rem;
+            margin-bottom: 10px;
+            z-index: 10;
+            text-align: center;
+        }
+
+        /* Contenitore principale per gestire l'esplosione */
+        .main-container {
+            position: relative;
+            width: 300px;
+            height: 300px;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+        }
+
+        #santa-container {
+            font-size: 160px;
+            cursor: pointer;
+            user-select: none;
+            z-index: 20;
+            filter: drop-shadow(0 10px 15px rgba(0,0,0,0.4));
+            /* Origine della trasformazione alla base per l'effetto molla */
+            transform-origin: bottom center; 
+        }
+
+        /* NUOVA Animazione "Molla Cartoonesca" (Squash and Stretch) */
+        .jumping {
+            animation: cartoonJump 0.6s ease-out;
+        }
+
+        @keyframes cartoonJump {
+            0% { transform: scale(1, 1); }
+            20% { transform: scale(1.3, 0.7) translateY(20px); } /* Si schiaccia a terra */
+            40% { transform: scale(0.8, 1.4) translateY(-60px); } /* Salta in alto allungandosi */
+            60% { transform: scale(1.1, 0.9) translateY(-10px); } /* Atterra e si schiaccia un po' */
+            80% { transform: scale(0.95, 1.05) translateY(0px); } /* Rimbalzino finale */
+            100% { transform: scale(1, 1) translateY(0); }
+        }
+
+        /* Stile per i regali che esplodono */
+        .particle {
+            position: absolute;
+            font-size: 40px;
+            pointer-events: none; /* Cosi non interferiscono col tocco */
+            z-index: 15;
+            opacity: 1;
+            /* Le variabili --tx e --ty saranno settate da JS */
+            transform: translate(0, 0) rotate(0deg);
+            transition: transform 0.8s cubic-bezier(0.165, 0.84, 0.44, 1), opacity 0.8s ease-out;
+        }
+
+        /* Classe attiva per far partire l'animazione dei regali */
+        .particle.explode {
+            opacity: 0;
+            transform: translate(var(--tx), var(--ty)) rotate(var(--rot));
+        }
+
+
+        /* --- Effetto Neve Semplificato --- */
+        .snowflake {
+            color: #fff; font-size: 1em; position: fixed; top: -10%; z-index: 1; opacity: 0.7;
+            animation: snowflakes-fall linear infinite, snowflakes-shake ease-in-out infinite;
+        }
+        @keyframes snowflakes-fall { 0% { top: -10%; } 100% { top: 100%; } }
+        @keyframes snowflakes-shake { 0%, 100% { transform: translateX(0); } 50% { transform: translateX(60px); } }
+        
+        /* Generazione rapida posizioni neve */
+        .s1 { left: 10%; animation-duration: 8s, 3s; animation-delay: 0s, 0s; }
+        .s2 { left: 30%; animation-duration: 6s, 2s; animation-delay: 1s, 1s; font-size: 1.5em;}
+        .s3 { left: 50%; animation-duration: 10s, 4s; animation-delay: 2s, 0.5s; }
+        .s4 { left: 70%; animation-duration: 7s, 2.5s; animation-delay: 0.5s, 1s; font-size: 1.2em;}
+        .s5 { left: 90%; animation-duration: 9s, 3.5s; animation-delay: 1.5s, 2s; }
+
+        .instruction {
+            margin-top: 20px; color: white; font-size: 1.2rem; z-index: 10; animation: pulse 2s infinite;
+        }
+        @keyframes pulse { 0%, 100% { opacity: 1;} 50% { opacity: 0.6; }}
+
+    </style>
+</head>
+<body>
+
+    <div class="snowflake s1">❅</div><div class="snowflake s2">❆</div><div class="snowflake s3">❅</div><div class="snowflake s4">❆</div><div class="snowflake s5">❅</div>
+
+    <h1>Vai Chris! <br>Tocca Babbo Natale!</h1>
+    
+    <div class="main-container">
+        <div id="santa-container">🎅</div>
+    </div>
+
+    <div class="instruction">👇 Tocca qui! 👇</div>
+
+    <script>
+        const santa = document.getElementById('santa-container');
+        const mainContainer = document.querySelector('.main-container');
+
+        // --- 1. Gestione Suoni a Rotazione ---
+        let soundIndex = 0;
+        const sounds = [
+            { text: "Oh! Oh! Ohooo! Buon Natale!", pitch: 0.5, rate: 0.8 }, // Voce profonda
+            { text: "Hahaha! Che solletico Chris!", pitch: 1.6, rate: 1.1 },   // Voce acuta e veloce
+            { text: "Ho tanti regali per te!", pitch: 0.7, rate: 0.9 },     // Voce normale
+			{ text: "Oh! Oh! Ohooo! Buon Natale carciofino!", pitch: 0.5, rate: 0.8 }, // Voce profonda
+        { text: "Crissotti!!! Buon Natale!", pitch: 0.5, rate: 0.8 }, // Voce profonda
+		{ text: "Questo bambino è un po' birichino!!", pitch: 0.7, rate: 0.9 },     // Voce normale
+		{ text: "Quest'anno da regalo ti porto una macchinina!! Gialla grande così e che fa brum brum!!", pitch: 0.5, rate: 0.8 }, // Voce profonda
+		];
+
+        function playFunnySound() {
+            if (window.speechSynthesis.speaking) window.speechSynthesis.cancel();
+
+            const soundData = sounds[soundIndex];
+            const msg = new SpeechSynthesisUtterance(soundData.text);
+            msg.lang = 'it-IT';
+            msg.pitch = soundData.pitch;
+            msg.rate = soundData.rate;
+            msg.volume = 1;
+            window.speechSynthesis.speak(msg);
+
+            // Passa al suono successivo, torna a 0 se finiti
+            soundIndex = (soundIndex + 1) % sounds.length;
+        }
+
+        // --- 2. Gestione Esplosione Regali (Particles) ---
+        const emojis = ['🎁', '🎄', '🍪', '🧸', '⭐'];
+
+        function explodeGifts() {
+            for (let i = 0; i < 8; i++) { // Crea 8 particelle
+                createParticle();
+            }
+        }
+
+        function createParticle() {
+            const particle = document.createElement('div');
+            particle.classList.add('particle');
+            // Scegli un'emoji a caso
+            particle.innerText = emojis[Math.floor(Math.random() * emojis.length)];
+            
+            mainContainer.appendChild(particle);
+
+            // Calcola destinazione random
+            // Math.random() - 0.5 genera un numero tra -0.5 e 0.5. Moltiplico per espandere il raggio.
+            const destinationX = (Math.random() - 0.5) * 400; 
+            const destinationY = (Math.random() - 0.5) * 400 - 50; // Un po' più verso l'alto
+            const rotation = (Math.random() - 0.5) * 360;
+
+            // Assegna le variabili CSS per la transizione
+            particle.style.setProperty('--tx', `${destinationX}px`);
+            particle.style.setProperty('--ty', `${destinationY}px`);
+            particle.style.setProperty('--rot', `${rotation}deg`);
+
+            // Forza il reflow per assicurare che la posizione iniziale sia registrata prima dell'animazione
+            void particle.offsetWidth; 
+
+            // Fa partire l'animazione CSS
+            particle.classList.add('explode');
+
+            // Rimuovi l'elemento dal DOM quando l'animazione è finita (0.8s)
+            setTimeout(() => {
+                particle.remove();
+            }, 800);
+        }
+
+
+        // --- Funzione Principale attivata dal tocco ---
+        function makeItFun() {
+            // 1. Animazione Molla
+            santa.classList.remove('jumping');
+            void santa.offsetWidth; // Trigger reflow
+            santa.classList.add('jumping');
+
+            // 2. Suono Buffo
+            playFunnySound();
+
+            // 3. Esplosione Visiva
+            explodeGifts();
+        }
+
+        // Event Listeners (supporta sia mouse che touch)
+        santa.addEventListener('touchstart', (e) => {
+            e.preventDefault();
+            makeItFun();
+        });
+        santa.addEventListener('mousedown', makeItFun);
+
+    </script>
+</body>
+</html>

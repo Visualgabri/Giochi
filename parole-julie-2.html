@@ -1,0 +1,388 @@
+<!DOCTYPE html>
+<html lang="it">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+    <title>Julie Super Show 4.0</title>
+    <style>
+        @import url('https://fonts.googleapis.com/css2?family=Fredoka:wght@400;700&display=swap');
+
+        body {
+            font-family: 'Fredoka', sans-serif;
+            background: linear-gradient(135deg, #FFDEE9 0%, #B5FFFC 100%);
+            height: 100vh;
+            margin: 0;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            justify-content: center;
+            overflow: hidden;
+            text-align: center;
+            user-select: none;
+        }
+
+        #game-container {
+            background: rgba(255, 255, 255, 0.9);
+            padding: 15px;
+            border-radius: 30px;
+            box-shadow: 0 10px 30px rgba(0,0,0,0.2);
+            width: 90%;
+            max-width: 500px;
+            position: relative;
+            border: 5px solid #fff;
+        }
+
+        h1 { color: #FF00CC; margin: 0 0 10px 0; font-size: 1.5rem; text-shadow: 2px 2px 0px #fff; }
+
+        /* Punteggio e Livello */
+        .stats-box {
+            display: flex;
+            justify-content: space-around;
+            margin-bottom: 15px;
+        }
+        .stat {
+            background: #fff;
+            padding: 5px 15px;
+            border-radius: 20px;
+            font-weight: bold;
+            color: #333;
+            box-shadow: 0 3px 0 #ddd;
+        }
+
+        /* La Parola */
+        #word-display {
+            font-size: 4rem;
+            font-weight: 700;
+            color: #333;
+            margin: 20px 0;
+            text-transform: uppercase;
+            min-height: 80px;
+            line-height: 1.1;
+            transition: all 0.3s;
+            text-shadow: 3px 3px 0px rgba(0,0,0,0.1);
+        }
+
+        /* CHALLENGE VISIVE (Animazioni CSS) */
+        .wobble { animation: wobble 2s infinite; color: #ff9f1c !important; }
+        @keyframes wobble { 0% { transform: rotate(0deg); } 25% { transform: rotate(-5deg); } 75% { transform: rotate(5deg); } 100% { transform: rotate(0deg); } }
+
+        .pulse-fast { animation: pulseText 0.5s infinite alternate; color: #e71d36 !important; }
+        @keyframes pulseText { from { transform: scale(1); } to { transform: scale(1.1); } }
+
+        .upside-down { transform: rotate(180deg); color: #2ec4b6 !important; }
+
+        .float { animation: float 3s ease-in-out infinite; color: #8338ec !important; }
+        @keyframes float { 0% { transform: translateY(0px); } 50% { transform: translateY(-20px); } 100% { transform: translateY(0px); } }
+
+        /* Messaggi di stato */
+        #status {
+            font-size: 1.1rem;
+            color: #555;
+            min-height: 50px;
+            margin-bottom: 10px;
+            font-style: italic;
+            background: #fff;
+            padding: 10px;
+            border-radius: 15px;
+            border: 2px dashed #ccc;
+        }
+
+        #mic-btn {
+            background: linear-gradient(to bottom, #3a86ff, #205ebb);
+            color: white;
+            border: none;
+            padding: 20px 0;
+            width: 80%;
+            font-size: 1.8rem;
+            border-radius: 60px;
+            cursor: pointer;
+            box-shadow: 0 8px 0 #123f85, 0 15px 20px rgba(0,0,0,0.2);
+            transition: all 0.1s;
+            font-family: 'Fredoka', sans-serif;
+            text-transform: uppercase;
+            font-weight: bold;
+        }
+
+        #mic-btn:active { transform: translateY(8px); box-shadow: 0 0 0 #123f85; }
+        
+        #mic-btn.listening {
+            background: linear-gradient(to bottom, #ff0055, #990033);
+            box-shadow: 0 8px 0 #550011;
+            animation: breathe 1s infinite alternate;
+        }
+        @keyframes breathe { from { transform: scale(1); } to { transform: scale(1.05); } }
+
+        /* Medagliere */
+        #medals-container {
+            margin-top: 20px;
+            background: rgba(255,255,255,0.5);
+            padding: 10px;
+            border-radius: 15px;
+            min-height: 40px;
+        }
+        .medal { font-size: 1.5rem; margin: 0 5px; animation: popIn 0.5s; }
+        @keyframes popIn { from { transform: scale(0); } to { transform: scale(1); } }
+
+        .confetti { position: absolute; width: 15px; height: 15px; z-index: 100; animation: fall 3s linear forwards; }
+        @keyframes fall { to { transform: translateY(100vh) rotate(720deg); } }
+    </style>
+</head>
+<body>
+
+    <div id="game-container">
+        <h1>🦄 Julie Super Show</h1>
+        
+        <div class="stats-box">
+            <div class="stat">⭐ Punti: <span id="score">0</span></div>
+            <div class="stat">🔥 Livello: <span id="level">1</span></div>
+        </div>
+
+        <div id="word-display">PRONTI?</div>
+        
+        <div id="status">Clicca il tasto BLU!</div>
+        
+        <button id="mic-btn" onclick="handleButtonClick()">▶️ START</button>
+        
+        <div id="medals-container">
+            <small>Collezione:</small><br>
+            <span id="medals-list"></span>
+        </div>
+    </div>
+
+    <script>
+        // --- CONFIGURAZIONE ---
+        const words = [
+            "SALE", "MELA", "MALATA", "TELO", "MIMO", 
+            "MIMOSA", "TUTA", "MATITA", "MOTO", "SEMI", 
+            "MELE", "LUME", "LAME", "SETA"
+        ];
+
+        // Se sbaglia, il computer finge di aver sentito queste cose assurde
+        const sillyGuesses = [
+            "Mutande?!", "Cacca di piccione?!", "Puzzette?!", "Polpette al sugo?!",
+            "Unicorno?!", "Patatine fritte?!", "Palla di pelo?!", "Broccoli?!",
+            "Mamma in pigiama?!", "Papà muscoloso?!", "Bau Bau?!", "Super Chris?!",
+            "Pizzetta?!", "Cioccolata?!"
+        ];
+
+        // Frasi di incoraggiamento divertenti
+        const funnyFeedbacks = [
+            "Non parlare in Marziano!",
+            "Pulisci gli occhiali!",
+            "Sei sicura di non essere un alieno?",
+            "Riprova, ma senza ridere!",
+            "Papà Gabriele non l'ha capita!",
+            "Quasi! Chris l'avrebbe detta giusta!"
+        ];
+
+        const medals = ["🐭", "🐱", "🐶", "🦊", "🦁", "🐯", "🦄", "🐲", "👑", "💎"];
+
+        let currentWord = "";
+        let score = 0;
+        let streak = 0;
+        let level = 1;
+        let isListening = false;
+        let recognition;
+        let ignoreEndEvent = false;
+
+        const wordEl = document.getElementById('word-display');
+        const statusEl = document.getElementById('status');
+        const btnEl = document.getElementById('mic-btn');
+        const scoreEl = document.getElementById('score');
+        const levelEl = document.getElementById('level');
+        const medalsEl = document.getElementById('medals-list');
+
+        // Sintesi Vocale (Voce buffa)
+        function speak(text, pitch = 1.2) {
+            window.speechSynthesis.cancel(); // Ferma se sta già parlando
+            const utterance = new SpeechSynthesisUtterance(text);
+            utterance.lang = 'it-IT';
+            utterance.rate = 1.1; 
+            utterance.pitch = pitch; // 0.5 voce bassa, 2 voce alta
+            window.speechSynthesis.speak(utterance);
+        }
+
+        if ('webkitSpeechRecognition' in window || 'SpeechRecognition' in window) {
+            const SpeechRecognition = window.SpeechRecognition || window.webkitSpeechRecognition;
+            recognition = new SpeechRecognition();
+            recognition.lang = 'it-IT';
+            recognition.continuous = false;
+            recognition.interimResults = false;
+
+            recognition.onstart = function() {
+                isListening = true;
+                btnEl.classList.add("listening");
+                btnEl.innerText = "👂 ASCOLTO...";
+                statusEl.innerText = "Parla forte!";
+                statusEl.style.backgroundColor = "#fff";
+            };
+
+            recognition.onend = function() {
+                isListening = false;
+                btnEl.classList.remove("listening");
+                if (!ignoreEndEvent) btnEl.innerText = "🎤 RIPROVA";
+                ignoreEndEvent = false;
+            };
+
+            recognition.onresult = function(event) {
+                let transcript = event.results[0][0].transcript.trim().toUpperCase();
+                transcript = transcript.replace(/[.,\/#!$%\^&\*;:{}=\-_`~()]/g,"");
+                checkAnswer(transcript);
+            };
+
+            recognition.onerror = function(event) {
+                isListening = false;
+                btnEl.classList.remove("listening");
+                btnEl.innerText = "⚠️ RIPROVA";
+            };
+        } else {
+            alert("Usa Chrome!");
+        }
+
+        function handleButtonClick() {
+            if (isListening) { stopRecognition(); return; }
+            // Reset visivo
+            wordEl.className = ""; 
+            if (!currentWord || wordEl.innerText === "PRONTI?") { nextWord(); } 
+            else { startRecognition(); }
+        }
+
+        function startRecognition() {
+            try { if (recognition && !isListening) recognition.start(); } 
+            catch (e) { stopRecognition(); }
+        }
+
+        function stopRecognition() {
+            if (recognition) {
+                ignoreEndEvent = true;
+                recognition.abort();
+                isListening = false;
+                btnEl.classList.remove("listening");
+                btnEl.innerText = "🎤 PARLA";
+            }
+        }
+
+        function nextWord() {
+            // Effetto Challenge in base al livello
+            wordEl.className = ""; // Reset effetti
+            
+            // Logica Livelli (Challenge)
+            if (score > 30) level = 2;
+            if (score > 60) level = 3;
+            if (score > 100) level = 4;
+            levelEl.innerText = level;
+
+            const randomIndex = Math.floor(Math.random() * words.length);
+            currentWord = words[randomIndex];
+            
+            wordEl.style.opacity = 0;
+            setTimeout(() => {
+                wordEl.innerText = currentWord;
+                wordEl.style.opacity = 1;
+                wordEl.style.color = "#333";
+                
+                // Applica effetti Challenge
+                if (level === 2) { wordEl.classList.add("float"); statusEl.innerText = "Challenge: Parola Volante!"; }
+                else if (level === 3) { wordEl.classList.add("wobble"); statusEl.innerText = "Challenge: Parola Ballerina!"; }
+                else if (level === 4) { wordEl.classList.add("pulse-fast"); statusEl.innerText = "Challenge: Parola che batte!"; }
+                else { statusEl.innerText = "Leggi la parola!"; }
+
+                setTimeout(startRecognition, 400);
+            }, 200);
+        }
+
+        function checkAnswer(spokenWord) {
+            if (spokenWord.includes(currentWord) || currentWord.includes(spokenWord)) {
+                success();
+            } else {
+                handleFunnyError(spokenWord);
+            }
+        }
+
+        function handleFunnyError(spokenWord) {
+            streak = 0;
+            
+            // Sceglie un "falso ascolto" divertente
+            const randomSilly = sillyGuesses[Math.floor(Math.random() * sillyGuesses.length)];
+            const randomFeedback = funnyFeedbacks[Math.floor(Math.random() * funnyFeedbacks.length)];
+            
+            statusEl.innerText = `Ho capito: "${randomSilly}" 😂`;
+            statusEl.style.backgroundColor = "#ffcccb"; // Rosso chiaro
+            
+            // Parla con voce buffa (pitch basso per errore)
+            speak("Hai detto " + randomSilly + "? " + randomFeedback, 0.8);
+            
+            wordEl.style.color = "red";
+            setTimeout(() => {
+                 if(level === 2) wordEl.style.color = "#8338ec";
+                 else wordEl.style.color = "#333";
+            }, 1000);
+
+            setTimeout(startRecognition, 2500); // Dà tempo di ridere
+        }
+
+        function success() {
+            stopRecognition();
+            score += 10;
+            streak++;
+            scoreEl.innerText = score;
+            
+            statusEl.innerText = "BRAVISSIMA! 🎉";
+            statusEl.style.backgroundColor = "#ccffcc"; // Verde chiaro
+            wordEl.style.color = "#00cc66";
+            
+            // Suono Vittoria
+            playWinSound();
+            spawnConfetti();
+
+            // Medaglia ogni 3 parole giuste di fila
+            if (streak > 0 && streak % 3 === 0) {
+                const medalIndex = (streak / 3) - 1;
+                if (medalIndex < medals.length) {
+                    const newMedal = document.createElement("span");
+                    newMedal.className = "medal";
+                    newMedal.innerText = medals[medalIndex];
+                    medalsEl.appendChild(newMedal);
+                    speak("Wow! Hai vinto la medaglia " + (medalIndex === 6 ? "Unicorno" : "numero " + (medalIndex+1)));
+                } else {
+                    speak("Sei imbattibile! Super Record!");
+                }
+            } else {
+                // Complimento standard
+                const compliments = ["Grande!", "Mitica!", "Fortissima!", "Wow!", "Perfetto!"];
+                speak(compliments[Math.floor(Math.random() * compliments.length)]);
+            }
+
+            setTimeout(nextWord, 2000);
+        }
+
+        // --- EFFETTI AUDIO & VIDEO ---
+        const audioCtx = new (window.AudioContext || window.webkitAudioContext)();
+        function playWinSound() {
+            if (audioCtx.state === 'suspended') audioCtx.resume();
+            const osc = audioCtx.createOscillator();
+            const gain = audioCtx.createGain();
+            osc.connect(gain);
+            gain.connect(audioCtx.destination);
+            osc.type = 'triangle';
+            osc.frequency.setValueAtTime(523, audioCtx.currentTime);
+            osc.frequency.linearRampToValueAtTime(880, audioCtx.currentTime + 0.1);
+            gain.gain.setValueAtTime(0.5, audioCtx.currentTime);
+            gain.gain.exponentialRampToValueAtTime(0.01, audioCtx.currentTime + 0.5);
+            osc.start();
+            osc.stop(audioCtx.currentTime + 0.5);
+        }
+
+        function spawnConfetti() {
+            for(let i=0; i<30; i++) {
+                const c = document.createElement('div');
+                c.className = 'confetti';
+                c.style.left = Math.random()*100+'%';
+                c.style.backgroundColor = `hsl(${Math.random()*360},100%,50%)`;
+                document.body.appendChild(c);
+                setTimeout(()=>c.remove(), 3000);
+            }
+        }
+    </script>
+</body>
+</html>
