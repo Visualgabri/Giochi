@@ -8,7 +8,8 @@
         body {
             margin: 0;
             padding: 0;
-            background: linear-gradient(to bottom, #0f1f5c, #a20f0f, #eeb01d);
+            /* Sfondo notte magica */
+            background: linear-gradient(to bottom, #020024, #090979, #00d4ff);
             height: 100vh;
             display: flex;
             flex-direction: column;
@@ -106,8 +107,8 @@
 
     <div id="start-overlay">
         <h1>Ciao Chris! 👋</h1>
-        <p style="font-size: 1.2rem;">Tocca il pulsante per attivare la neve e la voce!</p>
-        <button id="start-btn">▶️ INIZIA IL GIOCO ◀️</button>
+        <p style="font-size: 1.2rem;">Tocca il pulsante per la magia!</p>
+        <button id="start-btn">▶️ INIZIA ◀️</button>
     </div>
 
     <canvas id="snow-canvas"></canvas>
@@ -126,15 +127,15 @@
         const startOverlay = document.getElementById('start-overlay');
         const startBtn = document.getElementById('start-btn');
         
-        // --- 1. MOTORE NEVE (FISICA) ---
+        // --- 1. MOTORE NEVE ---
         const canvas = document.getElementById('snow-canvas');
         const ctx = canvas.getContext('2d');
         let width, height;
         let particles = [];
         
-        // Gravità Default (Cade verso il basso se i sensori non vanno)
+        // Gravità Default (Verso il basso, costante)
         let gravityX = 0;
-        let gravityY = 2; 
+        let gravityY = 3; 
 
         function resize() {
             width = canvas.width = window.innerWidth;
@@ -145,15 +146,15 @@
 
         function initSnow() {
             particles = [];
-            const numParticles = 130;
+            const numParticles = 150; // Tanta neve!
             for(let i=0; i<numParticles; i++) {
                 particles.push({
                     x: Math.random() * width,
                     y: Math.random() * height,
-                    vx: (Math.random() - 0.5) * 1, 
-                    vy: Math.random() * 2 + 1,
-                    radius: Math.random() * 4 + 2,
-                    color: `rgba(255, 255, 255, ${Math.random() * 0.5 + 0.5})`
+                    vx: (Math.random() - 0.5), 
+                    vy: Math.random() * 3 + 2, // Velocità caduta variabile
+                    radius: Math.random() * 3 + 2,
+                    color: `rgba(255, 255, 255, ${Math.random() * 0.6 + 0.4})`
                 });
             }
         }
@@ -162,23 +163,29 @@
             ctx.clearRect(0, 0, width, height);
             
             particles.forEach(p => {
-                // Fisica
-                p.vx = (p.vx + gravityX * 0.05) * 0.96; // 0.96 è l'attrito
-                p.vy = (p.vy + gravityY * 0.05) * 0.96;
+                // Fisica fluida
+                // Aggiungiamo la gravità orientata alla velocità corrente
+                p.vx += gravityX * 0.05;
+                p.vy += gravityY * 0.05;
 
-                // Limita la velocità massima (per evitare che spariscano troppo in fretta)
-                const maxSpeed = 15;
+                // Limite velocità massima (Terminal Velocity) per non farli impazzire
+                const maxSpeed = 10;
                 p.vx = Math.max(-maxSpeed, Math.min(maxSpeed, p.vx));
                 p.vy = Math.max(-maxSpeed, Math.min(maxSpeed, p.vy));
 
+                // Muovi
                 p.x += p.vx;
                 p.y += p.vy;
 
-                // Rimbalzo morbido sui bordi (Effetto Palla di vetro)
-                if (p.x < 0) { p.x = 0; p.vx *= -0.5; }
-                if (p.x > width) { p.x = width; p.vx *= -0.5; }
-                if (p.y < 0) { p.y = 0; p.vy *= -0.5; }
-                if (p.y > height) { p.y = height; p.vy *= -0.5; }
+                // --- EFFETTO INFINITO (WRAP AROUND) ---
+                // Se esce a destra, rientra a sinistra
+                if (p.x > width + 10) p.x = -10;
+                // Se esce a sinistra, rientra a destra
+                if (p.x < -10) p.x = width + 10;
+                // Se esce sotto, rientra sopra
+                if (p.y > height + 10) p.y = -10;
+                // Se esce sopra, rientra sotto
+                if (p.y < -10) p.y = height + 10;
 
                 ctx.beginPath();
                 ctx.arc(p.x, p.y, p.radius, 0, Math.PI * 2);
@@ -188,26 +195,23 @@
             requestAnimationFrame(updateSnow);
         }
 
-        // --- 2. GESTIONE ORIENTAMENTO (Più stabile dell'accelerometro) ---
+        // --- 2. GESTIONE ORIENTAMENTO ---
         function handleOrientation(event) {
-            // Gamma: Inclinazione Sinistra/Destra (-90 a 90)
-            // Beta: Inclinazione Avanti/Indietro (-180 a 180)
-            
-            const x = event.gamma; 
-            const y = event.beta;  
+            const x = event.gamma; // Inclinazione Sx/Dx
+            const y = event.beta;  // Inclinazione Su/Giù
 
             if (x !== null && y !== null) {
-                // Calibrazione: Dividiamo per rallentare l'effetto
-                // Se Gamma è positivo (destra), gravityX diventa positiva -> neve va a destra
-                gravityX = x / 2; 
-                
-                // Se il telefono è in piedi (Beta ~90), gravityY deve essere positiva (neve cade giù)
-                // Se il telefono è a testa in giù (Beta ~-90), gravityY negativa (neve cade su)
-                gravityY = y / 2;
+                // Dividiamo per rendere il movimento morbido
+                gravityX = x / 3; 
+                gravityY = y / 3;
+
+                // Aggiungiamo un minimo di gravità verso il basso se il telefono è piatto
+                // così la neve cade sempre un pochino
+                if (Math.abs(gravityY) < 1) gravityY += 1.5;
             }
         }
 
-        // --- 3. SUONI E GIOCO ---
+        // --- 3. SUONI ---
         let soundIndex = 0;
         const sounds = [
             { text: "Oh! Oh! Ohooo! Buon Natale!", pitch: 0.5, rate: 0.8 }, 
@@ -233,6 +237,7 @@
             soundIndex = (soundIndex + 1) % sounds.length;
         }
 
+        // --- 4. ESPLOSIONE REGALI ---
         const emojis = ['🎁', '🎄', '🍪', '🧸', '⭐', '🚗', '🐷', '🦖']; 
         function explodeGifts() {
             for (let i = 0; i < 10; i++) { createParticle(); } 
@@ -266,13 +271,12 @@
         santa.addEventListener('touchstart', (e) => { e.preventDefault(); makeItFun(); });
         santa.addEventListener('mousedown', makeItFun);
 
-        // --- 4. AVVIO (Richiesta Permessi) ---
+        // --- 5. AVVIO E PERMESSI ---
         startBtn.addEventListener('click', () => {
             startOverlay.style.display = 'none';
             initSnow();
             updateSnow();
 
-            // Richiesta permessi DeviceOrientation (iOS 13+)
             if (typeof DeviceOrientationEvent !== 'undefined' && typeof DeviceOrientationEvent.requestPermission === 'function') {
                 DeviceOrientationEvent.requestPermission()
                     .then(permissionState => {
@@ -281,7 +285,6 @@
                         }
                     }).catch(console.error);
             } else {
-                // Android e altri
                 window.addEventListener('deviceorientation', handleOrientation);
             }
             
