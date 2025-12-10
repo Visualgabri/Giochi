@@ -1,0 +1,282 @@
+<!DOCTYPE html>
+<html lang="it">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+    <title>Babbo Natale Magico per Chris</title>
+    <style>
+        body {
+            margin: 0;
+            padding: 0;
+            background: linear-gradient(to bottom, #1a2a6c, #b21f1f, #fdbb2d);
+            height: 100vh;
+            display: flex;
+            flex-direction: column;
+            justify-content: center;
+            align-items: center;
+            font-family: 'Comic Sans MS', 'Arial', sans-serif;
+            overflow: hidden;
+            touch-action: manipulation;
+            user-select: none;
+            transition: background 0.5s;
+        }
+
+        /* Canvas per la neve */
+        #snow-canvas {
+            position: absolute;
+            top: 0; left: 0; width: 100%; height: 100%;
+            z-index: 1; pointer-events: none;
+        }
+
+        h1 {
+            color: white; text-shadow: 2px 2px 4px #000; font-size: 1.8rem;
+            margin-bottom: 10px; z-index: 10; text-align: center; pointer-events: none;
+        }
+
+        .main-container {
+            position: relative; width: 300px; height: 300px;
+            display: flex; justify-content: center; align-items: center; z-index: 20;
+        }
+
+        #santa-container {
+            font-size: 160px; cursor: pointer;
+            filter: drop-shadow(0 10px 15px rgba(0,0,0,0.4));
+            transform-origin: bottom center; transition: transform 0.1s;
+        }
+
+        /* Animazioni */
+        .jumping { animation: cartoonJump 0.6s ease-out; }
+        @keyframes cartoonJump {
+            0% { transform: scale(1, 1); }
+            20% { transform: scale(1.3, 0.7) translateY(20px); } 
+            40% { transform: scale(0.8, 1.4) translateY(-60px); } 
+            60% { transform: scale(1.1, 0.9) translateY(-10px); } 
+            80% { transform: scale(0.95, 1.05) translateY(0px); } 
+            100% { transform: scale(1, 1) translateY(0); }
+        }
+
+        .spinning { animation: crazySpin 0.8s cubic-bezier(.6,-0.28,.74,.05); transform-origin: center center; }
+        @keyframes crazySpin {
+            0% { transform: rotate(0deg) scale(1); }
+            50% { transform: rotate(720deg) scale(1.2); }
+            100% { transform: rotate(1080deg) scale(1); }
+        }
+
+        /* Particles Esplosione */
+        .particle {
+            position: absolute; font-size: 40px; pointer-events: none; z-index: 15; opacity: 1;
+            transform: translate(0, 0) rotate(0deg);
+            transition: transform 0.8s cubic-bezier(0.165, 0.84, 0.44, 1), opacity 0.8s ease-out;
+        }
+        .particle.explode { opacity: 0; transform: translate(var(--tx), var(--ty)) rotate(var(--rot)); }
+
+        /* Overlay Iniziale */
+        #start-overlay {
+            position: fixed; top: 0; left: 0; width: 100%; height: 100%;
+            background: rgba(0,0,0,0.9); z-index: 100;
+            display: flex; flex-direction: column; justify-content: center; align-items: center;
+            color: white; text-align: center; padding: 20px;
+        }
+        #start-btn {
+            background: #25D366; color: white; border: none; padding: 20px 40px;
+            font-size: 1.5rem; border-radius: 50px; margin-top: 20px;
+            cursor: pointer; font-weight: bold; box-shadow: 0 4px 15px rgba(0,0,0,0.5);
+        }
+
+        .instruction {
+            margin-top: 20px; color: white; font-size: 1.2rem; z-index: 10;
+            animation: pulse 2s infinite; pointer-events: none;
+        }
+        @keyframes pulse { 0%, 100% { opacity: 1;} 50% { opacity: 0.6; }}
+
+    </style>
+</head>
+<body>
+
+    <div id="start-overlay">
+        <h1>Ciao Chris! 👋</h1>
+        <p>Pronto a giocare con Babbo Natale?</p>
+        <button id="start-btn">CLICCA QUI ▶️</button>
+    </div>
+
+    <canvas id="snow-canvas"></canvas>
+
+    <h1>Vai Chris! <br>Tocca Babbo Natale!</h1>
+    
+    <div class="main-container">
+        <div id="santa-container">🎅</div>
+    </div>
+
+    <div class="instruction">👇 Tocca qui! 👇</div>
+
+    <script>
+        const santa = document.getElementById('santa-container');
+        const mainContainer = document.querySelector('.main-container');
+        const startOverlay = document.getElementById('start-overlay');
+        const startBtn = document.getElementById('start-btn');
+        
+        // --- 1. SETUP SNOW GLOBE ---
+        const canvas = document.getElementById('snow-canvas');
+        const ctx = canvas.getContext('2d');
+        let width, height;
+        let particles = [];
+        
+        // Gravità Default (Verso il basso)
+        let gravityX = 0;
+        let gravityY = 2; 
+
+        function resize() {
+            width = canvas.width = window.innerWidth;
+            height = canvas.height = window.innerHeight;
+        }
+        window.addEventListener('resize', resize);
+        resize();
+
+        function initSnow() {
+            particles = [];
+            const numParticles = 100;
+            for(let i=0; i<numParticles; i++) {
+                particles.push({
+                    x: Math.random() * width,
+                    y: Math.random() * height,
+                    vx: 0,
+                    vy: 0,
+                    radius: Math.random() * 4 + 2,
+                    color: `rgba(255, 255, 255, ${Math.random() * 0.6 + 0.4})`
+                });
+            }
+        }
+
+        function updateSnow() {
+            ctx.clearRect(0, 0, width, height);
+            
+            particles.forEach(p => {
+                // Fisica
+                p.vx = (p.vx + gravityX * 0.1) * 0.95; 
+                p.vy = (p.vy + gravityY * 0.1) * 0.95;
+
+                p.x += p.vx;
+                p.y += p.vy;
+
+                // Limiti schermo (Effetto rimbalzo)
+                if (p.x < 0) { p.x = 0; p.vx *= -0.5; }
+                if (p.x > width) { p.x = width; p.vx *= -0.5; }
+                if (p.y < 0) { p.y = 0; p.vy *= -0.5; }
+                if (p.y > height) { p.y = height; p.vy *= -0.5; }
+
+                ctx.beginPath();
+                ctx.arc(p.x, p.y, p.radius, 0, Math.PI * 2);
+                ctx.fillStyle = p.color;
+                ctx.fill();
+            });
+
+            requestAnimationFrame(updateSnow);
+        }
+
+        // --- 2. GESTIONE MOVIMENTO (NUOVA LOGICA) ---
+        function handleMotion(event) {
+            // Se l'accelerazione è disponibile (con gravità)
+            if (event.accelerationIncludingGravity) {
+                const acc = event.accelerationIncludingGravity;
+                
+                // Su Android/iOS X e Y sono invertiti rispetto al Canvas solitamente
+                // Moltiplichiamo per -1 o invertiamo a seconda dell'orientamento standard
+                // Questa è una buona approssimazione universale:
+                
+                // Nota: Invertiamo i segni perché se inclino a sinistra, 
+                // l'accelerazione è positiva ma voglio che la neve vada a sinistra (negativa)
+                const x = -acc.x * 2; 
+                const y = acc.y * 2;  
+
+                // Aggiorniamo la gravità globale
+                gravityX = x;
+                gravityY = y;
+            }
+        }
+
+        // --- 3. SUONI E INTERAZIONE ---
+        let soundIndex = 0;
+        const sounds = [
+            { text: "Oh! Oh! Ohooo! Buon Natale!", pitch: 0.5, rate: 0.8 }, 
+            { text: "Hahaha! Che solletico Chris!", pitch: 1.6, rate: 1.1 },   
+            { text: "Ho tanti regali per te!", pitch: 0.7, rate: 0.9 }, 
+            { text: "Oh! Oh! Ohooo! Buon Natale carciofino!", pitch: 0.5, rate: 0.8 }, 
+            { text: "Crissotti!!! Buon Natale!", pitch: 0.5, rate: 0.8 }, 
+            { text: "Questo bambino è un po' birichino!!", pitch: 0.7, rate: 0.9 }, 
+            { text: "Quest'anno da regalo ti porto una macchinina!! Gialla grande così e che fa brum brum!!", pitch: 0.5, rate: 0.9 }, 
+            { text: "Sei un topino dolce!", pitch: 0.3, rate: 0.8 },
+            { text: "Cri, Come fa il maiale?", pitch: 0.8, rate: 0.5 }
+        ];
+
+        function playFunnySound() {
+            if (window.speechSynthesis.speaking) window.speechSynthesis.cancel();
+            const soundData = sounds[soundIndex];
+            const msg = new SpeechSynthesisUtterance(soundData.text);
+            msg.lang = 'it-IT';
+            msg.pitch = soundData.pitch;
+            msg.rate = soundData.rate;
+            window.speechSynthesis.speak(msg);
+            soundIndex = (soundIndex + 1) % sounds.length;
+        }
+
+        const emojis = ['🎁', '🎄', '🍪', '🧸', '⭐', '🚗', '🐷'];
+        function explodeGifts() {
+            for (let i = 0; i < 10; i++) { createParticle(); } 
+        }
+        function createParticle() {
+            const particle = document.createElement('div');
+            particle.classList.add('particle');
+            particle.innerText = emojis[Math.floor(Math.random() * emojis.length)];
+            mainContainer.appendChild(particle);
+            const destX = (Math.random() - 0.5) * 450; 
+            const destY = (Math.random() - 0.5) * 450 - 60;
+            const rot = (Math.random() - 0.5) * 500;
+            particle.style.setProperty('--tx', `${destX}px`);
+            particle.style.setProperty('--ty', `${destY}px`);
+            particle.style.setProperty('--rot', `${rot}deg`);
+            void particle.offsetWidth; 
+            particle.classList.add('explode');
+            setTimeout(() => { particle.remove(); }, 800);
+        }
+
+        function makeItFun() {
+            santa.classList.remove('jumping', 'spinning');
+            void santa.offsetWidth; 
+            const diceRoll = Math.random();
+            if (diceRoll > 0.75) { santa.classList.add('spinning'); } 
+            else { santa.classList.add('jumping'); }
+            playFunnySound();
+            explodeGifts();
+        }
+
+        santa.addEventListener('touchstart', (e) => { e.preventDefault(); makeItFun(); });
+        santa.addEventListener('mousedown', makeItFun);
+
+
+        // --- 4. AVVIO (FIX PER PERMESSI) ---
+        startBtn.addEventListener('click', () => {
+            startOverlay.style.display = 'none';
+            initSnow();
+            updateSnow();
+
+            // Tentativo iOS 13+
+            if (typeof DeviceMotionEvent !== 'undefined' && typeof DeviceMotionEvent.requestPermission === 'function') {
+                DeviceMotionEvent.requestPermission()
+                    .then(permissionState => {
+                        if (permissionState === 'granted') {
+                            window.addEventListener('devicemotion', handleMotion);
+                        }
+                    }).catch(console.error);
+            } else {
+                // Tentativo Android / Altri
+                window.addEventListener('devicemotion', handleMotion);
+            }
+            
+            // Sblocca audio
+            const warmUp = new SpeechSynthesisUtterance(" ");
+            window.speechSynthesis.speak(warmUp);
+        });
+
+    </script>
+</body>
+</html>
