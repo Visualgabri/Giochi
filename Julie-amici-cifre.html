@@ -1,0 +1,292 @@
+<!DOCTYPE html>
+<html lang="it">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Gli Amici dei Numeri di Julie</title>
+    <style>
+        /* STILE BASE E COLORI */
+        :root {
+            --primary: #FF6B6B;
+            --secondary: #4ECDC4;
+            --accent: #FFE66D;
+            --text: #2c3e50;
+            --bg: #f7f9fc;
+        }
+
+        body {
+            font-family: 'Comic Sans MS', 'Chalkboard SE', sans-serif; /* Font giocoso */
+            background: linear-gradient(135deg, #fdfbfb 0%, #ebedee 100%);
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            min-height: 100vh;
+            margin: 0;
+            color: var(--text);
+        }
+
+        .container {
+            background: white;
+            padding: 2rem;
+            border-radius: 20px;
+            box-shadow: 0 10px 25px rgba(0,0,0,0.1);
+            text-align: center;
+            max-width: 500px;
+            width: 90%;
+            border: 4px solid var(--secondary);
+        }
+
+        h1 {
+            color: var(--primary);
+            margin-bottom: 10px;
+        }
+
+        p {
+            font-size: 1.2rem;
+            color: #666;
+        }
+
+        /* BOTTONI SELEZIONE NUMERO */
+        .number-grid {
+            display: grid;
+            grid-template-columns: repeat(3, 1fr);
+            gap: 15px;
+            margin-top: 20px;
+        }
+
+        button {
+            border: none;
+            border-radius: 15px;
+            cursor: pointer;
+            font-size: 1.5rem;
+            font-weight: bold;
+            padding: 15px;
+            transition: transform 0.1s, box-shadow 0.1s;
+            touch-action: manipulation;
+        }
+
+        button:active {
+            transform: scale(0.95);
+        }
+
+        .btn-select {
+            background-color: var(--secondary);
+            color: white;
+            box-shadow: 0 4px 0 #2ea8a0;
+        }
+
+        /* AREA GIOCO */
+        .game-area {
+            display: none; /* Nascosto all'inizio */
+        }
+
+        .equation {
+            font-size: 3rem;
+            margin: 30px 0;
+            font-weight: bold;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            gap: 10px;
+        }
+
+        .missing-box {
+            width: 60px;
+            height: 60px;
+            background: #eee;
+            border: 3px dashed var(--primary);
+            border-radius: 10px;
+            display: inline-flex;
+            justify-content: center;
+            align-items: center;
+            color: var(--primary);
+        }
+
+        .options-grid {
+            display: grid;
+            grid-template-columns: repeat(5, 1fr);
+            gap: 10px;
+        }
+
+        .btn-option {
+            background-color: var(--accent);
+            color: var(--text);
+            box-shadow: 0 4px 0 #e6ce4d;
+            font-size: 1.2rem;
+            padding: 10px;
+        }
+
+        .btn-back {
+            background: #ccc;
+            color: #555;
+            margin-top: 20px;
+            font-size: 1rem;
+            padding: 10px 20px;
+        }
+
+        /* ANIMAZIONI */
+        @keyframes pop {
+            0% { transform: scale(1); }
+            50% { transform: scale(1.2); }
+            100% { transform: scale(1); }
+        }
+
+        .correct-anim {
+            animation: pop 0.3s ease-out;
+            background-color: #81ecec !important;
+            color: white !important;
+        }
+
+        .wrong-anim {
+            background-color: #ff7675 !important;
+            animation: shake 0.4s cubic-bezier(.36,.07,.19,.97) both;
+        }
+
+        @keyframes shake {
+            10%, 90% { transform: translate3d(-1px, 0, 0); }
+            20%, 80% { transform: translate3d(2px, 0, 0); }
+            30%, 50%, 70% { transform: translate3d(-4px, 0, 0); }
+            40%, 60% { transform: translate3d(4px, 0, 0); }
+        }
+
+        .message {
+            height: 30px;
+            font-weight: bold;
+            font-size: 1.2rem;
+            margin-top: 10px;
+        }
+    </style>
+</head>
+<body>
+
+    <div class="container">
+        <div id="menu-view">
+            <h1>Ciao Julie! 🌟</h1>
+            <p>Con quale numero vuoi giocare?</p>
+            <div class="number-grid" id="level-select">
+                </div>
+        </div>
+
+        <div id="game-view" class="game-area">
+            <h2 id="game-title">Gli amici del...</h2>
+            
+            <div class="equation">
+                <span id="num-a">?</span>
+                <span>+</span>
+                <span id="num-b" class="missing-box">?</span>
+                <span>=</span>
+                <span id="target-display">0</span>
+            </div>
+
+            <p class="message" id="feedback"></p>
+
+            <div class="options-grid" id="answer-options">
+                </div>
+
+            <button class="btn-back" onclick="showMenu()">Scegli un altro numero</button>
+        </div>
+    </div>
+
+    <script>
+        // STATO DEL GIOCO
+        let currentTarget = 0;
+        let currentA = 0;
+        let correctB = 0;
+
+        // ELEMENTI DOM
+        const menuView = document.getElementById('menu-view');
+        const gameView = document.getElementById('game-view');
+        const levelSelect = document.getElementById('level-select');
+        const answerOptions = document.getElementById('answer-options');
+        const numA = document.getElementById('num-a');
+        const numB = document.getElementById('num-b');
+        const targetDisplay = document.getElementById('target-display');
+        const gameTitle = document.getElementById('game-title');
+        const feedback = document.getElementById('feedback');
+
+        // INIZIALIZZAZIONE
+        function init() {
+            // Crea bottoni per i numeri target (da 2 a 9)
+            for(let i=2; i<=9; i++) {
+                let btn = document.createElement('button');
+                btn.className = 'btn-select';
+                btn.innerText = i;
+                btn.onclick = () => startGame(i);
+                levelSelect.appendChild(btn);
+            }
+
+            // Crea bottoni per le risposte (0-9)
+            for(let i=0; i<=9; i++) {
+                let btn = document.createElement('button');
+                btn.className = 'btn-option';
+                btn.innerText = i;
+                btn.onclick = () => checkAnswer(i, btn);
+                answerOptions.appendChild(btn);
+            }
+        }
+
+        // AVVIA PARTITA
+        function startGame(target) {
+            currentTarget = target;
+            gameTitle.innerText = "Gli amici del " + target;
+            targetDisplay.innerText = target;
+            
+            menuView.style.display = 'none';
+            gameView.style.display = 'block';
+            
+            generateQuestion();
+        }
+
+        // TORNA AL MENU
+        function showMenu() {
+            gameView.style.display = 'none';
+            menuView.style.display = 'block';
+            feedback.innerText = "";
+        }
+
+        // GENERA NUOVA DOMANDA
+        function generateQuestion() {
+            // Resetta stili
+            numB.innerText = "?";
+            numB.classList.remove('correct-anim');
+            feedback.innerText = "Tocca il numero giusto!";
+            feedback.style.color = "#666";
+
+            // Logica matematica semplice
+            // Sceglie un numero casuale tra 0 e il target
+            currentA = Math.floor(Math.random() * (currentTarget + 1));
+            correctB = currentTarget - currentA;
+
+            // Mostra a schermo
+            numA.innerText = currentA;
+        }
+
+        // CONTROLLA RISPOSTA
+        function checkAnswer(guess, btnElement) {
+            if (guess === correctB) {
+                // RISPOSTA CORRETTA
+                numB.innerText = guess;
+                numB.classList.add('correct-anim');
+                feedback.innerText = "Bravissima! 🎉";
+                feedback.style.color = "var(--secondary)";
+                
+                // Effetto sonoro semplice (opzionale) o pausa prima della prossima
+                setTimeout(generateQuestion, 1500);
+            } else {
+                // RISPOSTA SBAGLIATA
+                btnElement.classList.add('wrong-anim');
+                feedback.innerText = "Riprova! 💪";
+                feedback.style.color = "var(--primary)";
+                
+                // Rimuove l'animazione dopo che ha finito per poterla riusare
+                setTimeout(() => {
+                    btnElement.classList.remove('wrong-anim');
+                }, 500);
+            }
+        }
+
+        // Avvia tutto
+        init();
+    </script>
+</body>
+</html>
