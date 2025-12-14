@@ -1,0 +1,315 @@
+<!DOCTYPE html>
+<html lang="it">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+    <title>Memory Famiglia Chris</title>
+    <style>
+        body {
+            margin: 0;
+            padding: 0;
+            font-family: 'Comic Sans MS', 'Arial', sans-serif;
+            background: linear-gradient(135deg, #fff1eb 0%, #ace0f9 100%);
+            height: 100vh;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            user-select: none;
+            overflow: hidden;
+        }
+
+        /* --- SCHERMATA INIZIALE --- */
+        #menu-overlay {
+            position: fixed; top: 0; left: 0; width: 100%; height: 100%;
+            background: rgba(255, 255, 255, 0.98);
+            z-index: 100;
+            display: flex; flex-direction: column; justify-content: center; align-items: center;
+        }
+        
+        h1 { color: #333; margin-bottom: 30px; text-align: center; }
+        
+        .btn {
+            background: #2196F3; color: white; border: none; 
+            padding: 15px 40px; margin: 10px;
+            font-size: 1.5rem; border-radius: 50px;
+            cursor: pointer; box-shadow: 0 5px 15px rgba(0,0,0,0.2);
+            width: 80%; max-width: 300px;
+            transition: transform 0.1s;
+        }
+        .btn:active { transform: scale(0.95); }
+        .btn-easy { background: #4CAF50; } /* Verde per Chris */
+        .btn-medium { background: #FF9800; }
+        .btn-hard { background: #F44336; }
+
+        /* --- GRIGLIA DI GIOCO --- */
+        #game-board {
+            display: grid;
+            gap: 10px;
+            padding: 10px;
+            width: 100%;
+            max-width: 600px;
+            margin: auto;
+            perspective: 1000px;
+        }
+
+        /* --- CARTA --- */
+        .card {
+            background-color: transparent;
+            cursor: pointer;
+            position: relative;
+            aspect-ratio: 1 / 1; /* Quadrata */
+            transform-style: preserve-3d;
+            transition: transform 0.5s;
+        }
+
+        .card.flipped {
+            transform: rotateY(180deg);
+        }
+
+        .card-face {
+            position: absolute;
+            width: 100%; height: 100%;
+            backface-visibility: hidden;
+            border-radius: 10px;
+            display: flex; justify-content: center; align-items: center;
+            box-shadow: 0 4px 8px rgba(0,0,0,0.2);
+        }
+
+        /* Fronte (Coperta) */
+        .card-front {
+            background: linear-gradient(45deg, #FF4081, #FF80AB);
+            color: white;
+            font-size: 2rem;
+            transform: rotateY(0deg);
+        }
+        .card-front::after { content: '❓'; font-size: 40px;}
+
+        /* Retro (Immagine) */
+        .card-back {
+            background-color: white;
+            transform: rotateY(180deg);
+            border: 4px solid #fff;
+            overflow: hidden;
+        }
+        .card-back img {
+            width: 100%; height: 100%; object-fit: cover;
+        }
+
+        /* --- MESSAGGIO VITTORIA --- */
+        #victory-msg {
+            position: fixed; top: 50%; left: 50%; transform: translate(-50%, -50%);
+            background: white; padding: 30px; border-radius: 20px;
+            box-shadow: 0 0 50px rgba(0,0,0,0.5);
+            text-align: center; display: none; z-index: 50;
+        }
+        #victory-msg h2 { margin: 0 0 20px 0; color: #4CAF50; font-size: 2rem; }
+
+        /* --- CORIANDOLI --- */
+        .particle { position: absolute; pointer-events: none; z-index: 200; }
+    </style>
+</head>
+<body>
+
+    <div id="menu-overlay">
+        <h1>🧠 Memory di Chris</h1>
+        <button class="btn btn-easy" onclick="startGame(3)">Facile (Chris)</button>
+        <button class="btn btn-medium" onclick="startGame(6)">Medio</button>
+        <button class="btn btn-hard" onclick="startGame(10)">Difficile</button>
+    </div>
+
+    <div id="game-board"></div>
+
+    <div id="victory-msg">
+        <h2>🎉 BRAVO CHRIS! 🎉</h2>
+        <button class="btn" onclick="location.reload()">Gioca ancora</button>
+    </div>
+
+    <script>
+        // --- DATI FAMIGLIA (Aggiornati con i tuoi nomi file corretti) ---
+        const allFamily = [
+            { id: "Gabriele", file: "Gabriele.jpg", text: "Ecco Papà Gabriele!" },
+            { id: "Julie", file: "Julie.jpg", text: "La sorellina Julie!" },
+            { id: "Jessica", file: "Jessica.jpg", text: "Mamma Jessica!" },
+            { id: "Christopher", file: "Christopher.jpg", text: "Sei tu Chris!" },
+            { id: "Nonna Letizia", file: "Nonna_Letizia.jpg", text: "Nonna Letizia!" },
+            { id: "Nonna Rosa", file: "Nonna_Rosa.jpg", text: "Nonna Rosa!" }, // Aggiornato
+            { id: "Nonna Lucia", file: "Nonna_Lucia.jpg", text: "Nonna Lucia!" },
+            { id: "Nonno Fiore", file: "Nonno_Fiore.jpg", text: "Nonno Fiore!" },
+            { id: "Zia Beatrice", file: "Zia_Beatrice.jpg", text: "Zia Beatrice!" },
+            { id: "Zio Lorenzo", file: "Zio_Lorenzo.jpg", text: "Zio Lorenzo!" },
+            { id: "Zio Loris", file: "Zio_Loris.jpg", text: "Zio Loris!" },
+            { id: "Nonna Sonia", file: "Nonna_Sonia.jpg", text: "Nonna Sonia!" },
+            { id: "Nonno Ugo", file: "Nonno_Ugo.jpg", text: "Nonno Ugo!" },
+            { id: "Zio Nicolas", file: "Zio_Nicolas.jpg", text: "Zio Nicolas!" },
+            { id: "Zia Alessia", file: "Zia_Alessia.jpg", text: "Zia Alessia!" },
+            { id: "Nonna Alla", file: "Nonna_Alla.jpg", text: "Nonna Alla!" }, // Aggiornato
+            { id: "Nonno Gianluca", file: "Nonno_Gianluca.jpg", text: "Nonno Gianluca!" }, // Aggiornato
+            { id: "Nonno Raffaele", file: "Nonno_Raffaele.jpg", text: "Nonno Raffaele!" } // Aggiornato
+        ];
+
+        let hasFlippedCard = false;
+        let lockBoard = false;
+        let firstCard, secondCard;
+        let matchedPairs = 0;
+        let totalPairs = 0;
+
+        // --- AVVIO ---
+        function startGame(pairs) {
+            totalPairs = pairs;
+            matchedPairs = 0;
+            document.getElementById('menu-overlay').style.display = 'none';
+            
+            const board = document.getElementById('game-board');
+            board.innerHTML = ''; // Pulisce
+
+            // 1. Imposta griglia in base alla difficoltà
+            if(pairs === 3) { // Facile
+                board.style.gridTemplateColumns = "repeat(2, 1fr)"; // 2 colonne
+            } else if (pairs === 6) { // Medio
+                board.style.gridTemplateColumns = "repeat(3, 1fr)"; // 3 colonne
+            } else { // Difficile
+                board.style.gridTemplateColumns = "repeat(4, 1fr)"; // 4 colonne
+            }
+
+            // 2. Scegli carte casuali
+            // Mischia tutto l'array famiglia
+            const shuffledFamily = allFamily.sort(() => 0.5 - Math.random());
+            // Prendi solo i primi 'n' elementi
+            const selected = shuffledFamily.slice(0, pairs);
+            
+            // 3. Duplica per creare le coppie
+            const deck = [...selected, ...selected];
+            // Mischia il mazzo finale
+            deck.sort(() => 0.5 - Math.random());
+
+            // 4. Crea HTML
+            deck.forEach(person => {
+                const card = document.createElement('div');
+                card.classList.add('card');
+                card.dataset.name = person.id; // Per controllare match
+                card.dataset.text = person.text; // Per la voce
+                
+                // Fronte (coperto)
+                const front = document.createElement('div');
+                front.classList.add('card-face', 'card-front');
+                
+                // Retro (immagine)
+                const back = document.createElement('div');
+                back.classList.add('card-face', 'card-back');
+                const img = document.createElement('img');
+                img.src = person.file;
+                img.onerror = function() { this.style.display='none'; back.innerText='?'; };
+                back.appendChild(img);
+
+                card.appendChild(front);
+                card.appendChild(back);
+                
+                card.addEventListener('click', flipCard);
+                board.appendChild(card);
+            });
+
+            // Riscaldamento voce
+            speak("Trova le coppie!");
+        }
+
+        // --- LOGICA GIOCO ---
+        function flipCard() {
+            if (lockBoard) return;
+            if (this === firstCard) return; // Non cliccare due volte la stessa
+
+            this.classList.add('flipped');
+
+            if (!hasFlippedCard) {
+                // Prima carta
+                hasFlippedCard = true;
+                firstCard = this;
+                return;
+            }
+
+            // Seconda carta
+            secondCard = this;
+            checkForMatch();
+        }
+
+        function checkForMatch() {
+            let isMatch = firstCard.dataset.name === secondCard.dataset.name;
+
+            if (isMatch) {
+                disableCards();
+                // Parla!
+                speak(firstCard.dataset.text);
+                matchedPairs++;
+                if(matchedPairs === totalPairs) {
+                    setTimeout(victory, 1000);
+                }
+            } else {
+                unflipCards();
+            }
+        }
+
+        function disableCards() {
+            firstCard.removeEventListener('click', flipCard);
+            secondCard.removeEventListener('click', flipCard);
+            resetBoard();
+        }
+
+        function unflipCards() {
+            lockBoard = true;
+            setTimeout(() => {
+                firstCard.classList.remove('flipped');
+                secondCard.classList.remove('flipped');
+                resetBoard();
+            }, 1200); // Tempo per memorizzare
+        }
+
+        function resetBoard() {
+            [hasFlippedCard, lockBoard] = [false, false];
+            [firstCard, secondCard] = [null, null];
+        }
+
+        // --- AUDIO ---
+        function speak(text) {
+            window.speechSynthesis.cancel();
+            const utterance = new SpeechSynthesisUtterance(text);
+            utterance.lang = 'it-IT';
+            utterance.rate = 1.0;
+            window.speechSynthesis.speak(utterance);
+        }
+
+        // --- VITTORIA ---
+        function victory() {
+            document.getElementById('victory-msg').style.display = 'block';
+            speak("Bravo Chris! Hai vinto!");
+            createConfetti();
+        }
+
+        function createConfetti() {
+            const colors = ['#f00', '#0f0', '#00f', '#ff0', '#0ff', '#f0f'];
+            for(let i=0; i<100; i++) {
+                const p = document.createElement('div');
+                p.classList.add('particle');
+                document.body.appendChild(p);
+                
+                const x = Math.random() * window.innerWidth;
+                const y = Math.random() * window.innerHeight;
+                const color = colors[Math.floor(Math.random() * colors.length)];
+                
+                p.style.left = x + 'px';
+                p.style.top = y + 'px';
+                p.style.width = '10px'; p.style.height = '10px';
+                p.style.backgroundColor = color;
+                
+                p.animate([
+                    { transform: `translate(0,0)`, opacity: 1 },
+                    { transform: `translate(${Math.random()*200-100}px, ${Math.random()*200+100}px)`, opacity: 0 }
+                ], {
+                    duration: 1500,
+                    easing: 'ease-out'
+                });
+                
+                setTimeout(()=>p.remove(), 1500);
+            }
+        }
+    </script>
+</body>
+</html>
