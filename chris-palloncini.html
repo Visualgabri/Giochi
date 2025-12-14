@@ -1,0 +1,245 @@
+<!DOCTYPE html>
+<html lang="it">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+    <title>I Palloncini di Chris</title>
+    <style>
+        body {
+            margin: 0;
+            overflow: hidden;
+            font-family: 'Comic Sans MS', 'Arial', sans-serif;
+            background: linear-gradient(to top, #a18cd1 0%, #fbc2eb 100%);
+            touch-action: manipulation;
+            user-select: none;
+        }
+
+        /* Schermata Iniziale */
+        #start-overlay {
+            position: fixed; top: 0; left: 0; width: 100%; height: 100%;
+            background: rgba(255, 255, 255, 0.95); z-index: 100;
+            display: flex; flex-direction: column; justify-content: center; align-items: center;
+            text-align: center;
+        }
+        #start-btn {
+            background: #FF4081; color: white; border: none; padding: 20px 50px;
+            font-size: 2rem; border-radius: 50px; margin-top: 20px;
+            box-shadow: 0 10px 20px rgba(0,0,0,0.2); cursor: pointer;
+            animation: bounce 1s infinite;
+        }
+
+        @keyframes bounce { 0%, 100% { transform: scale(1); } 50% { transform: scale(1.1); } }
+
+        /* Punteggio */
+        #score-board {
+            position: absolute; top: 10px; left: 10px;
+            font-size: 1.5rem; color: white; font-weight: bold;
+            text-shadow: 2px 2px 0px #000; z-index: 50;
+            pointer-events: none;
+        }
+
+        /* Container del gioco */
+        #game-container {
+            position: relative; width: 100vw; height: 100vh;
+            overflow: hidden;
+        }
+
+        /* Stile Palloncino */
+        .balloon {
+            position: absolute; bottom: -150px;
+            width: 100px; height: 120px;
+            background-color: rgba(255, 255, 255, 0.9);
+            border-radius: 50%;
+            display: flex; justify-content: center; align-items: center;
+            font-size: 50px; cursor: pointer;
+            box-shadow: inset -10px -10px 20px rgba(0,0,0,0.1), 5px 10px 15px rgba(0,0,0,0.2);
+            animation: floatUp linear forwards;
+            user-select: none;
+            -webkit-tap-highlight-color: transparent;
+        }
+        
+        /* Coda del palloncino */
+        .balloon::after {
+            content: ''; position: absolute; bottom: -10px; left: 50%; transform: translateX(-50%);
+            width: 0; height: 0; border-left: 10px solid transparent; border-right: 10px solid transparent;
+            border-top: 15px solid inherit; /* Prende il colore del palloncino via JS */
+        }
+
+        @keyframes floatUp {
+            0% { transform: translateY(0) rotate(0deg); }
+            100% { transform: translateY(-120vh) rotate(10deg); }
+        }
+
+        /* Animazione Esplosione */
+        .pop-anim {
+            animation: popEffect 0.2s ease-out forwards;
+        }
+        @keyframes popEffect {
+            0% { transform: scale(1); opacity: 1; }
+            50% { transform: scale(1.4); opacity: 0.8; }
+            100% { transform: scale(0); opacity: 0; }
+        }
+
+        /* Particelle esplosione */
+        .particle {
+            position: absolute; width: 10px; height: 10px; pointer-events: none;
+            border-radius: 50%;
+        }
+    </style>
+</head>
+<body>
+
+    <div id="start-overlay">
+        <h1 style="color:#333; margin:0;">🎈 Ciao Chris! 🎈</h1>
+        <p style="font-size: 1.2rem; color:#666;">Scoppia i palloncini!</p>
+        <button id="start-btn">GIOCA ▶️</button>
+    </div>
+
+    <div id="score-board">Punti: <span id="score">0</span></div>
+    <div id="game-container"></div>
+
+    <script>
+        const container = document.getElementById('game-container');
+        const scoreEl = document.getElementById('score');
+        const startOverlay = document.getElementById('start-overlay');
+        const startBtn = document.getElementById('start-btn');
+        
+        let score = 0;
+        let gameActive = false;
+        let spawnRate = 1200; // Millisecondi tra un palloncino e l'altro
+
+        // --- DATI PERSONALIZZATI (Chris & Famiglia) ---
+        const items = [
+            { icon: '🐯', color: '#FFA500', text: "ROAAAR! La tigre!", pitch: 0.2 },
+            { icon: '🔫', color: '#444444', text: "Pum Pum! Beccato!", pitch: 1.0 },
+            { icon: '🚗', color: '#FF4444', text: "Brum Brum! La macchinina di papà!", pitch: 0.6 },
+            { icon: '👧', color: '#FF69B4', text: "È la sorellina Julie!", pitch: 1.4 },
+            { icon: '🎅', color: '#FF0000', text: "Oh Oh Oh! Babbo Natale!", pitch: 0.4 },
+            { icon: '👴', color: '#8BC34A', text: "Ugooo! Sono il nonno Ugo!", pitch: 1.5 }, // Voce buffa
+            { icon: '👵', color: '#9C27B0', text: "Ciao da Nonna Lucia!", pitch: 1.2 },
+            { icon: '🏋️', color: '#2196F3', text: "Papà Gabriele è fortissimo!", pitch: 0.5 },
+            { icon: '👩', color: '#E91E63', text: "Un bacio da Mamma Jessica!", pitch: 1.1 },
+            { icon: '🦖', color: '#4CAF50', text: "Il Dinosauro! Graaaaur!", pitch: 0.3 },
+            { icon: '🌸', color: '#FF9800', text: "Nonna Letizia ti saluta!", pitch: 1.1 },
+            { icon: '🍪', color: '#795548', text: "Nonna Sonia ha fatto i biscotti!", pitch: 1.0 },
+            { icon: '👴', color: '#607D8B', text: "Ciao da Nonno Fiore!", pitch: 0.8 }
+        ];
+
+        // --- MOTORE DI GIOCO ---
+        function createBalloon() {
+            if (!gameActive) return;
+
+            const item = items[Math.floor(Math.random() * items.length)];
+            const el = document.createElement('div');
+            el.classList.add('balloon');
+            el.innerText = item.icon;
+            
+            // Posizione casuale orizzontale
+            const randomLeft = Math.floor(Math.random() * (window.innerWidth - 100));
+            el.style.left = randomLeft + 'px';
+            
+            // Colore casuale pastello o specifico
+            el.style.backgroundColor = item.color;
+            el.style.borderTopColor = item.color; // Per la codina
+            
+            // Velocità variabile
+            const duration = Math.random() * 3 + 4; // Tra 4 e 7 secondi
+            el.style.animationDuration = duration + 's';
+
+            // GESTIONE CLICK/TOUCH
+            const popHandler = (e) => {
+                e.preventDefault(); 
+                e.stopPropagation();
+                popBalloon(el, item);
+            };
+            
+            el.addEventListener('mousedown', popHandler);
+            el.addEventListener('touchstart', popHandler);
+
+            container.appendChild(el);
+
+            // Rimuovi se esce dallo schermo
+            setTimeout(() => {
+                if (el.parentNode) el.remove();
+            }, duration * 1000);
+
+            // Prossimo palloncino
+            setTimeout(createBalloon, spawnRate);
+        }
+
+        function popBalloon(el, item) {
+            // Evita doppi click
+            if(el.classList.contains('popped')) return;
+            el.classList.add('popped');
+
+            // Suono
+            speak(item.text, item.pitch);
+
+            // Effetto grafico
+            el.style.animation = 'none'; // Ferma movimento
+            el.classList.add('pop-anim'); // Animazione scoppio
+            createConfetti(el.offsetLeft + 50, el.offsetTop + 60, item.color);
+
+            // Punti
+            score++;
+            scoreEl.innerText = score;
+
+            // Rimuovi elemento dopo animazione
+            setTimeout(() => { el.remove(); }, 200);
+            
+            // Aumenta difficoltà leggermente
+            if(spawnRate > 400) spawnRate -= 10;
+        }
+
+        // --- CORIANDOLI ---
+        function createConfetti(x, y, color) {
+            for(let i=0; i<8; i++) {
+                const p = document.createElement('div');
+                p.classList.add('particle');
+                p.style.backgroundColor = color;
+                p.style.left = x + 'px';
+                p.style.top = y + 'px';
+                container.appendChild(p);
+
+                // Movimento esplosivo casuale
+                const angle = Math.random() * Math.PI * 2;
+                const velocity = Math.random() * 100 + 50;
+                const tx = Math.cos(angle) * velocity;
+                const ty = Math.sin(angle) * velocity;
+
+                p.animate([
+                    { transform: 'translate(0,0) scale(1)', opacity: 1 },
+                    { transform: `translate(${tx}px, ${ty}px) scale(0)`, opacity: 0 }
+                ], {
+                    duration: 600,
+                    easing: 'ease-out'
+                });
+
+                setTimeout(() => p.remove(), 600);
+            }
+        }
+
+        // --- AUDIO TTS ---
+        function speak(text, pitch) {
+            window.speechSynthesis.cancel();
+            const utterance = new SpeechSynthesisUtterance(text);
+            utterance.lang = 'it-IT';
+            utterance.rate = 1.0; 
+            utterance.pitch = pitch || 1;
+            window.speechSynthesis.speak(utterance);
+        }
+
+        // --- AVVIO ---
+        startBtn.addEventListener('click', () => {
+            startOverlay.style.display = 'none';
+            gameActive = true;
+            
+            // Riscaldamento audio (necessario su mobile)
+            speak("Pronti, partenza, via!");
+            
+            createBalloon();
+        });
+
+    </script>
+</body>
+</html>

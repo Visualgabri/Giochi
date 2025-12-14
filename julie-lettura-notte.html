@@ -1,0 +1,283 @@
+<!DOCTYPE html>
+<html lang="it">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>La Lettura di Julie - Niente Sonno!</title>
+    <link href="https://fonts.googleapis.com/css2?family=Patrick+Hand&family=Fredoka+One&display=swap" rel="stylesheet">
+    <script src="https://cdn.jsdelivr.net/npm/canvas-confetti@1.6.0/dist/confetti.browser.min.js"></script>
+    <style>
+        :root {
+            --primary: #2c3e50;
+            --accent: #f1c40f;
+            --bg-start: #87CEEB; /* Giorno */
+            --bg-end: #1a1a2e;   /* Notte */
+        }
+
+        body {
+            font-family: 'Patrick Hand', cursive;
+            margin: 0;
+            min-height: 100vh;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            background: linear-gradient(to bottom, var(--bg-start), #e0f7fa);
+            transition: background 1s ease;
+            overflow-x: hidden;
+        }
+
+        .container {
+            max-width: 800px;
+            width: 90%;
+            background: rgba(255, 255, 255, 0.95);
+            padding: 2rem;
+            border-radius: 20px;
+            box-shadow: 0 10px 25px rgba(0,0,0,0.1);
+            margin-top: 20px;
+            text-align: center;
+            border: 5px solid #fff;
+        }
+
+        h1 {
+            font-family: 'Fredoka One', cursive;
+            color: #d35400;
+            font-size: 2.5rem;
+            margin-bottom: 10px;
+        }
+
+        .story-box {
+            font-size: 1.8rem;
+            line-height: 1.6;
+            color: #2c3e50;
+            text-align: left;
+            padding: 20px;
+            background: #fff3e0;
+            border-radius: 15px;
+            border: 2px dashed #ffb74d;
+            margin: 20px 0;
+            white-space: pre-line; /* Mantiene a capo */
+        }
+
+        .story-text span {
+            display: inline-block;
+            transition: transform 0.2s;
+        }
+        
+        /* Highlight words on hover for interaction */
+        .story-text span:hover {
+            transform: scale(1.2);
+            color: #e67e22;
+            cursor: default;
+        }
+
+        .controls {
+            margin-top: 20px;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            gap: 15px;
+        }
+
+        .stars-container {
+            display: flex;
+            gap: 10px;
+            font-size: 3rem;
+            color: #bdc3c7;
+        }
+
+        .star.active {
+            color: #f1c40f;
+            animation: pop 0.5s ease;
+        }
+
+        button#readBtn {
+            font-family: 'Fredoka One', cursive;
+            font-size: 1.5rem;
+            padding: 15px 40px;
+            background-color: #2ecc71;
+            color: white;
+            border: none;
+            border-radius: 50px;
+            cursor: pointer;
+            box-shadow: 0 6px 0 #27ae60;
+            transition: transform 0.1s;
+        }
+
+        button#readBtn:active {
+            transform: translateY(6px);
+            box-shadow: none;
+        }
+
+        button#readBtn:disabled {
+            background-color: #95a5a6;
+            box-shadow: none;
+            cursor: not-allowed;
+        }
+
+        .progress-text {
+            font-size: 1.2rem;
+            color: #7f8c8d;
+            font-weight: bold;
+        }
+
+        .matteo-status {
+            font-size: 4rem;
+            margin: 10px;
+        }
+
+        @keyframes pop {
+            0% { transform: scale(1); }
+            50% { transform: scale(1.5); }
+            100% { transform: scale(1); }
+        }
+
+        /* Dark mode class for night progression */
+        body.step-1 { background: linear-gradient(to bottom, #5D9CEC, #b3e5fc); }
+        body.step-2 { background: linear-gradient(to bottom, #4A89DC, #81d4fa); }
+        body.step-3 { background: linear-gradient(to bottom, #3b60a0, #4fc3f7); }
+        body.step-4 { background: linear-gradient(to bottom, #2c3e50, #2980b9); }
+        body.step-5 { background: linear-gradient(to bottom, #1a1a2e, #16213e); }
+        
+        body.step-5 .container {
+            box-shadow: 0 0 30px #f1c40f; /* Glow finale */
+        }
+    </style>
+</head>
+<body>
+
+    <div class="container">
+        <h1>🌙 NIENTE SONNO 🦁</h1>
+        
+        <div class="matteo-status" id="matteoIcon">🛏️🏃</div>
+        
+        <div class="story-box">
+            <div class="story-text" id="textDisplay">
+                </div>
+        </div>
+
+        <div class="controls">
+            <div class="progress-text" id="msg">Leggi la storia e poi premi il pulsante!</div>
+            
+            <div class="stars-container">
+                <div class="star" id="s1">★</div>
+                <div class="star" id="s2">★</div>
+                <div class="star" id="s3">★</div>
+                <div class="star" id="s4">★</div>
+                <div class="star" id="s5">★</div>
+            </div>
+
+            <button id="readBtn" onclick="registerRead()">HO LETTO!</button>
+        </div>
+    </div>
+
+    <script>
+        // Il testo trascritto dall'immagine
+        const text = `È NOTTE. MATTEO È A LETTO, MA... NIENTE SONNO!
+SI SENTE UN LEONE.
+LA MAMMA TENTA UNA NINNA NANNA,
+MA MATTEO SALTA SUL LETTO.
+SOLO LA LUNA E LE STELLE
+PISOLANO NELLA NOTTE.`;
+
+        // Preparazione testo interattivo
+        const textDisplay = document.getElementById('textDisplay');
+        // Wrappiamo ogni parola in uno span per renderlo carino
+        textDisplay.innerHTML = text.split('\n').map(line => {
+            return line.split(' ').map(word => `<span>${word}</span>`).join(' ');
+        }).join('<br>');
+
+        let count = 0;
+        const total = 5;
+        const messages = [
+            "Brava Julie! Ancora 4 volte!",
+            "Ottimo! Matteo inizia a sbadigliare...",
+            "Wow! Siamo a metà strada!",
+            "Quasi fatto! Metti il pigiama a Matteo...",
+            "ULTIMA VOLTA! Leggi fortissimo!"
+        ];
+
+        // Audio sounds (note generate sinteticamente per non dipendere da file esterni)
+        const AudioContext = window.AudioContext || window.webkitAudioContext;
+        const audioCtx = new AudioContext();
+
+        function playSound(type) {
+            const osc = audioCtx.createOscillator();
+            const gain = audioCtx.createGain();
+            osc.connect(gain);
+            gain.connect(audioCtx.destination);
+
+            if (type === 'success') {
+                osc.type = 'sine';
+                osc.frequency.setValueAtTime(500, audioCtx.currentTime);
+                osc.frequency.exponentialRampToValueAtTime(1000, audioCtx.currentTime + 0.1);
+                gain.gain.setValueAtTime(0.3, audioCtx.currentTime);
+                gain.gain.exponentialRampToValueAtTime(0.01, audioCtx.currentTime + 0.3);
+                osc.start();
+                osc.stop(audioCtx.currentTime + 0.3);
+            } else if (type === 'win') {
+                // Fanfare simulata
+                osc.type = 'triangle';
+                osc.frequency.setValueAtTime(400, audioCtx.currentTime);
+                osc.frequency.setValueAtTime(600, audioCtx.currentTime + 0.2);
+                osc.frequency.setValueAtTime(1000, audioCtx.currentTime + 0.4);
+                gain.gain.value = 0.3;
+                gain.gain.linearRampToValueAtTime(0, audioCtx.currentTime + 1);
+                osc.start();
+                osc.stop(audioCtx.currentTime + 1);
+            }
+        }
+
+        function registerRead() {
+            if (count >= total) return;
+
+            count++;
+            
+            // Aggiorna Stelle
+            document.getElementById(`s${count}`).classList.add('active');
+            
+            // Cambia Sfondo (progressivamente più notte)
+            document.body.classList.remove(`step-${count-1}`);
+            document.body.classList.add(`step-${count}`);
+
+            // Suono
+            playSound('success');
+
+            // Logica Progressioni
+            const msgEl = document.getElementById('msg');
+            const iconEl = document.getElementById('matteoIcon');
+
+            if (count < total) {
+                msgEl.innerText = messages[count - 1];
+                if(count === 3) iconEl.innerText = "🥱🧸"; // Sbadiglio
+            } else {
+                // VITTORIA
+                msgEl.innerText = "FANTASTICO! MATTEO DORME! 😴💤";
+                msgEl.style.color = "#27ae60";
+                msgEl.style.fontSize = "1.5rem";
+                iconEl.innerText = "😴🌙"; // Dorme
+                
+                document.getElementById('readBtn').innerText = "BRAVISSIMA JULIE!";
+                document.getElementById('readBtn').disabled = true;
+                
+                playSound('win');
+                fireConfetti();
+                // Fuochi d'artificio continui per qualche secondo
+                let end = Date.now() + 3000;
+                let frame = () => {
+                    confetti({ particleCount: 5, spread: 60, origin: { y: 0.6 } });
+                    if (Date.now() < end) requestAnimationFrame(frame);
+                };
+                frame();
+            }
+        }
+
+        function fireConfetti() {
+            confetti({
+                particleCount: 150,
+                spread: 70,
+                origin: { y: 0.6 }
+            });
+        }
+    </script>
+</body>
+</html>
