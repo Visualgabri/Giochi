@@ -1,0 +1,238 @@
+<!DOCTYPE html>
+<html lang="it">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+    <title>La Famiglia di Chris</title>
+    <style>
+        body {
+            margin: 0;
+            overflow: hidden;
+            font-family: 'Comic Sans MS', 'Arial', sans-serif;
+            background: linear-gradient(135deg, #e0c3fc 0%, #8ec5fc 100%); /* Colori pastello */
+            touch-action: manipulation;
+            user-select: none;
+        }
+
+        /* --- UI DI PARTENZA --- */
+        #start-overlay {
+            position: fixed; top: 0; left: 0; width: 100%; height: 100%;
+            background: rgba(255, 255, 255, 0.95); z-index: 100;
+            display: flex; flex-direction: column; justify-content: center; align-items: center;
+            text-align: center;
+        }
+        #start-btn {
+            background: #FF4081; color: white; border: none; padding: 25px 60px;
+            font-size: 2rem; border-radius: 60px; margin-top: 30px;
+            box-shadow: 0 10px 20px rgba(0,0,0,0.2); cursor: pointer;
+            animation: pulse 1.5s infinite;
+        }
+        @keyframes pulse { 0% { transform: scale(1); } 50% { transform: scale(1.05); } 100% { transform: scale(1); } }
+
+        h1 { font-size: 2.5rem; color: #333; margin-bottom: 10px; }
+        p { font-size: 1.5rem; color: #666; margin: 0; }
+
+        /* --- GIOCO --- */
+        #game-container {
+            position: relative; width: 100vw; height: 100vh; overflow: hidden;
+        }
+
+        /* La Bolla */
+        .bubble {
+            position: absolute; bottom: -180px;
+            width: 140px; height: 140px;
+            border-radius: 50%;
+            border: 5px solid white;
+            box-shadow: 0 8px 15px rgba(0,0,0,0.2);
+            overflow: hidden; 
+            cursor: pointer;
+            animation: floatUp linear forwards;
+            background-color: white;
+            /* Per centrare l'immagine */
+            display: flex; justify-content: center; align-items: center;
+        }
+
+        /* L'immagine dentro */
+        .bubble img {
+            width: 100%; height: 100%;
+            object-fit: cover; /* Riempie il cerchio perfettamente */
+            pointer-events: none; /* Il click passa alla bolla */
+        }
+
+        @keyframes floatUp {
+            0% { transform: translateY(0) rotate(-5deg); }
+            100% { transform: translateY(-120vh) rotate(5deg); }
+        }
+
+        /* Animazione Scoppio */
+        .pop-anim { animation: popEffect 0.2s ease-out forwards; }
+        @keyframes popEffect {
+            0% { transform: scale(1); opacity: 1; }
+            50% { transform: scale(1.4); opacity: 0.8; }
+            100% { transform: scale(0); opacity: 0; }
+        }
+
+        /* Coriandoli */
+        .particle { position: absolute; width: 12px; height: 12px; border-radius: 50%; pointer-events: none; z-index: 10; }
+    </style>
+</head>
+<body>
+
+    <div id="start-overlay">
+        <h1>👨‍👩‍👧‍👦 Ciao Chris!</h1>
+        <p>Chi c'è nelle bolle?</p>
+        <button id="start-btn">GIOCA ▶️</button>
+    </div>
+
+    <div id="game-container"></div>
+
+    <script>
+        const container = document.getElementById('game-container');
+        const startBtn = document.getElementById('start-btn');
+        const overlay = document.getElementById('start-overlay');
+        
+        let gameActive = false;
+        let spawnRate = 1400; // Tempo tra una bolla e l'altra (ms)
+
+        // --- LISTA PARENTI E FILE ---
+        // Assicurati che i nomi dei file nella cartella img/ siano ESATTI
+        const family = [
+            { id: "Gabriele", file: "Gabriele.jpg", text: "Ecco Papà Gabriele!", color: "#2196F3", pitch: 0.7 },
+            { id: "Julie", file: "Julie.jpg", text: "La sorellina Julie!", color: "#E91E63", pitch: 1.4 },
+            { id: "Jessica", file: "Jessica.jpg", text: "Mamma Jessica!", color: "#E91E63", pitch: 1.2 },
+            { id: "Christopher", file: "Christopher.jpg", text: "Ma sei tu Chris!", color: "#FF9800", pitch: 1.0 },
+            
+            { id: "Nonna Letizia", file: "Nonna_Letizia.jpg", text: "Ciao Nonna Letizia!", color: "#9C27B0", pitch: 1.1 },
+            { id: "Zia Rosa", file: "Nonna_Rosa.jpg", text: "Nonna Rosa!", color: "#673AB7", pitch: 1.1 },
+            { id: "Nonna Lucia", file: "Nonna_Lucia.jpg", text: "Ecco Nonna Lucia!", color: "#9C27B0", pitch: 1.1 },
+            { id: "Nonno Fiore", file: "Nonno_Fiore.jpg", text: "Ciao Nonno Fiore!", color: "#4CAF50", pitch: 0.8 },
+            
+            { id: "Zia Beatrice", file: "Zia_Beatrice.jpg", text: "C'è la Zia Beatrice!", color: "#FF5722", pitch: 1.2 },
+            { id: "Zio Lorenzo", file: "Zio_Lorenzo.jpg", text: "Ciao Zio Lorenzo!", color: "#795548", pitch: 0.9 },
+            { id: "Zio Loris", file: "Zio_Loris.jpg", text: "Zio Loris!", color: "#3F51B5", pitch: 0.8 },
+            { id: "Nonna Sonia", file: "Nonna_Sonia.jpg", text: "Ecco Nonna Sonia!", color: "#E91E63", pitch: 1.1 },
+            
+            { id: "Nonno Ugo", file: "Nonno_Ugo.jpg", text: "Ugooo! Nonno Ugo!", color: "#8BC34A", pitch: 1.5 }, // Voce buffa
+            { id: "Zio Nicolas", file: "Zio_Nicolas.jpg", text: "Zio Nicolas!", color: "#009688", pitch: 0.9 },
+            { id: "Zia Alessia", file: "Zia_Alessia.jpg", text: "Ciao Zia Alessia!", color: "#607D8B", pitch: 1.1 },
+            { id: "Zia Alla", file: "Nonno_Alla.jpg", text: "Nonna Alla!", color: "#9E9E9E", pitch: 1.1 },
+            
+            { id: "Zio Gianluca", file: "Nonno_Gianluca.jpg", text: "Nonno Gianluca!", color: "#FFC107", pitch: 0.9 },
+            { id: "Zio Raffaele", file: "Nonno_Raffaele.jpg", text: "Ciao Nonno Raffaele!", color: "#00BCD4", pitch: 0.9 }
+        ];
+
+        // Funzione per parlare
+        function speak(text, pitch) {
+            window.speechSynthesis.cancel();
+            const utterance = new SpeechSynthesisUtterance(text);
+            utterance.lang = 'it-IT';
+            utterance.rate = 1.0;
+            utterance.pitch = pitch || 1.0;
+            window.speechSynthesis.speak(utterance);
+        }
+
+        function createMember() {
+            if (!gameActive) return;
+
+            // Scelta casuale
+            const person = family[Math.floor(Math.random() * family.length)];
+            
+            // Creazione elementi
+            const bubble = document.createElement('div');
+            bubble.classList.add('bubble');
+            bubble.style.borderColor = person.color; // Bordo colorato personalizzato
+            
+            // Immagine
+            const img = document.createElement('img');
+            img.src = "img/" + person.file; // Percorso relativo
+            img.onerror = function() { this.src = ''; this.alt = '?'; }; // Fallback se manca file
+            
+            bubble.appendChild(img);
+            
+            // Posizione orizzontale casuale (evitando bordi estremi)
+            const randomLeft = Math.floor(Math.random() * (window.innerWidth - 150));
+            bubble.style.left = randomLeft + 'px';
+
+            // Velocità casuale
+            const duration = Math.random() * 4 + 5; // Tra 5 e 9 secondi
+            bubble.style.animationDuration = duration + 's';
+
+            // Gestione Click / Touch
+            const touchHandler = (e) => {
+                e.preventDefault(); 
+                e.stopPropagation();
+                popBubble(bubble, person);
+            };
+            bubble.addEventListener('mousedown', touchHandler);
+            bubble.addEventListener('touchstart', touchHandler);
+
+            container.appendChild(bubble);
+
+            // Pulizia automatica se esce dallo schermo
+            setTimeout(() => {
+                if(bubble.parentNode) bubble.remove();
+            }, duration * 1000);
+            
+            // Loop per la prossima bolla
+            setTimeout(createMember, spawnRate);
+        }
+
+        function popBubble(el, person) {
+            if(el.classList.contains('popped')) return;
+            el.classList.add('popped');
+
+            // Voce
+            speak(person.text, person.pitch);
+
+            // Animazione visiva
+            el.style.animation = 'none'; // Ferma il volo
+            el.classList.add('pop-anim'); // Effetto scoppio
+            
+            // Coriandoli colorati
+            createConfetti(el.offsetLeft + 70, el.offsetTop + 70, person.color);
+
+            // Rimozione dal DOM
+            setTimeout(() => { el.remove(); }, 200);
+        }
+
+        function createConfetti(x, y, color) {
+            for(let i=0; i<12; i++) {
+                const p = document.createElement('div');
+                p.classList.add('particle');
+                p.style.backgroundColor = color;
+                p.style.left = x + 'px';
+                p.style.top = y + 'px';
+                container.appendChild(p);
+
+                // Esplosione a raggiera
+                const angle = Math.random() * Math.PI * 2;
+                const velocity = Math.random() * 100 + 50;
+                const tx = Math.cos(angle) * velocity;
+                const ty = Math.sin(angle) * velocity;
+
+                p.animate([
+                    { transform: 'translate(0,0) scale(1)', opacity: 1 },
+                    { transform: `translate(${tx}px, ${ty}px) scale(0)`, opacity: 0 }
+                ], {
+                    duration: 600,
+                    easing: 'ease-out'
+                });
+                
+                setTimeout(() => p.remove(), 600);
+            }
+        }
+
+        // Avvio gioco
+        startBtn.addEventListener('click', () => {
+            overlay.style.display = 'none';
+            gameActive = true;
+            
+            // Riscaldamento audio per iOS/Android
+            speak("Giochiamo con la famiglia!");
+            
+            createMember();
+        });
+
+    </script>
+</body>
+</html>
