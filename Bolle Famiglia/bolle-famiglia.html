@@ -95,7 +95,7 @@
         let spawnRate = 1400; // Tempo tra una bolla e l'altra (ms)
 
         // --- LISTA PARENTI E FILE ---
-        // Assicurati che i nomi dei file nella cartella img/ siano ESATTI
+        // NOTA: I file devono essere nella STESSA cartella di questo file .html
         const family = [
             { id: "Gabriele", file: "Gabriele.jpg", text: "Ecco Papà Gabriele!", color: "#2196F3", pitch: 0.7 },
             { id: "Julie", file: "Julie.jpg", text: "La sorellina Julie!", color: "#E91E63", pitch: 1.4 },
@@ -115,10 +115,10 @@
             { id: "Nonno Ugo", file: "Nonno_Ugo.jpg", text: "Ugooo! Nonno Ugo!", color: "#8BC34A", pitch: 1.5 }, // Voce buffa
             { id: "Zio Nicolas", file: "Zio_Nicolas.jpg", text: "Zio Nicolas!", color: "#009688", pitch: 0.9 },
             { id: "Zia Alessia", file: "Zia_Alessia.jpg", text: "Ciao Zia Alessia!", color: "#607D8B", pitch: 1.1 },
-            { id: "Zia Alla", file: "Nonno_Alla.jpg", text: "Nonna Alla!", color: "#9E9E9E", pitch: 1.1 },
+            { id: "Nonna Alla", file: "Nonna_Alla.jpg", text: "Nonna Alla!", color: "#9E9E9E", pitch: 1.1 },
             
-            { id: "Zio Gianluca", file: "Nonno_Gianluca.jpg", text: "Nonno Gianluca!", color: "#FFC107", pitch: 0.9 },
-            { id: "Zio Raffaele", file: "Nonno_Raffaele.jpg", text: "Ciao Nonno Raffaele!", color: "#00BCD4", pitch: 0.9 }
+            { id: "Nonno Gianluca", file: "Nonno_Gianluca.jpg", text: "Nonno Gianluca!", color: "#FFC107", pitch: 0.9 },
+            { id: "Nonno Raffaele", file: "Nonno_Raffaele.jpg", text: "Ciao Nonno Raffaele!", color: "#00BCD4", pitch: 0.9 }
         ];
 
         // Funzione per parlare
@@ -144,8 +144,15 @@
             
             // Immagine
             const img = document.createElement('img');
-            img.src = "img/" + person.file; // Percorso relativo
-            img.onerror = function() { this.src = ''; this.alt = '?'; }; // Fallback se manca file
+            
+            // *** MODIFICA QUI: Rimosso "img/" perché i file sono nella stessa cartella ***
+            img.src = person.file; 
+            
+            img.onerror = function() { 
+                this.style.display = 'none'; // Nascondi se errore
+                bubble.style.background = person.color; // Mostra solo colore
+                bubble.innerText = "?"; // Punto di domanda
+            }; 
             
             bubble.appendChild(img);
             
