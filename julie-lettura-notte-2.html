@@ -8,9 +8,9 @@
     <script src="https://cdn.jsdelivr.net/npm/canvas-confetti@1.6.0/dist/confetti.browser.min.js"></script>
     <style>
         :root {
-            --bg-start: #87CEEB; /* Giorno */
-            --bg-end: #1a1a2e;   /* Notte */
+            --bg-start: #87CEEB; /* Giorno/Sera */
             --highlight: #e67e22;
+            --tooltip-bg: #fff;
         }
 
         body {
@@ -21,9 +21,10 @@
             flex-direction: column;
             align-items: center;
             background: linear-gradient(to bottom, var(--bg-start), #e0f7fa);
-            transition: background 1.5s ease; /* Transizione più lenta */
+            transition: background 1s ease;
             overflow-x: hidden;
             user-select: none;
+            padding-bottom: 50px;
         }
 
         .container {
@@ -37,7 +38,6 @@
             text-align: center;
             border: 5px solid #fff;
             position: relative;
-            overflow: hidden; /* Per contenere le animazioni */
         }
 
         h1 {
@@ -45,45 +45,34 @@
             color: #d35400;
             font-size: 2.5rem;
             margin-bottom: 10px;
-            position: relative;
-            z-index: 2;
         }
 
-        /* Area per le animazioni di progresso */
-        #animation-stage {
-            height: 80px;
-            display: flex;
-            justify-content: center;
-            align-items: center;
+        .matteo-status {
             font-size: 4rem;
-            margin-bottom: 10px;
-            position: relative;
-            z-index: 1;
+            margin: 10px;
+            height: 60px; /* Altezza fissa per evitare salti */
         }
-        
-        .matteo-status { transition: all 0.5s; display: inline-block; }
 
         .story-box {
-            font-size: 1.9rem;
-            line-height: 1.7;
+            font-size: 1.8rem;
+            line-height: 1.8;
             color: #2c3e50;
             text-align: left;
-            padding: 25px;
+            padding: 20px;
             background: #fff3e0;
             border-radius: 15px;
-            border: 3px dashed #ffb74d;
+            border: 2px dashed #ffb74d;
             margin: 20px 0;
             white-space: pre-line;
             position: relative;
-            z-index: 2;
         }
 
-        /* --- STILE PAROLE INTERATTIVE --- */
+        /* --- STILE PAROLE INTERATTIVE (Comune per storia e messaggi) --- */
         .interactive-word {
             display: inline-block;
-            position: relative;
             transition: transform 0.2s, color 0.2s;
-            cursor: default;
+            position: relative; /* Necessario per il tooltip */
+            cursor: help;
         }
         
         .interactive-word:hover {
@@ -92,23 +81,39 @@
             z-index: 10; /* Porta in primo piano */
         }
 
-        /* L'emoji nascosta che appare sopra la parola */
-        .floating-emoji {
+        /* Tooltip Immagine */
+        .word-img-tooltip {
             position: absolute;
-            bottom: 100%; /* Appare sopra */
+            bottom: 100%; /* Appare sopra la parola */
             left: 50%;
-            transform: translateX(-50%) scale(0); /* Nascosta e piccola */
-            font-size: 3rem;
+            transform: translateX(-50%);
+            width: 80px;
+            height: 80px;
+            background: var(--tooltip-bg);
+            border-radius: 10px;
+            border: 3px solid var(--highlight);
+            padding: 5px;
+            box-shadow: 0 5px 15px rgba(0,0,0,0.2);
             opacity: 0;
-            transition: all 0.3s cubic-bezier(0.175, 0.885, 0.32, 1.275); /* Effetto rimbalzo */
+            visibility: hidden;
+            transition: all 0.3s cubic-bezier(0.68, -0.55, 0.265, 1.55); /* Effetto rimbalzo */
             pointer-events: none;
+            z-index: 20;
         }
 
-        .interactive-word:hover .floating-emoji {
-            transform: translateX(-50%) scale(1) translateY(-10px);
-            opacity: 1;
+        .word-img-tooltip img {
+            width: 100%;
+            height: 100%;
+            object-fit: contain;
         }
-        /* -------------------------------- */
+
+        /* Mostra tooltip al passaggio del mouse */
+        .interactive-word:hover .word-img-tooltip {
+            opacity: 1;
+            visibility: visible;
+            bottom: 120%; /* Si alza leggermente */
+        }
+        /* --------------------------------------------------------- */
 
 
         .controls {
@@ -117,8 +122,6 @@
             flex-direction: column;
             align-items: center;
             gap: 15px;
-            position: relative;
-            z-index: 2;
         }
 
         .stars-container {
@@ -141,53 +144,57 @@
 
         .star.active {
             color: #f1c40f;
-            animation: pop 0.6s ease;
-            text-shadow: 0 0 15px #f39c12;
+            animation: pop 0.5s ease;
+            text-shadow: 0 0 10px #f39c12;
         }
 
-        button#readBtn {
-            font-family: 'Fredoka One', cursive;
-            font-size: 1.5rem;
-            padding: 15px 40px;
-            background-color: #2ecc71;
-            color: white;
-            border: none;
-            border-radius: 50px;
-            cursor: pointer;
-            box-shadow: 0 6px 0 #27ae60;
-            transition: transform 0.1s;
+        /* Area per le animazioni progressive */
+        #scene-container {
+            height: 120px;
+            width: 100%;
+            margin-top: 20px;
+            border-top: 2px dashed #bdc3c7;
+            display: flex;
+            justify-content: space-around;
+            align-items: center;
+            overflow: hidden;
+            background: rgba(255,255,255,0.5);
+            border-radius: 0 0 15px 15px;
         }
 
-        button#readBtn:active { transform: translateY(6px); box-shadow: none; }
-        button#readBtn:disabled { background-color: #95a5a6; box-shadow: none; cursor: not-allowed; transform: translateY(6px); }
-
-        .progress-text-container {
-            font-size: 1.3rem;
-            color: #7f8c8d;
-            font-weight: bold;
-            min-height: 1.5em;
+        .scene-item {
+            width: 80px;
+            height: 80px;
+            object-fit: contain;
+            animation-duration: 2s;
+            animation-iteration-count: infinite;
         }
 
-        /* --- ANIMAZIONI DI PROGRESSO --- */
+        /* Animazioni per gli elementi della scena */
+        @keyframes jump { 0%, 100% { transform: translateY(0); } 50% { transform: translateY(-20px); } }
+        @keyframes shake { 0% { transform: translate(1px, 1px) rotate(0deg); } 10% { transform: translate(-1px, -2px) rotate(-1deg); } 20% { transform: translate(-3px, 0px) rotate(1deg); } 30% { transform: translate(3px, 2px) rotate(0deg); } 40% { transform: translate(1px, -1px) rotate(1deg); } 50% { transform: translate(-1px, 2px) rotate(-1deg); } 60% { transform: translate(-3px, 1px) rotate(0deg); } 70% { transform: translate(3px, 1px) rotate(-1deg); } 80% { transform: translate(-1px, -1px) rotate(1deg); } 90% { transform: translate(1px, 2px) rotate(0deg); } 100% { transform: translate(1px, -2px) rotate(-1deg); } }
+        @keyframes float { 0%, 100% { transform: translateY(0px); } 50% { transform: translateY(-10px); } }
+        @keyframes twinkle { 0%, 100% { opacity: 1; transform: scale(1); } 50% { opacity: 0.5; transform: scale(0.8); } }
         @keyframes pop { 0% { transform: scale(1); } 50% { transform: scale(1.6); } 100% { transform: scale(1); } }
+
+        .anim-jump { animation-name: jump; animation-timing-function: ease-in-out;}
+        .anim-shake { animation-name: shake; animation-duration: 0.5s; }
+        .anim-float { animation-name: float; animation-timing-function: ease-in-out; }
+        .anim-twinkle { animation-name: twinkle; }
+
+
+        /* Progressioni Sfondo Notte */
+        body.step-1 { background: linear-gradient(to bottom, #5D9CEC, #b3e5fc); --tooltip-bg: #e3f2fd;}
+        body.step-2 { background: linear-gradient(to bottom, #4A89DC, #81d4fa); --tooltip-bg: #bbdefb;}
+        body.step-3 { background: linear-gradient(to bottom, #3b60a0, #4fc3f7); --tooltip-bg: #90caf9;}
+        body.step-4 { background: linear-gradient(to bottom, #2c3e50, #2980b9); --highlight: #f1c40f; --tooltip-bg: #2c3e50; color: white;}
+        body.step-5 { background: linear-gradient(to bottom, #1a1a2e, #16213e); --highlight: #f1c40f; --tooltip-bg: #1a1a2e; color: white;}
         
-        @keyframes jump { 0%, 100% { transform: translateY(0); } 50% { transform: translateY(-30px) rotate(5deg); } }
-        .anim-jump { animation: jump 0.8s ease infinite; }
-
-        @keyframes roar { 0% { transform: scale(1); } 50% { transform: scale(1.2); } 100% { transform: scale(1); } }
-        .anim-roar { animation: roar 1s ease infinite; }
-
-        @keyframes floatUp { 0% { opacity: 0; transform: translateY(20px); } 50% { opacity: 1; } 100% { opacity: 0; transform: translateY(-40px); } }
-        .temp-float { position: absolute; animation: floatUp 2s ease-out forwards; }
-
-        /* Progressioni Sfondo */
-        body.step-1 { background: linear-gradient(to bottom, #5D9CEC, #b3e5fc); }
-        body.step-2 { background: linear-gradient(to bottom, #4A89DC, #81d4fa); }
-        body.step-3 { background: linear-gradient(to bottom, #3b60a0, #4fc3f7); }
-        body.step-4 { background: linear-gradient(to bottom, #2c3e50, #2980b9); }
-        body.step-5 { background: linear-gradient(to bottom, #1a1a2e, #16213e); }
-        body.step-5 .container { box-shadow: 0 0 40px #f1c40f; border-color: #f1c40f; }
-        body.step-5 .story-box { background: #fffbea; border-color: #f1c40f; }
+        body.step-4 .story-box, body.step-5 .story-box { background: #34495e; color: #ecf0f1; border-color: #f1c40f;}
+        body.step-5 .container { box-shadow: 0 0 30px #f1c40f; }
+        
+        /* Aggiustamento colore testo nei tooltip quando è notte */
+        body.step-4 .interactive-word:hover, body.step-5 .interactive-word:hover { color: #f1c40f; }
     </style>
 </head>
 <body>
@@ -195,18 +202,17 @@
     <div class="container">
         <h1>🌙 NIENTE SONNO 🦁</h1>
         
-        <div id="animation-stage">
-             <div class="matteo-status" id="matteoIcon">🛏️🏃</div>
-        </div>
+        <div class="matteo-status" id="matteoIcon">🛏️🏃</div>
         
         <div class="story-box">
             <div class="story-text" id="textDisplay"></div>
         </div>
 
-        <div class="controls">
-            <div class="progress-text-container" id="msgContainer">
-                 Leggi la storia, poi tocca una stella!
+        <div id="scene-container">
             </div>
+
+        <div class="controls">
+            <div class="progress-text" id="msg">Leggi la storia, poi tocca una stella!</div>
             
             <div class="stars-container">
                 <div class="star" onclick="registerRead()" id="s1">★</div>
@@ -215,12 +221,32 @@
                 <div class="star" onclick="registerRead()" id="s4">★</div>
                 <div class="star" onclick="registerRead()" id="s5">★</div>
             </div>
-
-            <button id="readBtn" onclick="registerRead()">HO LETTO!</button>
         </div>
     </div>
 
     <script>
+        // --- CONFIGURAZIONE IMMAGINI ---
+        // Uso icone da CDN affidabile (icons8) per non farti scaricare file.
+        const wordImages = {
+            "NOTTE": "https://img.icons8.com/fluency/96/night.png",
+            "MATTEO": "https://img.icons8.com/fluency/96/navel-boy.png",
+            "LETTO": "https://img.icons8.com/fluency/96/bed.png",
+            "SONNO": "https://img.icons8.com/fluency/96/sleep.png",
+            "LEONE": "https://img.icons8.com/fluency/96/lion.png",
+            "MAMMA": "https://img.icons8.com/fluency/96/mother.png",
+            "LUNA": "https://img.icons8.com/fluency/96/full-moon.png",
+            "STELLE": "https://img.icons8.com/fluency/96/star.png"
+        };
+
+        // Elementi che appaiono nello scenario ad ogni passo
+        const stepSceneItems = {
+            1: { img: wordImages["LEONE"], anim: "anim-jump", alt: "Leone che salta" },
+            2: { img: wordImages["LETTO"], anim: "anim-shake", alt: "Letto che trema" },
+            3: { img: wordImages["LUNA"], anim: "anim-float", alt: "Luna" },
+            4: { img: wordImages["STELLE"], anim: "anim-twinkle", alt: "Stelle" },
+            5: { img: "https://img.icons8.com/fluency/96/sleeping-in-bed.png", anim: "anim-float", alt: "Matteo dorme" }
+        };
+
         const text = `È NOTTE. MATTEO È A LETTO, MA... NIENTE SONNO!
 SI SENTE UN LEONE.
 LA MAMMA TENTA UNA NINNA NANNA,
@@ -228,62 +254,44 @@ MA MATTEO SALTA SUL LETTO.
 SOLO LA LUNA E LE STELLE
 PISOLANO NELLA NOTTE.`;
 
-        // Mappa delle parole chiave e le loro emoji associate
-        const keywords = {
-            "NOTTE": "🌌",
-            "LETTO": "🛏️",
-            "SONNO": "😴",
-            "LEONE": "🦁",
-            "MAMMA": "👩‍👦",
-            "NINNA": "🎵",
-            "NANNA": "💤",
-            "SALTA": "🤸",
-            "LUNA": "🌛",
-            "STELLE": "✨",
-            "PISOLANO": "😌"
-        };
-
-        // Funzione avanzata per "avvolgere" il testo e aggiungere le emoji nascoste
-        function wrapText(textContent) {
-            return textContent.split('\n').map(line => {
+        // Funzione helper per avvolgere le parole e aggiungere immagini se presenti
+        function wrapTextWithInteraction(rawText) {
+            return rawText.split('\n').map(line => {
                 return line.split(' ').map(word => {
-                    // Puliamo la parola dalla punteggiatura per il controllo
-                    const cleanWord = word.replace(/[.,!…]/g, '').toUpperCase();
-                    let emojiHtml = '';
+                    // Puliamo la parola dalla punteggiatura per cercare l'immagine
+                    const cleanWord = word.replace(/[.,!…\?]/g, '').toUpperCase();
+                    const imageUrl = wordImages[cleanWord];
                     
-                    // Se la parola è nella nostra lista magica, aggiungiamo l'emoji nascosta
-                    if (keywords[cleanWord]) {
-                        emojiHtml = `<span class="floating-emoji">${keywords[cleanWord]}</span>`;
+                    let tooltipHtml = '';
+                    if (imageUrl) {
+                        tooltipHtml = `<div class="word-img-tooltip"><img src="${imageUrl}" alt="${cleanWord}"></div>`;
                     }
-                    
-                    // Restituiamo la parola avvolta nello span interattivo
-                    return `<span class="interactive-word">${word}${emojiHtml}</span>`;
+                    // Aggiungiamo la classe comune 'interactive-word' e il tooltip se c'è l'immagine
+                    return `<span class="interactive-word">${word}${tooltipHtml}</span>`;
                 }).join(' ');
             }).join('<br>');
         }
 
-        // Applicazione del testo interattivo alla storia
+        // Inizializzazione testo storia
         const textDisplay = document.getElementById('textDisplay');
-        textDisplay.innerHTML = wrapText(text);
+        textDisplay.innerHTML = wrapTextWithInteraction(text);
 
-        // Applicazione del testo interattivo alle istruzioni iniziali
-        const msgContainer = document.getElementById('msgContainer');
-        msgContainer.innerHTML = wrapText("Leggi la storia, poi tocca una stella!");
+        // Inizializzazione testo messaggio iniziale
+        const msgEl = document.getElementById('msg');
+        msgEl.innerHTML = wrapTextWithInteraction(msgEl.innerText);
+
 
         let count = 0;
         const total = 5;
         const messages = [
             "Brava Julie! Ancora 4 volte!",
-            "Ottimo! Il leone si sta calmando...",
-            "Wow! Sento una ninna nanna...",
-            "Quasi fatto! Shhh, piano piano...",
-            "ULTIMA VOLTA! Leggi con voce da sonno!"
+            "Ottimo! Il leone inizia a stancarsi...",
+            "Wow! Siamo a metà strada!",
+            "Quasi fatto! Metti il pigiama a Matteo...",
+            "ULTIMA VOLTA! Leggi piano piano..."
         ];
 
-        const matteoIcon = document.getElementById('matteoIcon');
-        const animStage = document.getElementById('animation-stage');
-
-        // Setup Audio (identico a prima)
+        // Setup Audio (come prima)
         const AudioContext = window.AudioContext || window.webkitAudioContext;
         const audioCtx = new AudioContext();
 
@@ -307,90 +315,64 @@ PISOLANO NELLA NOTTE.`;
                 osc.frequency.setValueAtTime(600, audioCtx.currentTime + 0.2);
                 osc.frequency.setValueAtTime(1000, audioCtx.currentTime + 0.4);
                 gain.gain.value = 0.3;
-                gain.gain.linearRampToValueAtTime(0, audioCtx.currentTime + 1);
-                osc.start(); osc.stop(audioCtx.currentTime + 1);
+                gain.gain.linearRampToValueAtTime(0, audioCtx.currentTime + 1.5);
+                osc.start(); osc.stop(audioCtx.currentTime + 1.5);
             }
         }
 
-        // Funzione per aggiungere elementi temporanei animati
-        function addTemporaryAnim(emoji, animClass) {
-            const el = document.createElement('div');
-            el.innerText = emoji;
-            el.className = `temp-float ${animClass || ''}`;
-            // Posizione casuale vicino al centro
-            el.style.left = (50 + (Math.random() * 20 - 10)) + '%';
-            animStage.appendChild(el);
-            setTimeout(() => el.remove(), 2000); // Rimuovi dopo l'animazione
-        }
-
-
         function registerRead() {
             if (count >= total) return;
-
             count++;
             
+            // 1. Aggiorna UI base
             document.getElementById(`s${count}`).classList.add('active');
             document.body.classList.remove(`step-${count-1}`);
             document.body.classList.add(`step-${count}`);
             playSound('success');
 
-            // --- GESTIONE ANIMAZIONI DI PROGRESSO ---
-            matteoIcon.className = "matteo-status"; // Reset animazioni base
+            const iconEl = document.getElementById('matteoIcon');
+            const sceneContainer = document.getElementById('scene-container');
 
-            switch(count) {
-                case 1:
-                    // Matteo salta
-                    matteoIcon.classList.add('anim-jump');
-                    msgContainer.innerHTML = wrapText(messages[0]);
-                    break;
-                case 2:
-                    // Appare il leone
-                    matteoIcon.innerText = "🦁";
-                    matteoIcon.classList.add('anim-roar');
-                    msgContainer.innerHTML = wrapText(messages[1]);
-                    break;
-                case 3:
-                    // Ninna nanna (note musicali fluttuanti)
-                    matteoIcon.innerText = "🥱🧸";
-                    addTemporaryAnim("🎵"); addTemporaryAnim("🎶");
-                    msgContainer.innerHTML = wrapText(messages[2]);
-                    break;
-                case 4:
-                    // Si prepara a dormire
-                    matteoIcon.innerText = "🛏️💤";
-                    msgContainer.innerHTML = wrapText(messages[3]);
-                    break;
-                case 5:
-                    // VITTORIA FINALE
-                    finishGame();
-                    break;
+            // 2. Aggiungi elemento animato alla scena
+            if (stepSceneItems[count]) {
+                const itemData = stepSceneItems[count];
+                const img = document.createElement('img');
+                img.src = itemData.img;
+                img.alt = itemData.alt;
+                img.className = `scene-item ${itemData.anim}`;
+                // Aggiunge con un piccolo effetto di entrata
+                img.style.opacity = 0;
+                sceneContainer.appendChild(img);
+                setTimeout(() => img.style.opacity = 1, 100);
+                
             }
-        }
 
-        function finishGame() {
-            msgContainer.innerHTML = wrapText("FANTASTICO! MATTEO DORME! 😴💤");
-            msgContainer.style.color = "#27ae60";
-            
-            matteoIcon.innerText = "😴🌙✨";
-            
-            const btn = document.getElementById('readBtn');
-            btn.innerText = "BRAVISSIMA JULIE!";
-            btn.disabled = true;
-            
-            playSound('win');
-            fireConfetti();
-            
-            let end = Date.now() + 3000;
-            let frame = () => {
-                confetti({ particleCount: 5, spread: 60, origin: { y: 0.6 }, colors: ['#f1c40f', '#ffffff'] });
-                if (Date.now() < end) requestAnimationFrame(frame);
-            };
-            frame();
+            // 3. Logica progressione testi e icone
+            if (count < total) {
+                // Applica la stessa funzione di wrapping interattivo ai messaggi di feedback
+                msgEl.innerHTML = wrapTextWithInteraction(messages[count - 1]);
+                if(count === 3) iconEl.innerText = "🥱🧸"; 
+            } else {
+                // VITTORIA
+                msgEl.innerHTML = wrapTextWithInteraction("FANTASTICO! MATTEO DORME! SHHH! 😴💤");
+                msgEl.style.color = "#27ae60";
+                iconEl.innerText = "😴🌙"; 
+                
+                playSound('win');
+                fireConfetti();
+                
+                let end = Date.now() + 3000;
+                let frame = () => {
+                    confetti({ particleCount: 5, spread: 60, origin: { y: 0.6 }, colors: ['#f1c40f', '#ffffff'] });
+                    if (Date.now() < end) requestAnimationFrame(frame);
+                };
+                frame();
+            }
         }
 
         function fireConfetti() {
             if(typeof confetti === "function") {
-                confetti({ particleCount: 150, spread: 70, origin: { y: 0.6 } });
+                confetti({ particleCount: 150, spread: 80, origin: { y: 0.6 } });
             }
         }
     </script>
