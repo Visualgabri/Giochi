@@ -4,7 +4,6 @@
   <meta charset="UTF-8">
   <title>Giochi di Chris e Julie</title>
 
-  <!-- Favicon: metti un file favicon.ico in questa cartella -->
   <link rel="icon" type="image/png" href="favicon.ico">
 
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
@@ -141,6 +140,10 @@
       background: #e3f2fd;
       font-size: 0.7rem;
       color: #1565c0;
+      white-space: nowrap;
+      overflow: hidden;
+      text-overflow: ellipsis;
+      max-width: 100px;
     }
 
     .play-button {
@@ -229,11 +232,11 @@
       </p>
       <div class="badge">
         <span class="icon">✨</span>
-        <span>Lista aggiornata automaticamente dai file della cartella</span>
+        <span>Lista aggiornata automaticamente dai file e cartelle</span>
       </div>
       <div id="status" class="status">
         <span class="loader"></span>
-        <span>Sto cercando tutti i giochi nella scatola</span>
+        <span>Sto cercando tutti i giochi nella scatola e nei cassetti...</span>
       </div>
     </header>
 
@@ -256,7 +259,10 @@
       return emojis[index % emojis.length];
     }
 
-    function prettyName(fileName) {
+    // Aggiornato per gestire i path completi (es: cartella/gioco.html)
+    function prettyName(filePath) {
+      // Prende solo l'ultima parte dopo lo slash (il nome del file)
+      const fileName = filePath.split('/').pop(); 
       const withoutExt = fileName.replace(/\.html?$/i, "");
       return withoutExt
         .replace(/[_\-]+/g, " ")
@@ -280,25 +286,35 @@
 
     async function loadGames() {
       try {
-        const apiUrl = "https://api.github.com/repos/visualgabri/Giochi/contents";
+        // NOTA: Qui usiamo l'API 'git/trees' con 'recursive=1' per trovare anche i file nelle cartelle.
+        // Se il tuo branch principale si chiama 'master' invece di 'main', cambia 'main' con 'master' qui sotto.
+        const branchName = "main"; 
+        const apiUrl = `https://api.github.com/repos/visualgabri/Giochi/git/trees/${branchName}?recursive=1`;
+        
         const res = await fetch(apiUrl);
 
         if (!res.ok) {
           throw new Error("Risposta non valida " + res.status);
         }
 
-        const files = await res.json();
+        const data = await res.json();
+        
+        // L'API trees restituisce un oggetto con una proprietà 'tree' che è l'array dei file
+        const allFiles = data.tree || [];
 
-const htmlFiles = files
-  .filter(f => f.type === "file")
-  .filter(f => f.name.toLowerCase().endsWith(".html"))
-  .filter(f => !f.name.toLowerCase().startsWith("index"));
-
+        const htmlFiles = allFiles
+          .filter(f => f.type === "blob") // 'blob' significa file
+          .filter(f => f.path.toLowerCase().endsWith(".html")) // Solo file HTML
+          .filter(f => {
+            // Escludiamo file che iniziano con 'index' (prendendo solo il nome file dal percorso)
+            const fName = f.path.split('/').pop().toLowerCase();
+            return !fName.startsWith("index");
+          });
 
         gamesContainer.innerHTML = "";
 
         if (htmlFiles.length === 0) {
-          setStatus("Non ho trovato nessun gioco nella cartella, aggiungi qualche file html e riprova", true);
+          setStatus("Non ho trovato nessun gioco, neanche nei cassetti (cartelle)!", true);
           return;
         }
 
@@ -312,24 +328,27 @@ const htmlFiles = files
 
           const title = document.createElement("div");
           title.className = "game-title";
-          title.textContent = prettyName(file.name);
+          // Passiamo il path completo, la funzione estrarrà il nome
+          title.textContent = prettyName(file.path); 
 
           const meta = document.createElement("div");
           meta.className = "game-meta";
 
           const fileLabel = document.createElement("span");
           fileLabel.className = "label";
-          fileLabel.textContent = file.name;
+          // Mostriamo solo il nome del file per pulizia, o file.path se vuoi vedere la cartella
+          fileLabel.textContent = file.path.split('/').pop(); 
+          fileLabel.title = file.path; // Tooltip con percorso completo
 
           const typeSpan = document.createElement("span");
-          typeSpan.textContent = "Gioco html";
+          typeSpan.textContent = "Gioco";
 
           meta.appendChild(fileLabel);
           meta.appendChild(typeSpan);
 
           const link = document.createElement("a");
           link.className = "play-button";
-          link.href = file.name;       // file nella stessa cartella della pagina
+          link.href = file.path; // Il link ora punta al percorso corretto inclusa la cartella
           link.target = "_blank";
           link.rel = "noopener";
 
@@ -351,10 +370,10 @@ const htmlFiles = files
           gamesContainer.appendChild(card);
         });
 
-        setStatus("Ho trovato " + htmlFiles.length + " gioco o giochi pronti per giocare");
+        setStatus(`Trovati ${htmlFiles.length} giochi pronti!`);
       } catch (err) {
         console.error(err);
-        setStatus("Ops qualcosa è andato storto mentre leggevo la lista dei giochi", true);
+        setStatus("Ops, errore nel caricare la lista dei giochi. Controlla il branch (main/master).", true);
       }
     }
 
