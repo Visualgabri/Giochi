@@ -8,10 +8,7 @@
     <script src="https://cdn.jsdelivr.net/npm/canvas-confetti@1.6.0/dist/confetti.browser.min.js"></script>
     <style>
         :root {
-            --primary: #2c3e50;
-            --accent: #f1c40f;
             --bg-start: #87CEEB; /* Giorno */
-            --bg-end: #1a1a2e;   /* Notte */
         }
 
         body {
@@ -24,6 +21,7 @@
             background: linear-gradient(to bottom, var(--bg-start), #e0f7fa);
             transition: background 1s ease;
             overflow-x: hidden;
+            user-select: none; /* Evita che selezioni il testo cliccando a caso */
         }
 
         .container {
@@ -55,7 +53,7 @@
             border-radius: 15px;
             border: 2px dashed #ffb74d;
             margin: 20px 0;
-            white-space: pre-line; /* Mantiene a capo */
+            white-space: pre-line;
         }
 
         .story-text span {
@@ -63,11 +61,9 @@
             transition: transform 0.2s;
         }
         
-        /* Highlight words on hover for interaction */
         .story-text span:hover {
             transform: scale(1.2);
             color: #e67e22;
-            cursor: default;
         }
 
         .controls {
@@ -80,14 +76,27 @@
 
         .stars-container {
             display: flex;
-            gap: 10px;
-            font-size: 3rem;
+            gap: 15px; /* Spaziate un po' di più per le dita */
+            font-size: 3.5rem;
             color: #bdc3c7;
+            margin: 10px 0;
+        }
+
+        /* MODIFICA: Stelle interattive */
+        .star {
+            cursor: pointer;
+            transition: transform 0.2s, color 0.3s;
+        }
+
+        .star:hover {
+            transform: scale(1.2) rotate(10deg);
+            color: #dcdde1; 
         }
 
         .star.active {
             color: #f1c40f;
             animation: pop 0.5s ease;
+            text-shadow: 0 0 10px #f39c12;
         }
 
         button#readBtn {
@@ -112,6 +121,7 @@
             background-color: #95a5a6;
             box-shadow: none;
             cursor: not-allowed;
+            transform: translateY(6px);
         }
 
         .progress-text {
@@ -127,20 +137,18 @@
 
         @keyframes pop {
             0% { transform: scale(1); }
-            50% { transform: scale(1.5); }
+            50% { transform: scale(1.6); }
             100% { transform: scale(1); }
         }
 
-        /* Dark mode class for night progression */
+        /* Progressioni Notte */
         body.step-1 { background: linear-gradient(to bottom, #5D9CEC, #b3e5fc); }
         body.step-2 { background: linear-gradient(to bottom, #4A89DC, #81d4fa); }
         body.step-3 { background: linear-gradient(to bottom, #3b60a0, #4fc3f7); }
         body.step-4 { background: linear-gradient(to bottom, #2c3e50, #2980b9); }
         body.step-5 { background: linear-gradient(to bottom, #1a1a2e, #16213e); }
         
-        body.step-5 .container {
-            box-shadow: 0 0 30px #f1c40f; /* Glow finale */
-        }
+        body.step-5 .container { box-shadow: 0 0 30px #f1c40f; }
     </style>
 </head>
 <body>
@@ -151,19 +159,18 @@
         <div class="matteo-status" id="matteoIcon">🛏️🏃</div>
         
         <div class="story-box">
-            <div class="story-text" id="textDisplay">
-                </div>
+            <div class="story-text" id="textDisplay"></div>
         </div>
 
         <div class="controls">
-            <div class="progress-text" id="msg">Leggi la storia e poi premi il pulsante!</div>
+            <div class="progress-text" id="msg">Leggi la storia, poi tocca una stella!</div>
             
             <div class="stars-container">
-                <div class="star" id="s1">★</div>
-                <div class="star" id="s2">★</div>
-                <div class="star" id="s3">★</div>
-                <div class="star" id="s4">★</div>
-                <div class="star" id="s5">★</div>
+                <div class="star" onclick="registerRead()" id="s1">★</div>
+                <div class="star" onclick="registerRead()" id="s2">★</div>
+                <div class="star" onclick="registerRead()" id="s3">★</div>
+                <div class="star" onclick="registerRead()" id="s4">★</div>
+                <div class="star" onclick="registerRead()" id="s5">★</div>
             </div>
 
             <button id="readBtn" onclick="registerRead()">HO LETTO!</button>
@@ -171,7 +178,6 @@
     </div>
 
     <script>
-        // Il testo trascritto dall'immagine
         const text = `È NOTTE. MATTEO È A LETTO, MA... NIENTE SONNO!
 SI SENTE UN LEONE.
 LA MAMMA TENTA UNA NINNA NANNA,
@@ -179,9 +185,7 @@ MA MATTEO SALTA SUL LETTO.
 SOLO LA LUNA E LE STELLE
 PISOLANO NELLA NOTTE.`;
 
-        // Preparazione testo interattivo
         const textDisplay = document.getElementById('textDisplay');
-        // Wrappiamo ogni parola in uno span per renderlo carino
         textDisplay.innerHTML = text.split('\n').map(line => {
             return line.split(' ').map(word => `<span>${word}</span>`).join(' ');
         }).join('<br>');
@@ -196,11 +200,14 @@ PISOLANO NELLA NOTTE.`;
             "ULTIMA VOLTA! Leggi fortissimo!"
         ];
 
-        // Audio sounds (note generate sinteticamente per non dipendere da file esterni)
+        // Setup Audio
         const AudioContext = window.AudioContext || window.webkitAudioContext;
         const audioCtx = new AudioContext();
 
         function playSound(type) {
+            if (audioCtx.state === 'suspended') {
+                audioCtx.resume();
+            }
             const osc = audioCtx.createOscillator();
             const gain = audioCtx.createGain();
             osc.connect(gain);
@@ -215,7 +222,6 @@ PISOLANO NELLA NOTTE.`;
                 osc.start();
                 osc.stop(audioCtx.currentTime + 0.3);
             } else if (type === 'win') {
-                // Fanfare simulata
                 osc.type = 'triangle';
                 osc.frequency.setValueAtTime(400, audioCtx.currentTime);
                 osc.frequency.setValueAtTime(600, audioCtx.currentTime + 0.2);
@@ -232,36 +238,35 @@ PISOLANO NELLA NOTTE.`;
 
             count++;
             
-            // Aggiorna Stelle
-            document.getElementById(`s${count}`).classList.add('active');
+            // Accende la stella corrispondente al numero corrente
+            const star = document.getElementById(`s${count}`);
+            star.classList.add('active');
             
-            // Cambia Sfondo (progressivamente più notte)
             document.body.classList.remove(`step-${count-1}`);
             document.body.classList.add(`step-${count}`);
 
-            // Suono
             playSound('success');
 
-            // Logica Progressioni
             const msgEl = document.getElementById('msg');
             const iconEl = document.getElementById('matteoIcon');
 
             if (count < total) {
                 msgEl.innerText = messages[count - 1];
-                if(count === 3) iconEl.innerText = "🥱🧸"; // Sbadiglio
+                if(count === 3) iconEl.innerText = "🥱🧸"; 
             } else {
-                // VITTORIA
                 msgEl.innerText = "FANTASTICO! MATTEO DORME! 😴💤";
                 msgEl.style.color = "#27ae60";
                 msgEl.style.fontSize = "1.5rem";
-                iconEl.innerText = "😴🌙"; // Dorme
+                iconEl.innerText = "😴🌙"; 
                 
-                document.getElementById('readBtn').innerText = "BRAVISSIMA JULIE!";
-                document.getElementById('readBtn').disabled = true;
+                const btn = document.getElementById('readBtn');
+                btn.innerText = "BRAVISSIMA JULIE!";
+                btn.disabled = true;
                 
                 playSound('win');
                 fireConfetti();
-                // Fuochi d'artificio continui per qualche secondo
+                
+                // Extra coriandoli
                 let end = Date.now() + 3000;
                 let frame = () => {
                     confetti({ particleCount: 5, spread: 60, origin: { y: 0.6 } });
@@ -272,11 +277,13 @@ PISOLANO NELLA NOTTE.`;
         }
 
         function fireConfetti() {
-            confetti({
-                particleCount: 150,
-                spread: 70,
-                origin: { y: 0.6 }
-            });
+            if(typeof confetti === "function") {
+                confetti({
+                    particleCount: 150,
+                    spread: 70,
+                    origin: { y: 0.6 }
+                });
+            }
         }
     </script>
 </body>
