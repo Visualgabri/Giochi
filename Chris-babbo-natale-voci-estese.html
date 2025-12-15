@@ -1,0 +1,336 @@
+<!DOCTYPE html>
+<html lang="it">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+    <title>Babbo Natale Magico per Chris</title>
+    <style>
+        body {
+            margin: 0;
+            padding: 0;
+            /* Sfondo notte magica */
+            background: linear-gradient(to bottom, #020024, #090979, #00d4ff);
+            height: 100vh;
+            display: flex;
+            flex-direction: column;
+            justify-content: center;
+            align-items: center;
+            font-family: 'Comic Sans MS', 'Arial', sans-serif;
+            overflow: hidden;
+            touch-action: manipulation;
+            user-select: none;
+        }
+
+        /* Canvas per la neve */
+        #snow-canvas {
+            position: absolute;
+            top: 0; left: 0; width: 100%; height: 100%;
+            z-index: 1; pointer-events: none;
+        }
+
+        h1 {
+            color: white;
+            text-shadow: 2px 2px 4px #000;
+            font-size: 1.8rem;
+            margin-bottom: 10px;
+            z-index: 10;
+            text-align: center;
+            pointer-events: none;
+        }
+
+        .main-container {
+            position: relative;
+            width: 300px;
+            height: 300px;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            z-index: 20;
+        }
+
+        #santa-container {
+            font-size: 160px;
+            cursor: pointer;
+            filter: drop-shadow(0 10px 15px rgba(0,0,0,0.4));
+            transform-origin: bottom center; 
+            transition: transform 0.1s;
+        }
+
+        /* Animazioni */
+        .jumping { animation: cartoonJump 0.6s ease-out; }
+        @keyframes cartoonJump {
+            0% { transform: scale(1, 1); }
+            20% { transform: scale(1.3, 0.7) translateY(20px); } 
+            40% { transform: scale(0.8, 1.4) translateY(-60px); } 
+            60% { transform: scale(1.1, 0.9) translateY(-10px); } 
+            80% { transform: scale(0.95, 1.05) translateY(0px); } 
+            100% { transform: scale(1, 1) translateY(0); }
+        }
+
+        .spinning { animation: crazySpin 0.8s cubic-bezier(.6,-0.28,.74,.05); transform-origin: center center; }
+        @keyframes crazySpin {
+            0% { transform: rotate(0deg) scale(1); }
+            50% { transform: rotate(720deg) scale(1.2); }
+            100% { transform: rotate(1080deg) scale(1); }
+        }
+
+        /* Particles */
+        .particle {
+            position: absolute; font-size: 40px; pointer-events: none; z-index: 15; opacity: 1;
+            transform: translate(0, 0) rotate(0deg);
+            transition: transform 0.8s cubic-bezier(0.165, 0.84, 0.44, 1), opacity 0.8s ease-out;
+        }
+        .particle.explode { opacity: 0; transform: translate(var(--tx), var(--ty)) rotate(var(--rot)); }
+
+        /* Overlay */
+        #start-overlay {
+            position: fixed; top: 0; left: 0; width: 100%; height: 100%;
+            background: rgba(0,0,0,0.9); z-index: 100;
+            display: flex; flex-direction: column; justify-content: center; align-items: center;
+            color: white; text-align: center; padding: 20px;
+        }
+        #start-btn {
+            background: #25D366; color: white; border: none; padding: 20px 40px;
+            font-size: 1.5rem; border-radius: 50px; margin-top: 30px;
+            cursor: pointer; font-weight: bold; box-shadow: 0 4px 15px rgba(0,0,0,0.5);
+            animation: pulseBtn 1.5s infinite;
+        }
+        @keyframes pulseBtn { 0%, 100% { transform: scale(1); } 50% { transform: scale(1.05); }}
+
+        .instruction {
+            margin-top: 20px; color: white; font-size: 1.2rem; z-index: 10; animation: pulse 2s infinite; pointer-events: none;
+        }
+        @keyframes pulse { 0%, 100% { opacity: 1;} 50% { opacity: 0.6; }}
+    </style>
+</head>
+<body>
+
+    <div id="start-overlay">
+        <h1>Ciao Chris! 👋</h1>
+        <p style="font-size: 1.2rem;">Tocca il pulsante per la magia!</p>
+        <button id="start-btn">▶️ INIZIA ◀️</button>
+    </div>
+
+    <canvas id="snow-canvas"></canvas>
+
+    <h1>Vai Chris! <br>Tocca Babbo Natale!</h1>
+    
+    <div class="main-container">
+        <div id="santa-container">🎅</div>
+    </div>
+
+    <div class="instruction">👇 Tocca qui! 👇</div>
+
+    <script>
+        const santa = document.getElementById('santa-container');
+        const mainContainer = document.querySelector('.main-container');
+        const startOverlay = document.getElementById('start-overlay');
+        const startBtn = document.getElementById('start-btn');
+        
+        // --- 1. MOTORE NEVE ---
+        const canvas = document.getElementById('snow-canvas');
+        const ctx = canvas.getContext('2d');
+        let width, height;
+        let particles = [];
+        
+        // Gravità Default (Verso il basso, costante)
+        let gravityX = 0;
+        let gravityY = 3; 
+
+        function resize() {
+            width = canvas.width = window.innerWidth;
+            height = canvas.height = window.innerHeight;
+        }
+        window.addEventListener('resize', resize);
+        resize();
+
+        function initSnow() {
+            particles = [];
+            const numParticles = 150; // Tanta neve!
+            for(let i=0; i<numParticles; i++) {
+                particles.push({
+                    x: Math.random() * width,
+                    y: Math.random() * height,
+                    vx: (Math.random() - 0.5), 
+                    vy: Math.random() * 3 + 2, // Velocità caduta variabile
+                    radius: Math.random() * 3 + 2,
+                    color: `rgba(255, 255, 255, ${Math.random() * 0.6 + 0.4})`
+                });
+            }
+        }
+
+        function updateSnow() {
+            ctx.clearRect(0, 0, width, height);
+            
+            particles.forEach(p => {
+                // Fisica fluida
+                // Aggiungiamo la gravità orientata alla velocità corrente
+                p.vx += gravityX * 0.05;
+                p.vy += gravityY * 0.05;
+
+                // Limite velocità massima (Terminal Velocity) per non farli impazzire
+                const maxSpeed = 3;
+                p.vx = Math.max(-maxSpeed, Math.min(maxSpeed, p.vx));
+                p.vy = Math.max(-maxSpeed, Math.min(maxSpeed, p.vy));
+
+                // Muovi
+                p.x += p.vx;
+                p.y += p.vy;
+
+                // --- EFFETTO INFINITO (WRAP AROUND) ---
+                // Se esce a destra, rientra a sinistra
+                if (p.x > width + 10) p.x = -10;
+                // Se esce a sinistra, rientra a destra
+                if (p.x < -10) p.x = width + 10;
+                // Se esce sotto, rientra sopra
+                if (p.y > height + 10) p.y = -10;
+                // Se esce sopra, rientra sotto
+                if (p.y < -10) p.y = height + 10;
+
+                ctx.beginPath();
+                ctx.arc(p.x, p.y, p.radius, 0, Math.PI * 2);
+                ctx.fillStyle = p.color;
+                ctx.fill();
+            });
+            requestAnimationFrame(updateSnow);
+        }
+
+        // --- 2. GESTIONE ORIENTAMENTO ---
+        function handleOrientation(event) {
+            const x = event.gamma; // Inclinazione Sx/Dx
+            const y = event.beta;  // Inclinazione Su/Giù
+
+            if (x !== null && y !== null) {
+                // Dividiamo per rendere il movimento morbido
+                gravityX = x / 3; 
+                gravityY = y / 3;
+
+                // Aggiungiamo un minimo di gravità verso il basso se il telefono è piatto
+                // così la neve cade sempre un pochino
+                if (Math.abs(gravityY) < 1) gravityY += 1.5;
+            }
+        }
+
+        // --- 3. SUONI ---
+        let soundIndex = 0;
+        const sounds = [
+            // --- FRASI ORIGINALI ---
+            { text: "Oh! Oh! Ohooo! Buon Natale!", pitch: 0.5, rate: 0.8 }, 
+            { text: "Hahaha! Che solletico Chris!", pitch: 1.6, rate: 1.1 },   
+            { text: "Ho tanti regali per te!", pitch: 0.7, rate: 0.9 }, 
+            { text: "Oh! Oh! Ohooo! Buon Natale carciofino!", pitch: 0.5, rate: 0.8 }, 
+            { text: "Crissotti!!! Buon Natale!", pitch: 0.5, rate: 0.8 }, 
+            { text: "Questo bambino è un po' birichino!!", pitch: 0.7, rate: 0.9 }, 
+            { text: "Quest'anno da regalo ti porto una macchinina!! Gialla grande così e che fa brum brum!!", pitch: 0.5, rate: 0.9 }, 
+            { text: "Sei un topino dolce!", pitch: 0.3, rate: 0.8 },
+            { text: "Cri, Come fa il maiale?", pitch: 0.8, rate: 0.8 },
+            { text: "Cri, Come fa il dinosauro?", pitch: 0.4, rate: 1.2 },
+
+            // --- NUOVE FRASI PERSONALIZZATE (FAMIGLIA & PASSIONI) ---
+            
+            // 1. Sorella Julie (CORRETTA - 6 anni)
+            { text: "E la sorellina Julie dov'è? Ha già 6 anni, è una signorina ormai! Dalle un bacino da parte mia!", pitch: 0.6, rate: 0.9 },
+
+            // 2. Mamma e Papà
+            { text: "Ho visto Mamma Jessica e Papà Gabriele! Mi hanno detto che sei un terremoto!", pitch: 0.5, rate: 0.85 },
+
+            // 3. Nonni Fiore e Lucia
+            { text: "Saluta Nonno Fiore e Nonna Lucia! Ciao nonni, siete bravissimi!", pitch: 0.7, rate: 0.9 },
+
+            // 4. Nonno Ugo (tono buffo)
+            { text: "Dov'è Nonno Ugo? Ugooo! Attento che ti tiro la barba come la mia!", pitch: 1.4, rate: 1.1 },
+
+            // 5. Nonna Letizia
+            { text: "Un abbraccio forte a Nonna Letizia! Oh oh oh!", pitch: 0.5, rate: 0.8 },
+
+            // 6. Nonna Sonia
+            { text: "Nonna Sonia ha preparato qualcosa di buono? Ho una fame da lupi!", pitch: 0.4, rate: 0.8 },
+
+            // 7. Passione Pistole
+            { text: "Pum Pum! Mani in alto Chris! Ho sentito che ti piacciono le pistole!", pitch: 0.8, rate: 1.0 },
+
+            // 8. Passione Tigre (Ricordo)
+            { text: "ROAAAR! Ma sei un bambino o una tigre feroce? Che paura!", pitch: 0.3, rate: 0.7 },
+
+            // 9. Macchinine e Papà
+            { text: "Vuoi guidare la macchina di Papà Gabriele? Brum brum! Vai piano eh!", pitch: 0.6, rate: 0.9 },
+
+            // 10. Scherzo
+            { text: "Ma quanto sei cresciuto? Sei diventato un gigante!", pitch: 1.2, rate: 1.2 },
+
+            // 11. Affetto
+            { text: "Sei il principe di casa, vero Chris? Ma ricordati di fare il bravo con Julie!", pitch: 0.5, rate: 0.8 },
+
+            // 12. Finale buffo
+            { text: "Batti il cinque a Babbo Natale! ... Più forte! ... Ahi che male!", pitch: 0.9, rate: 1.0 }
+        ];
+
+        function playFunnySound() {
+            if (window.speechSynthesis.speaking) window.speechSynthesis.cancel();
+            const soundData = sounds[soundIndex];
+            const msg = new SpeechSynthesisUtterance(soundData.text);
+            msg.lang = 'it-IT';
+            msg.pitch = soundData.pitch;
+            msg.rate = soundData.rate;
+            window.speechSynthesis.speak(msg);
+            soundIndex = (soundIndex + 1) % sounds.length;
+        }
+
+        // --- 4. ESPLOSIONE REGALI ---
+        const emojis = ['🎁', '🎄', '🍪', '🧸', '⭐', '🚗', '🐷', '🦖', '🔫', '🐯']; // Aggiunte pistola e tigre
+        function explodeGifts() {
+            for (let i = 0; i < 10; i++) { createParticle(); } 
+        }
+        function createParticle() {
+            const particle = document.createElement('div');
+            particle.classList.add('particle');
+            particle.innerText = emojis[Math.floor(Math.random() * emojis.length)];
+            mainContainer.appendChild(particle);
+            const destX = (Math.random() - 0.5) * 450; 
+            const destY = (Math.random() - 0.5) * 450 - 60;
+            const rot = (Math.random() - 0.5) * 500;
+            particle.style.setProperty('--tx', `${destX}px`);
+            particle.style.setProperty('--ty', `${destY}px`);
+            particle.style.setProperty('--rot', `${rot}deg`);
+            void particle.offsetWidth; 
+            particle.classList.add('explode');
+            setTimeout(() => { particle.remove(); }, 800);
+        }
+
+        function makeItFun() {
+            santa.classList.remove('jumping', 'spinning');
+            void santa.offsetWidth; 
+            const diceRoll = Math.random();
+            if (diceRoll > 0.75) { santa.classList.add('spinning'); } 
+            else { santa.classList.add('jumping'); }
+            playFunnySound();
+            explodeGifts();
+        }
+
+        santa.addEventListener('touchstart', (e) => { e.preventDefault(); makeItFun(); });
+        santa.addEventListener('mousedown', makeItFun);
+
+        // --- 5. AVVIO E PERMESSI ---
+        startBtn.addEventListener('click', () => {
+            startOverlay.style.display = 'none';
+            initSnow();
+            updateSnow();
+
+            if (typeof DeviceOrientationEvent !== 'undefined' && typeof DeviceOrientationEvent.requestPermission === 'function') {
+                DeviceOrientationEvent.requestPermission()
+                    .then(permissionState => {
+                        if (permissionState === 'granted') {
+                            window.addEventListener('deviceorientation', handleOrientation);
+                        }
+                    }).catch(console.error);
+            } else {
+                window.addEventListener('deviceorientation', handleOrientation);
+            }
+            
+            const warmUp = new SpeechSynthesisUtterance(" ");
+            window.speechSynthesis.speak(warmUp);
+        });
+
+    </script>
+</body>
+</html>
