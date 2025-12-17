@@ -1,0 +1,323 @@
+<!DOCTYPE html>
+<html lang="it">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+    <title>Gran Premio Famiglia Belmonte 🏎️</title>
+    <style>
+        body {
+            margin: 0; padding: 0;
+            background: linear-gradient(to bottom, #87CEEB 40%, #50c878 40%, #50c878 50%, #696969 50%);
+            height: 100vh; display: flex; flex-direction: column;
+            overflow: hidden; touch-action: manipulation; user-select: none;
+            font-family: 'Comic Sans MS', 'Arial', sans-serif;
+        }
+
+        h1 {
+            position: absolute; top: 10px; width: 100%;
+            color: white; text-shadow: 2px 2px 4px #000;
+            font-size: 1.5rem; text-align: center; z-index: 10; pointer-events: none;
+        }
+
+        /* Pista */
+        .track-container {
+            position: absolute; bottom: 5%; width: 100%; height: 180px;
+            display: flex; align-items: center;
+        }
+        .road-lines {
+            position: absolute; top: 50%; width: 100%; height: 10px;
+            background-image: linear-gradient(to right, white 50%, transparent 50%);
+            background-size: 40px 10px; opacity: 0.7;
+        }
+
+        /* Macchina */
+        #yellow-car {
+            font-size: 90px; position: absolute; left: 20px; z-index: 30;
+            transition: left 0.2s ease-out, transform 0.1s;
+            filter: drop-shadow(0 5px 5px rgba(0,0,0,0.5));
+            transform-origin: center center;
+        }
+        /* Effetti Macchina */
+        .vroom-effect { animation: bounceCar 0.3s ease-out; }
+        @keyframes bounceCar { 0%, 100% { transform: scale(1) translateY(0); } 50% { transform: scale(1.1) translateY(-10px) rotate(-5deg); } }
+        
+        .spin-effect { animation: spinCar 0.8s ease-in-out; }
+        @keyframes spinCar { 0% { transform: rotate(0deg) scale(1); } 50% { transform: rotate(180deg) scale(1.2); } 100% { transform: rotate(360deg) scale(1); } }
+
+        .turbo-effect { animation: turboDash 0.5s ease-out; }
+        @keyframes turboDash { 0% { transform: skewX(0deg); } 50% { transform: skewX(-20deg) scale(1.1); } 100% { transform: skewX(0deg); } }
+
+        #finish-line { font-size: 80px; position: absolute; right: 20px; z-index: 15; }
+
+        /* --- OGGETTI FAMIGLIA (FOTO) --- */
+        .family-item {
+            position: absolute; bottom: 60px;
+            width: 80px; height: 80px;
+            border-radius: 50%;
+            border: 4px solid white;
+            box-shadow: 0 4px 10px rgba(0,0,0,0.4);
+            z-index: 25;
+            background-size: cover; background-position: center; background-color: white;
+            transition: transform 0.3s, opacity 0.3s;
+        }
+        /* Bordo ORO per i premi (Mamma/Papà/ecc), ROSSO per gli ostacoli (Nonni/Zii) */
+        .family-item.reward { border-color: #FFD700; box-shadow: 0 0 15px #FFD700; }
+        .family-item.obstacle { border-color: #ff4757; }
+        
+        .family-item.hit { transform: scale(1.5) rotate(20deg); opacity: 0; }
+
+        /* Scossa strada */
+        body.shake-road .road-lines { animation: shakeRoad 0.2s infinite; }
+        @keyframes shakeRoad { 0% { transform: translateY(0); } 50% { transform: translateY(3px); } 100% { transform: translateY(0); } }
+
+        /* Overlay */
+        #overlay {
+            position: fixed; top: 0; left: 0; width: 100%; height: 100%;
+            background: rgba(0,0,0,0.9); z-index: 100;
+            display: flex; flex-direction: column; justify-content: center; align-items: center;
+            color: white; text-align: center; padding: 20px;
+        }
+        #action-btn {
+            background: #FFD700; color: black; border: none; padding: 20px 40px;
+            font-size: 1.5rem; border-radius: 50px; margin-top: 30px;
+            cursor: pointer; font-weight: bold; box-shadow: 0 4px 15px rgba(255, 215, 0, 0.6);
+            animation: pulseBtn 1.5s infinite;
+        }
+        @keyframes pulseBtn { 0%, 100% { transform: scale(1); } 50% { transform: scale(1.05); }}
+
+        .instruction {
+            position: absolute; bottom: 20%; width: 100%;
+            color: white; font-size: 1.2rem; text-align: center; z-index: 10;
+            animation: pulse 2s infinite; pointer-events: none; text-shadow: 1px 1px 2px black;
+        }
+        @keyframes pulse { 0%, 100% { opacity: 1;} 50% { opacity: 0.6; }}
+
+        /* Coriandoli */
+        .particle {
+            position: absolute; font-size: 40px; pointer-events: none; z-index: 200; opacity: 1;
+            transition: transform 1s ease-out, opacity 1s ease-out;
+        }
+        .particle.explode { opacity: 0; transform: translate(var(--tx), var(--ty)) rotate(var(--rot)); }
+
+    </style>
+</head>
+<body>
+
+    <div id="overlay">
+        <h1>Gran Premio di Famiglia 🏎️</h1>
+        <div id="winner-trophy" style="font-size: 120px; display:none;">🏆</div>
+        <button id="action-btn">▶️ VIA! ◀️</button>
+    </div>
+
+    <h1>Tocca per correre Chris!</h1>
+
+    <div class="track-container">
+        <div class="road-lines"></div>
+        <div id="items-container"></div> <div id="yellow-car">🚕</div>
+        <div id="finish-line">🏁</div>
+    </div>
+
+    <div class="instruction" id="game-instruction">👉 Tocca veloce lo schermo! 👈</div>
+
+    <script>
+        const car = document.getElementById('yellow-car');
+        const overlay = document.getElementById('overlay');
+        const actionBtn = document.getElementById('action-btn');
+        const winnerTrophy = document.getElementById('winner-trophy');
+        const instruction = document.getElementById('game-instruction');
+        const itemsContainer = document.getElementById('items-container');
+        const body = document.body;
+
+        let carPosition = 20;
+        let gameActive = false;
+        let isPaused = false; 
+        let finishLinePos = window.innerWidth - 120;
+        let activeItems = [];
+
+        // --- 1. CONFIGURAZIONE FAMIGLIA (Presa dal tuo file) ---
+        // 'reward': Danno il turbo (Famiglia stretta)
+        // 'obstacle': Fanno salutare e girare la macchina (Nonni/Zii)
+        const familyDB = [
+            // TURBO (Nucleo Familiare)
+            { type: 'reward', file: "Gabriele.jpg", text: "Vai forte come Papà Gabriele! Turbooo!", pitch: 0.7, rate: 1.1 },
+            { type: 'reward', file: "Jessica.jpg", text: "Un bacio da Mamma Jessica! Smack! Corri!", pitch: 1.3, rate: 1.2 },
+            { type: 'reward', file: "Julie.jpg", text: "La sorellina Julie ti spinge! Via!", pitch: 1.5, rate: 1.3 },
+            { type: 'reward', file: "Christopher.jpg", text: "Sei tu Chris! Super velocità!", pitch: 1.0, rate: 1.2 },
+            
+            // INCONTRI BUFFI (Nonni e Zii)
+            { type: 'obstacle', file: "Nonna_Letizia.jpg", text: "Ciao Nonna Letizia! Attento alla curva!", pitch: 1.2, rate: 1.0 },
+            { type: 'obstacle', file: "Nonna_Rosa.jpg", text: "Nonna Rosa ti saluta! Ciao ciao!", pitch: 1.1, rate: 0.9 },
+            { type: 'obstacle', file: "Nonna_Lucia.jpg", text: "Oh guarda! C'è Nonna Lucia!", pitch: 1.2, rate: 1.0 },
+            { type: 'obstacle', file: "Nonno_Fiore.jpg", text: "Nonno Fiore sta guardando la gara!", pitch: 0.6, rate: 0.9 },
+            { type: 'obstacle', file: "Zia_Beatrice.jpg", text: "Ciao Zia Beatrice!", pitch: 1.3, rate: 1.1 },
+            { type: 'obstacle', file: "Zio_Lorenzo.jpg", text: "Zio Lorenzo dice: forza Chris!", pitch: 0.8, rate: 1.0 },
+            { type: 'obstacle', file: "Zio_Loris.jpg", text: "Attento Zio Loris! Non stare in strada!", pitch: 0.9, rate: 1.1 },
+            { type: 'obstacle', file: "Nonna_Sonia.jpg", text: "Nonna Sonia ti manda un bacio!", pitch: 1.2, rate: 1.0 },
+            { type: 'obstacle', file: "Nonno_Ugo.jpg", text: "Nonno Ugo dice che sei veloce!", pitch: 0.5, rate: 0.9 },
+            { type: 'obstacle', file: "Zio_Nicolas.jpg", text: "Ciao Zio Nicolas!", pitch: 0.8, rate: 1.0 },
+            { type: 'obstacle', file: "Zia_Alessia.jpg", text: "Zia Alessia ti fa il tifo!", pitch: 1.3, rate: 1.1 },
+            { type: 'obstacle', file: "Nonna_Alla.jpg", text: "Ciao Nonna Alla!", pitch: 1.1, rate: 1.0 },
+            { type: 'obstacle', file: "Nonno_Gianluca.jpg", text: "Nonno Gianluca sta aggiustando la macchina!", pitch: 0.7, rate: 0.9 },
+            { type: 'obstacle', file: "Nonno_Raffaele.jpg", text: "Nonno Raffaele dice: Brum brum!", pitch: 0.6, rate: 1.0 }
+        ];
+
+        // Suoni generici corsa
+        let soundIndex = 0;
+        const raceSounds = [
+            { text: "Brum brum! Vai Chris!", pitch: 1.0, rate: 1.1 },
+            { text: "Gas gas gas!", pitch: 1.3, rate: 1.3 },
+            { text: "Corri corri!", pitch: 0.8, rate: 1.0 }
+        ];
+
+        function speak(text, pitch, rate) {
+            if (window.speechSynthesis.speaking) window.speechSynthesis.cancel();
+            const msg = new SpeechSynthesisUtterance(text);
+            msg.lang = 'it-IT'; msg.pitch = pitch; msg.rate = rate;
+            window.speechSynthesis.speak(msg);
+        }
+
+        // --- 2. SETUP GIOCO ---
+        function startGame() {
+            carPosition = 20;
+            car.style.left = carPosition + 'px';
+            overlay.style.display = 'none';
+            winnerTrophy.style.display = 'none';
+            instruction.style.display = 'block';
+            gameActive = true;
+            isPaused = false;
+            spawnItems();
+            speak("Motori accesi! Pronti... Via!", 1, 1.1);
+        }
+
+        function spawnItems() {
+            itemsContainer.innerHTML = ''; 
+            activeItems = [];
+            // Mettiamo 4 personaggi a caso sulla pista
+            const trackLength = finishLinePos - 200;
+            
+            for (let i = 0; i < 4; i++) {
+                // Prendi un parente a caso
+                const data = familyDB[Math.floor(Math.random() * familyDB.length)];
+                
+                const itemEl = document.createElement('div');
+                itemEl.classList.add('family-item', data.type);
+                // Imposta l'immagine di sfondo
+                itemEl.style.backgroundImage = `url('${data.file}')`;
+                
+                // Distribuiscili lungo la pista (evitando sovrapposizioni troppo vicine)
+                const segmentSize = trackLength / 4;
+                const randomPos = 100 + (segmentSize * i) + (Math.random() * 50);
+                
+                itemEl.style.left = `${randomPos}px`;
+                itemsContainer.appendChild(itemEl);
+                
+                activeItems.push({ element: itemEl, data: data, pos: randomPos, hit: false });
+            }
+        }
+
+        // --- 3. MOVIMENTO ---
+        function moveCar() {
+            if (!gameActive || isPaused) return;
+
+            const jump = Math.floor(Math.random() * 20) + 20; 
+            carPosition += jump;
+            updateCarPosition();
+
+            // Animazione base
+            car.classList.remove('vroom-effect', 'spin-effect', 'turbo-effect');
+            void car.offsetWidth;
+            car.classList.add('vroom-effect');
+            
+            body.classList.add('shake-road');
+            setTimeout(() => { body.classList.remove('shake-road'); }, 200);
+
+            checkCollisions();
+
+            if (carPosition >= finishLinePos) winGame();
+            else playStandardSound();
+        }
+
+        function checkCollisions() {
+            const carFront = carPosition + 80;
+
+            activeItems.forEach(item => {
+                // Se la macchina tocca l'oggetto (e non l'abbiamo già toccato)
+                if (!item.hit && carFront > item.pos && carFront < item.pos + 80) {
+                    item.hit = true;
+                    item.element.classList.add('hit');
+
+                    if (item.data.type === 'reward') {
+                        // PREMIO (Mamma/Papà): Turbo!
+                        carPosition += 100; // Salto lungo
+                        updateCarPosition();
+                        car.classList.add('turbo-effect');
+                        explodeConfetti(item.pos + 40, window.innerHeight - 100, ['⭐','💖','💨']);
+                        speak(item.data.text, item.data.pitch, item.data.rate);
+                    } else {
+                        // OSTACOLO (Nonni/Zii): Piroetta e Saluto
+                        isPaused = true; 
+                        car.classList.add('spin-effect');
+                        speak(item.data.text, item.data.pitch, item.data.rate);
+                        setTimeout(() => { isPaused = false; }, 1200); // Riparte dopo il saluto
+                    }
+                }
+            });
+        }
+
+        function updateCarPosition() { car.style.left = carPosition + 'px'; }
+
+        function playStandardSound() {
+            if (!window.speechSynthesis.speaking) {
+                 const sound = raceSounds[Math.floor(Math.random() * raceSounds.length)];
+                 speak(sound.text, sound.pitch, sound.rate);
+            }
+        }
+
+        function winGame() {
+            gameActive = false;
+            instruction.style.display = 'none';
+            speak("Evviva! Chris ha vinto la coppa! Sei un campione!", 1.2, 1.1);
+            explodeConfetti(window.innerWidth/2, window.innerHeight/2, ['🎉', '✨', '🚕', '🏆']);
+
+            setTimeout(() => {
+                winnerTrophy.style.display = "block";
+                actionBtn.innerText = "GIOCA ANCORA 🔄";
+                overlay.style.display = "flex";
+            }, 2000);
+        }
+
+        // --- PARTICELLE ---
+        function explodeConfetti(x, y, specificEmojis) {
+             const particleEmojis = specificEmojis || ['🎉', '✨', '🚕', '💨', '🏆'];
+            for (let i = 0; i < 20; i++) {
+                const p = document.createElement('div');
+                p.classList.add('particle');
+                p.innerText = particleEmojis[Math.floor(Math.random() * particleEmojis.length)];
+                document.body.appendChild(p);
+                p.style.left = x + 'px'; p.style.top = y + 'px';
+                
+                const destX = (Math.random() - 0.5) * 600; 
+                const destY = (Math.random() - 0.5) * 600;
+                
+                p.style.setProperty('--tx', `${destX}px`);
+                p.style.setProperty('--ty', `${destY}px`);
+                p.style.setProperty('--rot', `${(Math.random()-0.5)*1000}deg`);
+                
+                void p.offsetWidth; p.classList.add('explode');
+                setTimeout(() => p.remove(), 1000);
+            }
+        }
+
+        // --- INPUT ---
+        document.addEventListener('touchstart', (e) => {
+            if (e.target !== actionBtn) { e.preventDefault(); moveCar(); }
+        }, { passive: false });
+        document.addEventListener('mousedown', (e) => {
+            if (e.target !== actionBtn) moveCar();
+        });
+        actionBtn.addEventListener('click', startGame);
+        window.addEventListener('resize', () => { finishLinePos = window.innerWidth - 120; });
+
+    </script>
+</body>
+</html>
