@@ -1,0 +1,393 @@
+<!DOCTYPE html>
+<html lang="it">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+    <title>Gara Verticale Chris</title>
+    <style>
+        body {
+            margin: 0;
+            padding: 0;
+            background-color: #333;
+            font-family: 'Comic Sans MS', sans-serif;
+            overflow: hidden; /* Blocca scroll manuale */
+            touch-action: none; /* Blocca zoom/pan */
+            height: 100vh;
+            width: 100vw;
+            user-select: none;
+            -webkit-tap-highlight-color: transparent;
+        }
+
+        /* Il Mondo di Gioco (si sposta verso il basso per simulare la salita) */
+        #game-world {
+            position: absolute;
+            width: 100%;
+            height: 500vh; /* La pista è alta 5 volte lo schermo */
+            bottom: 0;
+            background: linear-gradient(to right, #4CAF50 15%, #555 15%, #555 85%, #4CAF50 85%);
+            transition: transform 0.3s ease-out;
+            will-change: transform;
+        }
+
+        /* Linee della strada */
+        .road-line {
+            position: absolute;
+            left: 50%;
+            transform: translateX(-50%);
+            width: 10px;
+            height: 100%;
+            background: linear-gradient(to bottom, white 50%, transparent 50%);
+            background-size: 10px 80px;
+            opacity: 0.6;
+        }
+
+        /* La Macchina (Fissa visivamente, ma si muove nel mondo) */
+        #car {
+            position: absolute;
+            bottom: 10vh; /* Parte dal basso dello schermo */
+            left: 50%;
+            transform: translateX(-50%);
+            font-size: 80px;
+            z-index: 50;
+            transition: bottom 0.1s linear, transform 0.2s;
+            filter: drop-shadow(0 10px 10px rgba(0,0,0,0.5));
+        }
+
+        /* Effetti Animati */
+        .bounce { animation: bounce 0.3s ease-in-out; }
+        @keyframes bounce { 0%, 100% { transform: translateX(-50%) scale(1); } 50% { transform: translateX(-50%) scale(1.2); } }
+        
+        .spin { animation: spin 1s ease-in-out; }
+        @keyframes spin { 0% { transform: translateX(-50%) rotate(0deg); } 100% { transform: translateX(-50%) rotate(360deg); } }
+
+        .turbo { animation: turbo 0.5s ease-in-out; }
+        @keyframes turbo { 0% { transform: translateX(-50%) scale(1); } 50% { transform: translateX(-50%) scale(1.3) translateY(-20px); } }
+
+        /* Oggetti Famiglia */
+        .family-item {
+            position: absolute;
+            left: 50%;
+            transform: translateX(-50%);
+            width: 100px; /* Grandi per il telefono */
+            height: 100px;
+            border-radius: 50%;
+            background-size: cover;
+            background-position: center;
+            background-color: white;
+            border: 5px solid white;
+            box-shadow: 0 5px 15px rgba(0,0,0,0.5);
+            z-index: 40;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            font-size: 40px; /* Per emoji se manca foto */
+        }
+        .item-reward { border-color: #FFD700; box-shadow: 0 0 20px #FFD700; } /* Oro */
+        .item-obstacle { border-color: #ff4757; } /* Rosso */
+        .hit-anim { transition: 0.5s; transform: translateX(-50%) scale(2); opacity: 0; }
+
+        /* Traguardo */
+        #finish-line {
+            position: absolute;
+            top: 5vh; /* In cima al mondo */
+            width: 100%;
+            height: 100px;
+            background: repeating-linear-gradient(
+                45deg,
+                #000,
+                #000 20px,
+                #fff 20px,
+                #fff 40px
+            );
+            z-index: 10;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            color: white;
+            font-size: 3rem;
+            text-shadow: 2px 2px 4px black;
+            font-weight: bold;
+        }
+
+        /* UI e Overlay */
+        #ui-layer {
+            position: fixed; top: 0; left: 0; width: 100%; height: 100%;
+            pointer-events: none; z-index: 100;
+        }
+        
+        #start-overlay {
+            position: fixed; top: 0; left: 0; width: 100%; height: 100%;
+            background: rgba(0,0,0,0.9);
+            z-index: 200;
+            display: flex; flex-direction: column; justify-content: center; align-items: center;
+            pointer-events: auto;
+        }
+
+        h1 { color: white; text-align: center; margin-bottom: 20px; font-size: 2rem; }
+        
+        #btn-start {
+            background: #FFD700; border: none; padding: 20px 50px;
+            font-size: 2rem; border-radius: 50px; cursor: pointer;
+            box-shadow: 0 10px 0 #c5a800;
+            animation: pulseBtn 1s infinite alternate;
+        }
+        @keyframes pulseBtn { from { transform: scale(1); } to { transform: scale(1.1); } }
+
+        .instruction {
+            position: fixed; bottom: 20px; width: 100%; text-align: center;
+            color: white; font-size: 1.5rem; text-shadow: 2px 2px 4px black;
+            pointer-events: none; z-index: 90;
+        }
+
+        /* Coriandoli */
+        .confetti { position: absolute; width: 10px; height: 10px; z-index: 150; pointer-events: none; }
+
+    </style>
+</head>
+<body>
+
+    <div id="start-overlay">
+        <h1>Gara Verticale!<br>🚙💨</h1>
+        <div id="trophy" style="font-size: 100px; display:none; margin-bottom:20px;">🏆</div>
+        <button id="btn-start">VIA! ▶️</button>
+    </div>
+
+    <div id="game-world">
+        <div class="road-line"></div>
+        <div id="items-container"></div>
+        <div id="finish-line">ARRIVO 🏁</div>
+    </div>
+
+    <div id="car">🚕</div>
+    
+    <div class="instruction" id="tap-msg">👆 Tocca per salire! 👆</div>
+
+    <script>
+        // --- CONFIGURAZIONE ---
+        const WORLD_HEIGHT_MULTIPLIER = 5; // La pista è alta 5 schermi
+        const STEP = 2; // Quanto sale (%) per ogni tocco
+        
+        // --- DATI FAMIGLIA ---
+        const familyDB = [
+            // TURBO (Nucleo)
+            { type: 'reward', file: "Gabriele.jpg", text: "Papà Gabriele! Turbooo!", pitch: 0.6, rate: 1.1 },
+            { type: 'reward', file: "Jessica.jpg", text: "Mamma Jessica! Smack!", pitch: 1.4, rate: 1.2 },
+            { type: 'reward', file: "Julie.jpg", text: "Julie ti spinge! Via!", pitch: 1.6, rate: 1.3 },
+            { type: 'reward', file: "Christopher.jpg", text: "Vai Chris!", pitch: 1.0, rate: 1.2 },
+            // OSTACOLI (Nonni/Zii)
+            { type: 'obstacle', file: "Nonna_Letizia.jpg", text: "Ciao Nonna Letizia!", pitch: 1.2, rate: 1.0 },
+            { type: 'obstacle', file: "Nonna_Rosa.jpg", text: "Nonna Rosa saluta!", pitch: 1.1, rate: 0.9 },
+            { type: 'obstacle', file: "Nonno_Fiore.jpg", text: "Nonno Fiore guarda!", pitch: 0.6, rate: 0.9 },
+            { type: 'obstacle', file: "Zio_Loris.jpg", text: "Attento Zio Loris!", pitch: 0.9, rate: 1.1 },
+            { type: 'obstacle', file: "Nonno_Ugo.jpg", text: "Nonno Ugo dice bravo!", pitch: 0.5, rate: 0.9 },
+            { type: 'obstacle', file: "Zio_Nicolas.jpg", text: "Ciao Zio Nicolas!", pitch: 0.8, rate: 1.0 },
+            { type: 'obstacle', file: "Zia_Alessia.jpg", text: "Zia Alessia tifa!", pitch: 1.3, rate: 1.1 },
+        ];
+
+        // --- VARIABILI DI GIOCO ---
+        let progress = 0; // 0% a 100% (dove 100 è l'arrivo)
+        let gameActive = false;
+        let isPaused = false;
+        let activeItems = [];
+        
+        const car = document.getElementById('car');
+        const world = document.getElementById('game-world');
+        const itemsContainer = document.getElementById('items-container');
+        const overlay = document.getElementById('start-overlay');
+        const btnStart = document.getElementById('btn-start');
+        const trophy = document.getElementById('trophy');
+        const tapMsg = document.getElementById('tap-msg');
+
+        // --- SUONI ---
+        function speak(text, pitch, rate) {
+            if (window.speechSynthesis.speaking) window.speechSynthesis.cancel();
+            const msg = new SpeechSynthesisUtterance(text);
+            msg.lang = 'it-IT'; msg.pitch = pitch || 1; msg.rate = rate || 1;
+            window.speechSynthesis.speak(msg);
+        }
+
+        // --- INIZIALIZZAZIONE ---
+        function initGame() {
+            progress = 0;
+            gameActive = true;
+            isPaused = false;
+            updateCamera();
+            spawnItems();
+            
+            overlay.style.display = 'none';
+            trophy.style.display = 'none';
+            tapMsg.style.display = 'block';
+            
+            speak("Pronti... Partenza... Via!");
+        }
+
+        function spawnItems() {
+            itemsContainer.innerHTML = '';
+            activeItems = [];
+            
+            // Distribuisci 5 oggetti lungo la salita
+            // Li posizioniamo tra il 20% e l'80% dell'altezza del mondo
+            for (let i = 0; i < 5; i++) {
+                const data = familyDB[Math.floor(Math.random() * familyDB.length)];
+                const el = document.createElement('div');
+                el.classList.add('family-item', data.type === 'reward' ? 'item-reward' : 'item-obstacle');
+                
+                // Se c'è la foto usa quella, altrimenti un colore
+                el.style.backgroundImage = `url('${data.file}')`;
+                
+                // Posizione Verticale (Bottom %)
+                // Spaziatura regolare + un po' di random
+                const posPercent = 20 + (i * 15) + (Math.random() * 5);
+                el.style.bottom = posPercent + '%';
+                
+                // Posizione Orizzontale (Piccolo offset a sx o dx per varietà)
+                // -50% è il centro esatto per via del translate CSS. 
+                // Aggiungiamo un margine tra -20px e +20px
+                const offset = (Math.random() * 60) - 30;
+                el.style.marginLeft = offset + 'px';
+
+                itemsContainer.appendChild(el);
+                
+                // Salviamo la posizione in % assoluta rispetto al mondo
+                activeItems.push({ 
+                    el: el, 
+                    data: data, 
+                    posPercent: posPercent, 
+                    hit: false 
+                });
+            }
+        }
+
+        // --- MOTORE DI GIOCO ---
+        function moveCar() {
+            if (!gameActive || isPaused) return;
+
+            // Incrementa progresso
+            progress += STEP;
+            
+            // Animazione visiva macchina
+            car.classList.remove('bounce');
+            void car.offsetWidth; // Reset anim
+            car.classList.add('bounce');
+
+            updateCamera();
+            checkCollisions();
+            checkWin();
+        }
+
+        function updateCamera() {
+            // Spostiamo il mondo verso il basso (translateY positivo) 
+            // in base al progresso.
+            // L'altezza totale è (WORLD_HEIGHT_MULTIPLIER * 100) vh.
+            // Quando progress = 100%, vogliamo vedere la cima.
+            
+            // Calcolo semplice: Spostiamo il mondo giù pixel per pixel
+            const screenH = window.innerHeight;
+            const totalH = screenH * WORLD_HEIGHT_MULTIPLIER;
+            
+            // Quanti pixel corrispondono all'1% di progresso?
+            // Vogliamo percorrere circa l'80% dell'altezza totale del mondo
+            const pixelToMove = (totalH - screenH) * (progress / 100);
+            
+            world.style.transform = `translateY(${pixelToMove}px)`;
+        }
+
+        function checkCollisions() {
+            // La macchina è visivamente fissa a bottom: 10vh.
+            // Nel sistema di coordinate del mondo, la macchina "sale".
+            // La sua posizione attuale nel mondo è 'progress'.
+            
+            // Tolleranza collisione
+            const tolerance = 4; // %
+
+            activeItems.forEach(item => {
+                if (!item.hit && progress > item.posPercent - tolerance && progress < item.posPercent + tolerance) {
+                    item.hit = true;
+                    item.el.classList.add('hit-anim');
+
+                    if (item.data.type === 'reward') {
+                        // TURBO: Avanza extra senza input
+                        progress += 10; 
+                        updateCamera();
+                        car.classList.add('turbo');
+                        setTimeout(() => car.classList.remove('turbo'), 500);
+                        speak(item.data.text, item.data.pitch, item.data.rate);
+                        createConfetti();
+                    } else {
+                        // OSTACOLO: Pausa e Piroetta
+                        isPaused = true;
+                        car.classList.add('spin');
+                        speak(item.data.text, item.data.pitch, item.data.rate);
+                        setTimeout(() => { 
+                            isPaused = false; 
+                            car.classList.remove('spin');
+                        }, 1200);
+                    }
+                }
+            });
+        }
+
+        function checkWin() {
+            if (progress >= 100) {
+                gameActive = false;
+                tapMsg.style.display = 'none';
+                speak("Evviva! Chris ha vinto la coppa! Campione!", 1.2, 1.1);
+                
+                // Pioggia di coriandoli
+                setInterval(createConfetti, 200);
+
+                setTimeout(() => {
+                    trophy.style.display = 'block';
+                    document.querySelector('#start-overlay h1').innerHTML = "VITTORIA! 🎉";
+                    btnStart.innerText = "ANCORA 🔄";
+                    overlay.style.display = 'flex';
+                }, 2000);
+            }
+        }
+
+        // --- EFFETTI ---
+        function createConfetti() {
+            const colors = ['#f00', '#0f0', '#00f', '#ff0', '#0ff'];
+            for(let i=0; i<10; i++) {
+                const c = document.createElement('div');
+                c.classList.add('confetti');
+                c.style.backgroundColor = colors[Math.floor(Math.random()*colors.length)];
+                c.style.left = Math.random() * 100 + 'vw';
+                c.style.top = -10 + 'px';
+                document.body.appendChild(c);
+                
+                // Animazione caduta JS semplice
+                let y = -10;
+                let x = parseFloat(c.style.left);
+                let speed = Math.random() * 5 + 2;
+                
+                const fall = setInterval(() => {
+                    y += speed;
+                    c.style.top = y + 'px';
+                    if(y > window.innerHeight) {
+                        clearInterval(fall);
+                        c.remove();
+                    }
+                }, 20);
+            }
+        }
+
+        // --- INPUT (Gestisce tocco ovunque) ---
+        // Previene zoom doppio tocco
+        document.addEventListener('touchstart', (e) => {
+            if(e.target !== btnStart) e.preventDefault();
+            moveCar();
+        }, { passive: false });
+
+        document.addEventListener('mousedown', (e) => {
+            if(e.target !== btnStart) moveCar();
+        });
+
+        btnStart.addEventListener('click', (e) => {
+            e.stopPropagation(); // Evita che il click start muova subito la macchina
+            initGame();
+        });
+
+    </script>
+</body>
+</html>

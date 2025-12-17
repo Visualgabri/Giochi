@@ -1,0 +1,394 @@
+<!DOCTYPE html>
+<html lang="it">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+    <title>Gran Premio Verticale Chris 🏎️</title>
+    <style>
+        body {
+            margin: 0; padding: 0;
+            background-color: #50c878; /* Erba ai lati */
+            height: 100vh; width: 100vw;
+            overflow: hidden;
+            font-family: 'Comic Sans MS', 'Arial', sans-serif;
+            touch-action: manipulation;
+            user-select: none;
+            display: flex; justify-content: center;
+        }
+
+        /* LA STRADA */
+        #road {
+            position: relative;
+            width: 80%; /* Occupa gran parte dello schermo ma lascia erba ai lati */
+            max-width: 500px;
+            height: 100%;
+            background-color: #555;
+            overflow: hidden;
+            border-left: 10px solid white;
+            border-right: 10px solid white;
+            box-shadow: 0 0 20px rgba(0,0,0,0.5);
+        }
+
+        /* Linee tratteggiate che si muovono */
+        .road-stripes {
+            position: absolute;
+            left: 50%; top: -100px;
+            transform: translateX(-50%);
+            width: 10px;
+            height: 200%; /* Più lunga dello schermo per il loop */
+            background: repeating-linear-gradient(to bottom, white 0, white 40px, transparent 40px, transparent 80px);
+            /* L'animazione verrà controllata via JS per la velocità */
+            will-change: transform;
+        }
+
+        /* MACCHINA */
+        #hero-car {
+            position: absolute;
+            bottom: 20px;
+            left: 50%;
+            transform: translateX(-50%) rotate(-90deg); /* Ruotata per guardare su */
+            font-size: 80px;
+            z-index: 50;
+            transition: bottom 0.2s;
+            filter: drop-shadow(0 10px 10px rgba(0,0,0,0.5));
+        }
+
+        /* OGGETTI FAMIGLIA */
+        .family-item {
+            position: absolute;
+            left: 50%; /* Saranno sempre centrati per essere presi facilmente */
+            transform: translateX(-50%);
+            width: 90px; height: 90px;
+            border-radius: 50%;
+            border: 5px solid white;
+            background-size: cover; background-position: center; background-color: white;
+            z-index: 40;
+            box-shadow: 0 5px 15px rgba(0,0,0,0.3);
+            display: flex; justify-content: center; align-items: center;
+            font-size: 40px; /* Per l'emoji di fallback */
+        }
+        .family-item.reward { border-color: #FFD700; box-shadow: 0 0 20px #FFD700; }
+        .family-item.obstacle { border-color: #ff4757; }
+
+        /* EFFETTI ANIMAZIONE */
+        .shake { animation: shakeBody 0.2s; }
+        @keyframes shakeBody { 0% { transform: translateX(0); } 25% { transform: translateX(-5px); } 75% { transform: translateX(5px); } 100% { transform: translateX(0); } }
+
+        .spin-car { animation: spin 0.8s ease-in-out; }
+        @keyframes spin { 0% { transform: translateX(-50%) rotate(-90deg); } 100% { transform: translateX(-50%) rotate(270deg); } }
+
+        .turbo-car { animation: turbo 0.5s ease-out infinite; }
+        @keyframes turbo { 0%, 100% { filter: drop-shadow(0 0 10px orange); bottom: 20px; } 50% { filter: drop-shadow(0 0 30px red); bottom: 30px; } }
+
+        /* UI */
+        #progress-bar-container {
+            position: absolute; top: 10px; right: 10px;
+            width: 20px; height: 150px;
+            background: rgba(0,0,0,0.5); border: 2px solid white; border-radius: 10px;
+            z-index: 100;
+        }
+        #progress-fill {
+            position: absolute; bottom: 0; left: 0; width: 100%; height: 0%;
+            background: #00e676; border-radius: 8px; transition: height 0.2s;
+        }
+        #finish-flag {
+            position: absolute; top: -25px; left: -5px; font-size: 25px;
+        }
+
+        #tap-instruction {
+            position: absolute; bottom: 120px; width: 100%; text-align: center;
+            color: white; font-size: 1.5rem; text-shadow: 2px 2px 4px black;
+            animation: pulse 1s infinite; pointer-events: none; z-index: 90;
+        }
+        @keyframes pulse { 0% { transform: scale(1); } 50% { transform: scale(1.1); } 100% { transform: scale(1); } }
+
+        /* OVERLAY START/END */
+        #overlay {
+            position: fixed; top: 0; left: 0; width: 100%; height: 100%;
+            background: rgba(0,0,0,0.9); z-index: 200;
+            display: flex; flex-direction: column; justify-content: center; align-items: center;
+            color: white; text-align: center;
+        }
+        #start-btn {
+            background: #FFD700; color: black; border: none; padding: 20px 50px;
+            font-size: 1.8rem; border-radius: 50px; margin-top: 30px;
+            font-weight: bold; box-shadow: 0 0 20px #FFD700; animation: pulse 1.5s infinite;
+        }
+
+        /* Coriandoli */
+        .particle { position: absolute; font-size: 30px; pointer-events: none; z-index: 150; }
+        .particle.fall { animation: fallDown 1.5s linear forwards; }
+        @keyframes fallDown { to { transform: translateY(100vh) rotate(360deg); opacity: 0; } }
+
+    </style>
+</head>
+<body>
+
+    <div id="overlay">
+        <h1 style="font-size: 2.5rem; margin-bottom: 0;">🏎️ Vai Chris!</h1>
+        <p>Tocca lo schermo per correre!</p>
+        <div id="trophy" style="font-size: 100px; display: none; margin: 20px;">🏆</div>
+        <button id="start-btn">▶️ VIA! ◀️</button>
+    </div>
+
+    <div id="road">
+        <div class="road-stripes" id="stripes"></div>
+        
+        <div id="items-layer"></div>
+
+        <div id="hero-car">🚕</div>
+    </div>
+
+    <div id="progress-bar-container">
+        <div id="finish-flag">🏁</div>
+        <div id="progress-fill"></div>
+    </div>
+
+    <div id="tap-instruction">👆 TOCCA! TOCCA! 👆</div>
+
+    <script>
+        // --- CONFIGURAZIONE FAMIGLIA ---
+        const familyDB = [
+            // TURBO (Nucleo Familiare) - Premiano
+            { type: 'reward', file: "Gabriele.jpg", text: "Grande Papà Gabriele! Turbooo!", pitch: 0.7, rate: 1.1 },
+            { type: 'reward', file: "Jessica.jpg", text: "Mamma Jessica ti dà un bacio! Smack!", pitch: 1.3, rate: 1.2 },
+            { type: 'reward', file: "Julie.jpg", text: "Vai Julie! Spingi!", pitch: 1.5, rate: 1.3 },
+            { type: 'reward', file: "Christopher.jpg", text: "Super Chris! Velocissimo!", pitch: 1.0, rate: 1.2 },
+            
+            // INCONTRI (Parenti) - Rallentano un secondo per salutare
+            { type: 'obstacle', file: "Nonna_Letizia.jpg", text: "Ciao Nonna Letizia!", pitch: 1.2, rate: 1.0 },
+            { type: 'obstacle', file: "Nonna_Rosa.jpg", text: "Nonna Rosa ti saluta!", pitch: 1.1, rate: 0.9 },
+            { type: 'obstacle', file: "Nonno_Fiore.jpg", text: "Nonno Fiore dice: Piano!", pitch: 0.6, rate: 0.9 },
+            { type: 'obstacle', file: "Zio_Lorenzo.jpg", text: "Forza Chris, dice lo Zio Lorenzo!", pitch: 0.8, rate: 1.0 },
+            { type: 'obstacle', file: "Zia_Beatrice.jpg", text: "Un saluto a Zia Beatrice!", pitch: 1.3, rate: 1.1 },
+            { type: 'obstacle', file: "Nonno_Ugo.jpg", text: "Ciao Nonno Ugo!", pitch: 0.5, rate: 0.9 },
+            // Aggiungi qui gli altri se vuoi, verranno scelti a caso
+        ];
+
+        // --- VARIABILI DI GIOCO ---
+        const car = document.getElementById('hero-car');
+        const stripes = document.getElementById('stripes');
+        const itemsLayer = document.getElementById('items-layer');
+        const progressBar = document.getElementById('progress-fill');
+        const startBtn = document.getElementById('start-btn');
+        const overlay = document.getElementById('overlay');
+        const trophy = document.getElementById('trophy');
+        const instruction = document.getElementById('tap-instruction');
+
+        let speed = 0;
+        let distance = 0;
+        const maxDistance = 5000; // Lunghezza gara
+        let gameActive = false;
+        let animationId;
+        let stripeOffset = 0;
+        let nextItemSpawn = 500; // Primo oggetto a 500 distanza
+        let activeItems = []; // Array degli oggetti a schermo
+        let isSpinning = false; // Se sta facendo testacoda
+
+        // --- SUONI ---
+        function speak(text, pitch, rate) {
+            if (window.speechSynthesis.speaking) window.speechSynthesis.cancel();
+            const msg = new SpeechSynthesisUtterance(text);
+            msg.lang = 'it-IT'; msg.pitch = pitch || 1; msg.rate = rate || 1;
+            window.speechSynthesis.speak(msg);
+        }
+
+        // --- MOTORE DI GIOCO ---
+        function startGame() {
+            // Reset
+            distance = 0;
+            speed = 0;
+            stripeOffset = 0;
+            nextItemSpawn = 500;
+            itemsLayer.innerHTML = '';
+            activeItems = [];
+            gameActive = true;
+            isSpinning = false;
+            
+            overlay.style.display = 'none';
+            trophy.style.display = 'none';
+            instruction.style.display = 'block';
+            car.classList.remove('spin-car');
+            
+            speak("Motori accesi! Tre, due, uno... Via!", 1, 1.1);
+            gameLoop();
+        }
+
+        function gameLoop() {
+            if (!gameActive) return;
+
+            // 1. Gestione Velocità (Decadimento naturale)
+            if (speed > 0) speed -= 0.5; // La macchina rallenta se non tocchi
+            if (speed < 0) speed = 0;
+            if (isSpinning) speed = 0; // Se saluti i nonni ti fermi
+
+            // 2. Movimento Strada (illusione ottica)
+            stripeOffset += speed;
+            if (stripeOffset > 80) stripeOffset = 0; // Reset pattern
+            stripes.style.transform = `translate(-50%, ${stripeOffset}px)`;
+
+            // 3. Progresso Gara
+            distance += speed;
+            let percent = (distance / maxDistance) * 100;
+            progressBar.style.height = `${Math.min(percent, 100)}%`;
+
+            if (distance >= maxDistance) {
+                winGame();
+                return;
+            }
+
+            // 4. Gestione Oggetti (Spawn e Movimento)
+            handleItems();
+
+            animationId = requestAnimationFrame(gameLoop);
+        }
+
+        // --- GESTIONE OGGETTI (Parenti) ---
+        function handleItems() {
+            // A. Spawn (Creazione)
+            if (distance > nextItemSpawn && !isSpinning) {
+                spawnItem();
+                nextItemSpawn = distance + 600 + Math.random() * 400; // Prossimo tra un po'
+            }
+
+            // B. Movimento e Collisione
+            // Gli oggetti sono nel DOM. Li muoviamo verso il basso (top) in base alla velocità
+            for (let i = activeItems.length - 1; i >= 0; i--) {
+                let itemObj = activeItems[i];
+                
+                // Muovi giù
+                itemObj.y += speed; 
+                itemObj.el.style.top = itemObj.y + 'px';
+
+                // Controllo Collisione (Semplificato: quando arriva vicino alla macchina)
+                // La macchina è a bottom: 20px (circa top: windowHeight - 100)
+                const roadHeight = document.getElementById('road').offsetHeight;
+                const carTop = roadHeight - 120; // Zona di collisione
+
+                if (itemObj.y > carTop && itemObj.y < carTop + 100 && !itemObj.hit) {
+                    // PRESO!
+                    hitItem(itemObj);
+                }
+
+                // Rimuovi se esce dallo schermo
+                if (itemObj.y > roadHeight) {
+                    itemObj.el.remove();
+                    activeItems.splice(i, 1);
+                }
+            }
+        }
+
+        function spawnItem() {
+            const data = familyDB[Math.floor(Math.random() * familyDB.length)];
+            const el = document.createElement('div');
+            el.classList.add('family-item', data.type);
+            // Immagine o fallback emoji se l'immagine non c'è
+            el.style.backgroundImage = `url('${data.file}')`;
+            
+            // Posizione iniziale (fuori dallo schermo in alto)
+            el.style.top = '-100px';
+            itemsLayer.appendChild(el);
+
+            // Aggiungi all'array logico
+            activeItems.push({
+                el: el,
+                y: -100,
+                data: data,
+                hit: false
+            });
+        }
+
+        function hitItem(item) {
+            item.hit = true;
+            item.el.style.opacity = '0'; // Nascondi visivamente
+            item.el.style.transform = 'scale(2)';
+
+            speak(item.data.text, item.data.pitch, item.data.rate);
+
+            if (item.data.type === 'reward') {
+                // TURBO!
+                createConfetti();
+                speed += 30; // Spinta forte
+                car.classList.add('turbo-car');
+                setTimeout(() => car.classList.remove('turbo-car'), 1000);
+            } else {
+                // OSTACOLO (Saluto)
+                isSpinning = true;
+                car.classList.add('spin-car');
+                setTimeout(() => {
+                    isSpinning = false;
+                    car.classList.remove('spin-car');
+                    speed = 10; // Ripartenza lenta
+                }, 1000);
+            }
+        }
+
+
+        // --- INPUT UTENTE ---
+        function tap(e) {
+            if (!gameActive || isSpinning) return;
+            e.preventDefault(); // Evita zoom o scroll
+            
+            // Accelera
+            speed += 5;
+            if (speed > 30) speed = 30; // Velocità massima
+
+            // Effetto visivo "Brum"
+            car.style.transform = `translateX(-50%) rotate(-90deg) scale(1.1)`;
+            setTimeout(() => {
+                car.style.transform = `translateX(-50%) rotate(-90deg) scale(1)`;
+            }, 100);
+
+            // Nascondi istruzioni dopo i primi tap
+            instruction.style.opacity = '0';
+        }
+
+        // Supporta sia Touch che Click
+        document.addEventListener('touchstart', (e) => {
+            if (e.target.id !== 'start-btn') tap(e);
+        }, { passive: false });
+        
+        document.addEventListener('mousedown', (e) => {
+            if (e.target.id !== 'start-btn') tap(e);
+        });
+
+        // --- VITTORIA ---
+        function winGame() {
+            gameActive = false;
+            cancelAnimationFrame(animationId);
+            speak("Evviva! Chris ha vinto! Sei il campione del mondo!", 1.2, 1.1);
+            
+            createConfetti(true); // Tanti coriandoli
+
+            setTimeout(() => {
+                overlay.style.display = 'flex';
+                document.querySelector('#overlay h1').innerText = "🎉 VITTORIA! 🎉";
+                document.querySelector('#overlay p').innerText = "Bravissimo Chris!";
+                trophy.style.display = 'block';
+                startBtn.innerText = "Ancora! 🔄";
+            }, 2000);
+        }
+
+        // --- EFFETTI VISIVI ---
+        function createConfetti(lots = false) {
+            const colors = ['#f00', '#0f0', '#00f', '#ff0', '#0ff'];
+            const count = lots ? 50 : 10;
+            
+            for (let i = 0; i < count; i++) {
+                const p = document.createElement('div');
+                p.classList.add('particle', 'fall');
+                p.innerText = ['🎉', '⭐', '🎈'][Math.floor(Math.random() * 3)];
+                p.style.left = Math.random() * 100 + 'vw';
+                p.style.top = '-10vh';
+                p.style.animationDuration = (Math.random() * 1 + 1) + 's';
+                document.body.appendChild(p);
+                
+                setTimeout(() => p.remove(), 2000);
+            }
+        }
+
+        startBtn.addEventListener('click', startGame);
+
+    </script>
+</body>
+</html>
