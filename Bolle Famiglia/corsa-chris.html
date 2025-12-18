@@ -1,0 +1,409 @@
+<!DOCTYPE html>
+<html lang="it">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+    <title>Scalata Corsa Chris 🏎️</title>
+    <style>
+        body {
+            margin: 0; padding: 0;
+            background-color: #2c3e50;
+            height: 100vh; width: 100vw;
+            overflow: hidden;
+            font-family: 'Arial Rounded MT Bold', 'Arial', sans-serif;
+            touch-action: none; 
+            user-select: none;
+            display: flex; justify-content: center;
+        }
+
+        /* --- UI --- */
+        #ui-layer {
+            position: absolute; top: 0; left: 0; width: 100%; height: 100%;
+            pointer-events: none; z-index: 100;
+        }
+
+        #score-box {
+            position: absolute; top: 20px; left: 20px;
+            background: rgba(0,0,0,0.7); border: 2px solid white;
+            color: #FFD700; padding: 10px 20px; border-radius: 20px;
+            font-size: 1.5rem; font-weight: bold;
+            display: flex; align-items: center; gap: 10px;
+        }
+
+        /* --- STRADA --- */
+        #road {
+            position: relative;
+            width: 100%; max-width: 600px; height: 100%;
+            background-color: #555;
+            overflow: hidden;
+            border-left: 15px solid #ecf0f1;
+            border-right: 15px solid #ecf0f1;
+            box-shadow: inset 0 0 50px rgba(0,0,0,0.8);
+        }
+
+        /* Linea del traguardo in alto */
+        #finish-line-top {
+            position: absolute; top: 0; left: 0; width: 100%; height: 50px;
+            background: repeating-linear-gradient(
+                45deg,
+                #000,
+                #000 20px,
+                #fff 20px,
+                #fff 40px
+            );
+            opacity: 0.8; z-index: 10;
+        }
+
+        /* Asfalto in movimento */
+        .road-texture {
+            position: absolute; top: -100px; left: 0; width: 100%; height: 200%;
+            background-image: 
+                linear-gradient(90deg, transparent 49%, #fff 49%, #fff 51%, transparent 51%), 
+                linear-gradient(0deg, transparent 20%, rgba(0,0,0,0.1) 20%, rgba(0,0,0,0.1) 40%, transparent 40%);
+            background-size: 100% 200px, 100% 40px;
+            will-change: transform;
+        }
+
+        /* --- LA MACCHINA (CSS ART) --- */
+        #hero-car {
+            position: absolute;
+            bottom: 20px; left: 50%;
+            transform: translateX(-50%);
+            width: 70px; height: 120px;
+            z-index: 50;
+            transition: left 0.1s ease-out; /* Sinistra/Destra fluido */
+            /* Il movimento SU/GIU è gestito via JS senza transition per reattività */
+        }
+
+        /* Pezzi della macchina */
+        .chassis {
+            position: absolute; top: 10px; left: 10px; width: 50px; height: 100px;
+            background: #f1c40f; /* Giallo */
+            border-radius: 15px 15px 10px 10px;
+            box-shadow: 0 10px 20px rgba(0,0,0,0.6);
+            transition: background 0.5s; z-index: 2;
+        }
+        .stripe { position: absolute; top: 0; left: 20px; width: 10px; height: 100%; background: rgba(0,0,0,0.2); }
+        .wheel { position: absolute; width: 12px; height: 25px; background: #222; border-radius: 5px; z-index: 1; }
+        .fl { top: 15px; left: 0; } .fr { top: 15px; right: 0; }
+        .bl { bottom: 15px; left: 0; } .br { bottom: 15px; right: 0; }
+        .spoiler { position: absolute; bottom: -5px; left: 5px; width: 60px; height: 15px; background: inherit; border-radius: 5px; z-index: 3; filter: brightness(0.8); }
+        .windshield { position: absolute; top: 30px; left: 10px; width: 30px; height: 15px; background: #333; border-radius: 5px 5px 0 0; opacity: 0.8; }
+        .helmet { position: absolute; top: 50px; left: 15px; width: 20px; height: 20px; background: white; border-radius: 50%; border: 2px solid black; z-index: 4; }
+
+        /* SKINS */
+        .skin-red .chassis, .skin-red .spoiler { background: #e74c3c; }
+        .skin-red .stripe { background: white; width: 15px; left: 17.5px; }
+        
+        .skin-blue .chassis, .skin-blue .spoiler { background: #2980b9; }
+        .skin-blue .stripe { background: linear-gradient(to bottom, #e74c3c 50%, #2980b9 50%); }
+        
+        .skin-gold .chassis, .skin-gold .spoiler { 
+            background: linear-gradient(135deg, #FFD700, #FDB931, #FFD700); 
+            box-shadow: 0 0 25px #FFD700;
+        }
+
+        /* --- OGGETTI FAMIGLIA --- */
+        .family-item {
+            position: absolute;
+            width: 80px; height: 80px;
+            border-radius: 50%;
+            border: 4px solid white;
+            background-size: cover; background-position: center; background-color: white;
+            z-index: 40;
+            box-shadow: 0 5px 15px rgba(0,0,0,0.3);
+            display: flex; justify-content: center; align-items: center;
+        }
+        .family-item.reward { border-color: #f1c40f; animation: pulseItem 0.8s infinite; }
+        .family-item.obstacle { border-color: #e74c3c; }
+        @keyframes pulseItem { 0% { transform: scale(1); } 50% { transform: scale(1.1); } 100% { transform: scale(1); } }
+
+        /* Overlay */
+        #overlay {
+            position: fixed; top: 0; left: 0; width: 100%; height: 100%;
+            background: rgba(0,0,0,0.9); z-index: 200;
+            display: flex; flex-direction: column; justify-content: center; align-items: center;
+            color: white; text-align: center;
+        }
+        #start-btn {
+            background: #2ecc71; color: white; border: none; padding: 25px 60px;
+            font-size: 2rem; border-radius: 50px; margin-top: 30px;
+            font-weight: bold; box-shadow: 0 0 30px #2ecc71; animation: pulse 1.5s infinite;
+        }
+        @keyframes pulse { 0%, 100% { transform: scale(1); } 50% { transform: scale(1.05); } }
+
+        /* Messaggi Popup */
+        .msg-popup {
+            position: absolute; color: white; font-weight: bold; font-size: 2rem;
+            text-shadow: 2px 2px 0 #000; pointer-events: none; z-index: 150;
+            animation: floatUp 1s forwards;
+        }
+        @keyframes floatUp { to { transform: translateY(-100px); opacity: 0; } }
+
+        /* Coriandoli */
+        .particle { position: absolute; font-size: 30px; pointer-events: none; z-index: 150; }
+
+    </style>
+</head>
+<body>
+
+    <div id="ui-layer">
+        <div id="score-box">
+            <span>⭐</span> <span id="score-display">0</span>
+        </div>
+    </div>
+
+    <div id="overlay">
+        <h1>🏎️ Scalata Verticale!</h1>
+        <p>Tieni premuto per salire fino in cima!</p>
+        <button id="start-btn">PARTENZA ▶️</button>
+    </div>
+
+    <div id="road">
+        <div id="finish-line-top"></div>
+        <div class="road-texture" id="road-bg"></div>
+        <div id="items-layer"></div>
+
+        <div id="hero-car" class="skin-yellow">
+            <div class="wheel fl"></div><div class="wheel fr"></div>
+            <div class="wheel bl"></div><div class="wheel br"></div>
+            <div class="spoiler"></div>
+            <div class="chassis">
+                <div class="stripe"></div>
+                <div class="windshield"></div>
+                <div class="helmet"></div>
+            </div>
+        </div>
+    </div>
+
+    <script>
+        const familyDB = [
+            // PREMI
+            { type: 'reward', file: "Gabriele.jpg", text: "Papà Gabriele! +50!", pitch: 0.7, rate: 1.1 },
+            { type: 'reward', file: "Jessica.jpg", text: "Mamma Jessica! +50!", pitch: 1.3, rate: 1.2 },
+            { type: 'reward', file: "Julie.jpg", text: "Julie! +50!", pitch: 1.5, rate: 1.3 },
+            { type: 'reward', file: "Christopher.jpg", text: "Chris! +50!", pitch: 1.0, rate: 1.2 },
+            // OSTACOLI
+            { type: 'obstacle', file: "Nonna_Letizia.jpg", text: "Nonna Letizia!", pitch: 1.2, rate: 1.0 },
+            { type: 'obstacle', file: "Nonno_Fiore.jpg", text: "Nonno Fiore!", pitch: 0.6, rate: 0.9 },
+            { type: 'obstacle', file: "Zio_Lorenzo.jpg", text: "Zio Lollo!", pitch: 0.8, rate: 1.0 },
+            { type: 'obstacle', file: "Nonna_Rosa.jpg", text: "Nonna Rosa!", pitch: 1.1, rate: 1.0 },
+        ];
+
+        const car = document.getElementById('hero-car');
+        const roadBg = document.getElementById('road-bg');
+        const road = document.getElementById('road');
+        const itemsLayer = document.getElementById('items-layer');
+        const scoreDisplay = document.getElementById('score-display');
+        const overlay = document.getElementById('overlay');
+        const startBtn = document.getElementById('start-btn');
+
+        let gameActive = false;
+        let score = 0;
+        let carBottomY = 20; // Posizione Y della macchina (parte dal basso)
+        let positionX = 50;  // Posizione X percentuale
+        
+        let roadOffset = 0;
+        let isTouching = false;
+        let currentLevel = 1;
+        let items = [];
+        let spawnCounter = 0;
+
+        // --- INPUT ---
+        function handleInput(x, pressing) {
+            isTouching = pressing;
+            const roadRect = road.getBoundingClientRect();
+            let relativeX = x - roadRect.left;
+            if (relativeX < 0) relativeX = 0;
+            if (relativeX > roadRect.width) relativeX = roadRect.width;
+            positionX = (relativeX / roadRect.width) * 100;
+            car.style.left = positionX + '%';
+        }
+
+        road.addEventListener('touchstart', (e) => { e.preventDefault(); handleInput(e.touches[0].clientX, true); }, {passive: false});
+        road.addEventListener('touchmove', (e) => { e.preventDefault(); handleInput(e.touches[0].clientX, true); }, {passive: false});
+        road.addEventListener('touchend', () => { isTouching = false; });
+        road.addEventListener('mousedown', (e) => { handleInput(e.clientX, true); });
+        road.addEventListener('mousemove', (e) => { if(isTouching) handleInput(e.clientX, true); });
+        road.addEventListener('mouseup', () => { isTouching = false; });
+
+        // --- GIOCO ---
+        function startGame() {
+            overlay.style.display = 'none';
+            score = 0;
+            updateScore(0);
+            carBottomY = 20;
+            gameActive = true;
+            speak("Pronti... Via!", 1, 1.2);
+            requestAnimationFrame(loop);
+        }
+
+        function loop() {
+            if (!gameActive) return;
+
+            // 1. MOVIMENTO VERTICALE (Su e Giù)
+            if (isTouching) {
+                // Se premi, la macchina sale
+                carBottomY += 3; 
+            } else {
+                // Se lasci, la macchina scivola giù (gravità)
+                carBottomY -= 2;
+            }
+
+            // Limiti (Non scendere sotto terra)
+            if (carBottomY < 20) carBottomY = 20;
+            
+            // TRAGUARDO (Se tocchi il bordo alto)
+            if (carBottomY > window.innerHeight - 130) {
+                completeLap();
+                carBottomY = 20; // Reset al fondo
+            }
+
+            car.style.bottom = carBottomY + 'px';
+
+            // 2. MOVIMENTO SFONDO (Sensazione di velocità)
+            // Lo sfondo si muove solo se stiamo "premendo" o se siamo in movimento
+            if (carBottomY > 20) {
+                roadOffset += 5;
+                if (roadOffset > 200) roadOffset = 0;
+                roadBg.style.transform = `translateY(${roadOffset}px)`;
+            }
+
+            // 3. SPAWN OGGETTI
+            // Gli oggetti scendono dall'alto
+            spawnCounter++;
+            if (spawnCounter > 60) {
+                createItem();
+                spawnCounter = 0;
+            }
+            handleItems();
+
+            requestAnimationFrame(loop);
+        }
+
+        // --- OGGETTI E COLLISIONI ---
+        function createItem() {
+            const data = familyDB[Math.floor(Math.random() * familyDB.length)];
+            const el = document.createElement('div');
+            el.classList.add('family-item', data.type);
+            el.style.backgroundImage = `url('${data.file}')`;
+            
+            const randX = 10 + Math.random() * 80;
+            el.style.left = randX + '%';
+            el.style.top = '-100px';
+            road.appendChild(el);
+            
+            items.push({ el: el, y: -100, x: randX, data: data });
+        }
+
+        function handleItems() {
+            for (let i = items.length - 1; i >= 0; i--) {
+                let item = items[i];
+                // Gli oggetti scendono sempre verso il basso
+                item.y += 4; 
+                item.el.style.top = item.y + 'px';
+
+                // CHECK COLLISIONE REALE (BoundingBox)
+                // Usiamo getBoundingClientRect perché la macchina si muove su/giù
+                const carRect = car.getBoundingClientRect();
+                const itemRect = item.el.getBoundingClientRect();
+
+                const collision = !(carRect.right < itemRect.left || 
+                                  carRect.left > itemRect.right || 
+                                  carRect.bottom < itemRect.top || 
+                                  carRect.top > itemRect.bottom);
+
+                if (collision) {
+                    hitItem(item);
+                    items.splice(i, 1);
+                }
+                else if (item.y > window.innerHeight) {
+                    item.el.remove();
+                    items.splice(i, 1);
+                }
+            }
+        }
+
+        function hitItem(item) {
+            item.el.remove();
+            speak(item.data.text, item.data.pitch, item.data.rate);
+            
+            if (item.data.type === 'reward') {
+                updateScore(50);
+                showFloatingText("+50", item.el.style.left, item.el.style.top);
+                createConfetti();
+            } else {
+                // Ostacolo: Ti spinge un po' giù
+                carBottomY -= 50;
+                showFloatingText("Ops!", item.el.style.left, item.el.style.top);
+            }
+        }
+
+        function completeLap() {
+            updateScore(100);
+            speak("Giro Completato! Evviva!", 1.3, 1.2);
+            createConfetti(true);
+            showFloatingText("GIRO COMPLETATO!", "50%", "50%");
+        }
+
+        // --- PUNTEGGIO E SKIN ---
+        function updateScore(amount) {
+            score += amount;
+            scoreDisplay.innerText = score;
+
+            let newLevel = 1;
+            if (score > 1000) newLevel = 4;
+            else if (score > 600) newLevel = 3;
+            else if (score > 300) newLevel = 2;
+
+            if (newLevel > currentLevel) {
+                currentLevel = newLevel;
+                evolveCar(newLevel);
+            }
+        }
+
+        function evolveCar(level) {
+            speak("Nuova Macchina!", 1.2, 1.2);
+            if (level === 2) car.classList.add('skin-red');
+            if (level === 3) { car.classList.remove('skin-red'); car.classList.add('skin-blue'); }
+            if (level === 4) { car.classList.remove('skin-blue'); car.classList.add('skin-gold'); }
+            createConfetti();
+        }
+
+        // --- UTILITÀ ---
+        function showFloatingText(txt, x, y) {
+            const el = document.createElement('div');
+            el.classList.add('msg-popup');
+            el.innerText = txt;
+            el.style.left = x; el.style.top = y || '50%';
+            road.appendChild(el);
+            setTimeout(() => el.remove(), 1000);
+        }
+
+        function speak(text, pitch, rate) {
+            if (window.speechSynthesis.speaking) window.speechSynthesis.cancel();
+            const msg = new SpeechSynthesisUtterance(text);
+            msg.lang = 'it-IT'; msg.pitch = pitch; msg.rate = rate;
+            window.speechSynthesis.speak(msg);
+        }
+
+        function createConfetti(lots = false) {
+            const colors = ['#f00', '#0f0', '#00f', '#ff0'];
+            const count = lots ? 50 : 15;
+            for(let i=0; i<count; i++) {
+                const p = document.createElement('div');
+                p.classList.add('particle');
+                p.innerText = '✨';
+                p.style.left = Math.random() * 100 + 'vw';
+                p.style.top = Math.random() * 50 + 'vh';
+                document.body.appendChild(p);
+                p.animate([{transform: 'translateY(0)'}, {transform: 'translateY(200px) opacity(0)'}], {duration: 1500});
+                setTimeout(()=>p.remove(), 1500);
+            }
+        }
+
+        startBtn.addEventListener('click', startGame);
+
+    </script>
+</body>
+</html>
