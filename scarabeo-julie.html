@@ -1,0 +1,358 @@
+<!DOCTYPE html>
+<html lang="it">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Il Gioco di Parole di Julie</title>
+    <style>
+        :root {
+            --primary-red: #D32F2F;
+            --tile-white: #FFFFFF;
+            --text-blue: #1565C0;
+            --board-color: #EF5350;
+        }
+
+        body {
+            font-family: 'Comic Sans MS', 'Chalkboard SE', sans-serif;
+            background-color: var(--primary-red);
+            color: white;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            min-height: 100vh;
+            margin: 0;
+            padding: 20px;
+            overflow-x: hidden;
+        }
+
+        h1 {
+            text-shadow: 2px 2px 0px #000;
+            margin-bottom: 10px;
+        }
+
+        /* Controlli (Lingua e Reset) */
+        .controls {
+            display: flex;
+            gap: 20px;
+            margin-bottom: 20px;
+            background: rgba(0,0,0,0.2);
+            padding: 10px;
+            border-radius: 15px;
+        }
+
+        button {
+            background: #FFCA28;
+            border: none;
+            padding: 10px 20px;
+            font-size: 1.2rem;
+            border-radius: 10px;
+            cursor: pointer;
+            font-family: inherit;
+            font-weight: bold;
+            color: #333;
+            box-shadow: 0 4px 0 #F57F17;
+            transition: transform 0.1s;
+        }
+
+        button:active {
+            transform: translateY(4px);
+            box-shadow: 0 0 0 #F57F17;
+        }
+
+        /* Area di Gioco */
+        .game-container {
+            background-color: var(--board-color);
+            border: 4px solid #B71C1C;
+            border-radius: 20px;
+            padding: 20px;
+            width: 90%;
+            max-width: 500px;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            box-shadow: 0 10px 20px rgba(0,0,0,0.3);
+            /* Griglia effetto scarabeo */
+            background-image: 
+                linear-gradient(rgba(255,255,255,0.1) 1px, transparent 1px),
+                linear-gradient(90deg, rgba(255,255,255,0.1) 1px, transparent 1px);
+            background-size: 40px 40px;
+        }
+
+        .image-display {
+            font-size: 6rem;
+            margin: 10px 0;
+            filter: drop-shadow(0 5px 5px rgba(0,0,0,0.2));
+            animation: float 3s ease-in-out infinite;
+        }
+
+        @keyframes float {
+            0% { transform: translateY(0px); }
+            50% { transform: translateY(-10px); }
+            100% { transform: translateY(0px); }
+        }
+
+        /* Slot vuoti dove mettere le lettere */
+        .slots-area {
+            display: flex;
+            gap: 10px;
+            margin: 20px 0;
+            min-height: 60px;
+            flex-wrap: wrap;
+            justify-content: center;
+        }
+
+        .slot {
+            width: 50px;
+            height: 50px;
+            background: rgba(0,0,0,0.2);
+            border-radius: 8px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            border: 2px dashed rgba(255,255,255,0.5);
+            font-size: 2rem;
+            color: white;
+            cursor: pointer;
+        }
+
+        /* Lettere da cliccare */
+        .letters-pool {
+            display: flex;
+            gap: 10px;
+            flex-wrap: wrap;
+            justify-content: center;
+            margin-top: 20px;
+        }
+
+        .tile {
+            width: 50px;
+            height: 50px;
+            background-color: var(--tile-white);
+            color: var(--text-blue);
+            border-radius: 8px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 2rem;
+            font-weight: bold;
+            box-shadow: 0 4px 0 #90A4AE;
+            cursor: pointer;
+            user-select: none;
+            transition: transform 0.1s;
+        }
+
+        .tile:active {
+            transform: scale(0.95);
+        }
+
+        .tile.used {
+            opacity: 0.5;
+            pointer-events: none;
+            background-color: #ccc;
+            box-shadow: none;
+        }
+
+        /* Messaggio Vittoria */
+        .win-message {
+            display: none;
+            font-size: 2rem;
+            color: #FFEB3B;
+            text-shadow: 2px 2px 0 #000;
+            margin-top: 20px;
+            animation: pop 0.5s cubic-bezier(0.175, 0.885, 0.32, 1.275);
+        }
+
+        @keyframes pop {
+            0% { transform: scale(0); }
+            100% { transform: scale(1); }
+        }
+
+        /* Coriandoli semplici CSS */
+        .confetti {
+            position: fixed;
+            width: 10px;
+            height: 10px;
+            background-color: #f00;
+            animation: fall linear forwards;
+            top: -10vh;
+            z-index: 100;
+        }
+
+        @keyframes fall {
+            to { transform: translateY(110vh) rotate(720deg); }
+        }
+
+    </style>
+</head>
+<body>
+
+    <h1>Il gioco di Julie 🐞</h1>
+
+    <div class="controls">
+        <button id="langBtn" onclick="toggleLanguage()">🇮🇹 Italiano</button>
+        <button onclick="nextLevel()">⏭️ Prossima</button>
+    </div>
+
+    <div class="game-container">
+        <div class="image-display" id="emojiDisplay">🐢</div>
+        
+        <div class="slots-area" id="slotsArea">
+            </div>
+
+        <div style="width: 100%; height: 2px; background: rgba(255,255,255,0.3); margin: 10px 0;"></div>
+
+        <div class="letters-pool" id="lettersPool">
+            </div>
+
+        <div class="win-message" id="winMsg">BRAVA JULIE! 🎉</div>
+    </div>
+
+    <script>
+        // Dati del gioco basati sulla foto e ampliati
+        const wordsData = [
+            { it: "LENTO", en: "SLOW", emoji: "🐢" },
+            { it: "PIOGGIA", en: "RAIN", emoji: "🌧️" },
+            { it: "TIGRE", en: "TIGER", emoji: "🐯" },
+            { it: "GELATO", en: "ICE", emoji: "🍦" }, // "Ice cream" è lungo, semplificato in ICE per inglese base
+            { it: "SOLE", en: "SUN", emoji: "☀️" },
+            { it: "CASA", en: "HOUSE", emoji: "🏠" },
+            { it: "GATTO", en: "CAT", emoji: "🐱" }
+        ];
+
+        let currentLang = 'it';
+        let currentIndex = 0;
+        let currentWordObj = null;
+        let placedLetters = [];
+
+        function initGame() {
+            loadLevel();
+        }
+
+        function toggleLanguage() {
+            currentLang = currentLang === 'it' ? 'en' : 'it';
+            const btn = document.getElementById('langBtn');
+            btn.innerHTML = currentLang === 'it' ? '🇮🇹 Italiano' : '🇬🇧 English';
+            loadLevel();
+        }
+
+        function nextLevel() {
+            currentIndex = (currentIndex + 1) % wordsData.length;
+            loadLevel();
+        }
+
+        function loadLevel() {
+            // Reset stato
+            document.getElementById('winMsg').style.display = 'none';
+            placedLetters = [];
+            currentWordObj = wordsData[currentIndex];
+            
+            const targetWord = currentWordObj[currentLang];
+            document.getElementById('emojiDisplay').innerText = currentWordObj.emoji;
+
+            // Genera Slot Vuoti
+            const slotsArea = document.getElementById('slotsArea');
+            slotsArea.innerHTML = '';
+            for (let i = 0; i < targetWord.length; i++) {
+                let slot = document.createElement('div');
+                slot.className = 'slot';
+                slot.dataset.index = i;
+                slot.onclick = () => removeLetter(i);
+                slotsArea.appendChild(slot);
+                placedLetters.push(null);
+            }
+
+            // Genera Lettere mischiate
+            const poolArea = document.getElementById('lettersPool');
+            poolArea.innerHTML = '';
+            
+            // Creiamo un array di lettere e lo mischiamo
+            let letters = targetWord.split('').map((char, index) => ({char, id: index}));
+            shuffleArray(letters);
+
+            letters.forEach(item => {
+                let btn = document.createElement('div');
+                btn.className = 'tile';
+                btn.innerText = item.char;
+                btn.id = `tile-${item.id}`;
+                btn.onclick = () => placeLetter(item.char, item.id);
+                poolArea.appendChild(btn);
+            });
+        }
+
+        function placeLetter(char, id) {
+            // Trova il primo slot vuoto
+            const firstEmptyIndex = placedLetters.indexOf(null);
+            
+            if (firstEmptyIndex !== -1) {
+                // Aggiorna array logico
+                placedLetters[firstEmptyIndex] = { char, id };
+
+                // Aggiorna UI Slot
+                const slots = document.getElementsByClassName('slot');
+                slots[firstEmptyIndex].innerText = char;
+                slots[firstEmptyIndex].style.backgroundColor = '#fff';
+                slots[firstEmptyIndex].style.color = '#1565C0';
+
+                // Disabilita lettera nella pool
+                document.getElementById(`tile-${id}`).classList.add('used');
+
+                checkWin();
+            }
+        }
+
+        function removeLetter(index) {
+            if (placedLetters[index] !== null) {
+                const item = placedLetters[index];
+                
+                // Riabilita lettera nella pool
+                document.getElementById(`tile-${item.id}`).classList.remove('used');
+
+                // Pulisci slot
+                const slots = document.getElementsByClassName('slot');
+                slots[index].innerText = '';
+                slots[index].style.backgroundColor = 'rgba(0,0,0,0.2)';
+                slots[index].style.color = 'white';
+
+                // Pulisci array logico
+                placedLetters[index] = null;
+            }
+        }
+
+        function checkWin() {
+            const currentString = placedLetters.map(l => l ? l.char : '').join('');
+            const targetWord = currentWordObj[currentLang];
+
+            if (currentString === targetWord) {
+                document.getElementById('winMsg').style.display = 'block';
+                createConfetti();
+                // Play sound effect here if desired
+            }
+        }
+
+        function shuffleArray(array) {
+            for (let i = array.length - 1; i > 0; i--) {
+                const j = Math.floor(Math.random() * (i + 1));
+                [array[i], array[j]] = [array[j], array[i]];
+            }
+        }
+
+        function createConfetti() {
+            const colors = ['#FFC107', '#2196F3', '#4CAF50', '#E91E63'];
+            for (let i = 0; i < 50; i++) {
+                const conf = document.createElement('div');
+                conf.className = 'confetti';
+                conf.style.left = Math.random() * 100 + 'vw';
+                conf.style.backgroundColor = colors[Math.floor(Math.random() * colors.length)];
+                conf.style.animationDuration = (Math.random() * 2 + 2) + 's';
+                document.body.appendChild(conf);
+                
+                setTimeout(() => conf.remove(), 4000);
+            }
+        }
+
+        // Avvio
+        initGame();
+
+    </script>
+</body>
+</html>
