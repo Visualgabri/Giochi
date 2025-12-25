@@ -1,0 +1,214 @@
+<!DOCTYPE html>
+<html lang="it">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Julie - Noi al Mattino ☀️</title>
+    <link href="https://fonts.googleapis.com/css2?family=Patrick+Hand&family=Fredoka+One&display=swap" rel="stylesheet">
+    <script src="https://cdn.jsdelivr.net/npm/canvas-confetti@1.6.0/dist/confetti.browser.min.js"></script>
+    <style>
+        :root {
+            --bg-start: #fff9c4; 
+            --highlight: #f57c00;
+        }
+
+        body {
+            font-family: 'Patrick Hand', cursive;
+            margin: 0;
+            min-height: 100vh;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            background: linear-gradient(to bottom, var(--bg-start), #ffecb3);
+            user-select: none;
+            padding-bottom: 50px;
+        }
+
+        .container {
+            max-width: 800px;
+            width: 90%;
+            background: rgba(255, 255, 255, 0.95);
+            padding: 2rem;
+            border-radius: 20px;
+            box-shadow: 0 10px 25px rgba(0,0,0,0.1);
+            margin-top: 20px;
+            text-align: center;
+            border: 5px solid #fff;
+        }
+
+        h1 { font-family: 'Fredoka One', cursive; color: #e64a19; font-size: 2.5rem; }
+
+        .story-box {
+            font-size: 2.2rem;
+            line-height: 1.8;
+            color: #3e2723;
+            text-align: left;
+            padding: 25px;
+            background: #fffde7;
+            border-radius: 15px;
+            border: 3px dashed #ffd54f;
+            margin: 20px 0;
+            white-space: pre-line;
+        }
+
+        /* --- PAROLE INTERATTIVE --- */
+        .interactive-word {
+            display: inline-block;
+            transition: all 0.2s;
+            position: relative;
+            cursor: pointer;
+            padding: 0 4px;
+            border-radius: 8px;
+        }
+        
+        .interactive-word:hover {
+            background-color: #ffe082;
+            transform: scale(1.1);
+        }
+
+        /* Tooltip con Emoji gigante */
+        .word-img-tooltip {
+            position: absolute;
+            bottom: 110%;
+            left: 50%;
+            transform: translateX(-50%);
+            font-size: 4rem;
+            background: white;
+            padding: 10px;
+            border-radius: 50%;
+            box-shadow: 0 5px 15px rgba(0,0,0,0.2);
+            opacity: 0;
+            visibility: hidden;
+            transition: 0.3s;
+            z-index: 100;
+        }
+
+        .interactive-word:hover .word-img-tooltip {
+            opacity: 1;
+            visibility: visible;
+        }
+
+        /* --- SCENA PROGRESSIVA --- */
+        #breakfast-scene {
+            height: 150px;
+            background: #f5f5f5;
+            border-radius: 15px;
+            border-bottom: 10px solid #8d6e63;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            font-size: 5rem;
+            gap: 20px;
+            margin-top: 20px;
+        }
+
+        .stars-container {
+            display: flex;
+            gap: 15px;
+            font-size: 3.5rem;
+            color: #cfd8dc;
+            margin: 15px 0;
+        }
+
+        .star { cursor: pointer; transition: 0.3s; }
+        .star.active { color: #fbc02d; transform: scale(1.2); }
+
+        #msg { font-weight: bold; font-size: 1.5rem; color: #5d4037; height: 1.5em; }
+    </style>
+</head>
+<body>
+
+    <div class="container">
+        <h1>☀️ NOI AL MATTINO 🥪</h1>
+        
+        <div class="story-box">
+            <div id="textDisplay"></div>
+        </div>
+
+        <div id="breakfast-scene">
+            </div>
+
+        <div class="controls">
+            <div id="msg">Tocca una stella ogni volta che leggi!</div>
+            <div class="stars-container">
+                <div class="star" onclick="registerRead(1)" id="s1">★</div>
+                <div class="star" onclick="registerRead(2)" id="s2">★</div>
+                <div class="star" onclick="registerRead(3)" id="s3">★</div>
+                <div class="star" onclick="registerRead(4)" id="s4">★</div>
+                <div class="star" onclick="registerRead(5)" id="s5">★</div>
+            </div>
+        </div>
+    </div>
+
+    <script>
+        // Mappatura totale delle parole dalle immagini
+        const dictionary = {
+            "MATTINO": "☀️",
+            "MAMMA": "👩",
+            "PAPÀ": "👨",
+            "TÈ": "🍵",
+            "MENTA": "🌿",
+            "PANE": "🍞",
+            "SALAME": "🥩",
+            "MIELE": "🍯",
+            "INSIEME": "👨‍👩‍👧‍👦",
+            "IO": "🧒",
+            "AMA": "❤️",
+            "NONNO": "👴",
+            "TITO": "👨‍🌾",
+            "SEME": "🌱",
+            "SOLE": "🌞",
+            "PIANTE": "🌻"
+        };
+
+        const storyText = `AL MATTINO IO, MAMMA E PAPÀ STIAMO INSIEME.
+LA MIA MAMMA AMA IL TÈ ALLA MENTA.
+IL MIO PAPÀ PANE E SALAME.
+IO AMO PANE E MIELE.`;
+
+        function buildText() {
+            const display = document.getElementById('textDisplay');
+            display.innerHTML = storyText.split('\n').map(line => {
+                return line.split(' ').map(word => {
+                    const clean = word.replace(/[.,!]/g, '').toUpperCase();
+                    const emoji = dictionary[clean];
+                    if (emoji) {
+                        return `<span class="interactive-word">${word}<div class="word-img-tooltip">${emoji}</div></span>`;
+                    }
+                    return `<span class="interactive-word">${word}</span>`;
+                }).join(' ');
+            }).join('<br>');
+        }
+
+        buildText();
+
+        let count = 0;
+        const sceneItems = ["⏰", "👩🍵", "👨🥩", "🧒🍯", "👨‍👩‍👧‍👦✨"];
+        const messages = [
+            "Brava Julie! Una stella accesa! ⭐",
+            "La Mamma ha il suo tè! 🍵",
+            "Papà sta mangiando! 🥪",
+            "Gnam! Pane e miele per te! 🍯",
+            "TUTTA LA FAMIGLIA A TAVOLA! 🎉"
+        ];
+
+        function registerRead(num) {
+            if (num !== count + 1) return; // Obbliga l'ordine
+            count = num;
+
+            document.getElementById(`s${count}`).classList.add('active');
+            const scene = document.getElementById('breakfast-scene');
+            scene.innerHTML += `<span>${sceneItems[count-1]}</span>`;
+            
+            const msgEl = document.getElementById('msg');
+            msgEl.innerText = messages[count-1];
+
+            if (count === 5) {
+                confetti({ particleCount: 200, spread: 90, origin: { y: 0.6 } });
+                msgEl.style.color = "#2e7d32";
+                msgEl.style.fontSize = "2rem";
+            }
+        }
+    </script>
+</body>
+</html>
