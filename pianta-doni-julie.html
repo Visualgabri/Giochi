@@ -3,202 +3,256 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Julie - Reading Challenge</title>
-    <script src="https://cdn.jsdelivr.net/npm/canvas-confetti@1.5.1/dist/confetti.browser.min.js"></script>
+    <title>Julie - La Pianta Magica 🌳</title>
+    <link href="https://fonts.googleapis.com/css2?family=Patrick+Hand&family=Fredoka+One&display=swap" rel="stylesheet">
+    <script src="https://cdn.jsdelivr.net/npm/canvas-confetti@1.6.0/dist/confetti.browser.min.js"></script>
     <style>
         :root {
-            --primary: #2563eb;
-            --success: #059669;
-            --bg: #f8fafc;
-            --text: #1e293b;
-            --card-bg: #ffffff;
-        }
-
-        * {
-            box-sizing: border-box;
-            -webkit-tap-highlight-color: transparent;
+            --bg-start: #e8f5e9; 
+            --highlight: #2e7d32;
         }
 
         body {
-            font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, Helvetica, Arial, sans-serif;
-            background-color: var(--bg);
-            color: var(--text);
+            font-family: 'Patrick Hand', cursive;
             margin: 0;
+            min-height: 100vh;
             display: flex;
             flex-direction: column;
             align-items: center;
-            justify-content: center;
-            min-height: 100vh;
-            padding: 20px;
+            background: linear-gradient(to bottom, #81c784, #f1f8e9);
+            user-select: none;
+            padding-bottom: 50px;
         }
 
         .container {
-            width: 100%;
-            max-width: 500px;
-            background: var(--card-bg);
-            padding: 40px 24px;
-            border-radius: 16px;
-            box-shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.1), 0 2px 4px -1px rgba(0, 0, 0, 0.06);
+            max-width: 800px;
+            width: 90%;
+            background: rgba(255, 255, 255, 0.96);
+            padding: 2rem;
+            border-radius: 25px;
+            box-shadow: 0 15px 35px rgba(0,0,0,0.1);
+            margin-top: 20px;
             text-align: center;
+            border: 6px solid #ffffff;
         }
 
-        h1 {
-            font-size: 1.25rem;
-            font-weight: 700;
-            letter-spacing: -0.025em;
-            text-transform: uppercase;
-            margin-bottom: 24px;
-            color: var(--text);
-        }
-
-        .progress-dots {
-            display: flex;
-            justify-content: center;
-            gap: 12px;
-            margin-bottom: 32px;
-        }
-
-        .dot {
-            width: 14px;
-            height: 14px;
-            border-radius: 50%;
-            background: #e2e8f0;
-            transition: all 0.4s ease;
-        }
-
-        .dot.active {
-            background: var(--primary);
-            transform: scale(1.2);
-            box-shadow: 0 0 10px rgba(37, 99, 235, 0.3);
-        }
+        h1 { font-family: 'Fredoka One', cursive; color: #1b5e20; font-size: 2.2rem; margin-bottom: 5px; }
 
         .story-box {
-            font-size: 1.5rem;
-            line-height: 1.5;
-            font-weight: 600;
-            text-transform: uppercase;
-            margin-bottom: 32px;
+            font-size: 2rem;
+            line-height: 1.6;
+            color: #1b5e20;
             text-align: left;
-            padding: 20px;
-            border-left: 4px solid var(--primary);
-            background: #f1f5f9;
-            border-radius: 0 8px 8px 0;
+            padding: 25px;
+            background: #e8f5e9;
+            border-radius: 20px;
+            border: 3px dashed #4caf50;
+            margin: 15px 0;
+            white-space: pre-line;
         }
 
-        .word {
+        /* --- PAROLE INTERATTIVE --- */
+        .interactive-word {
             display: inline-block;
+            transition: all 0.2s;
+            position: relative;
             cursor: pointer;
-            margin-right: 4px;
-            transition: color 0.2s;
+            color: #2e7d32;
+            font-weight: bold;
+        }
+        
+        .interactive-word:hover {
+            color: #ff6f00;
+            transform: scale(1.1);
         }
 
-        .word:active {
-            color: var(--primary);
+        .word-tooltip {
+            position: absolute;
+            bottom: 120%;
+            left: 50%;
+            transform: translateX(-50%);
+            font-size: 3.5rem;
+            background: white;
+            padding: 5px 15px;
+            border-radius: 20px;
+            box-shadow: 0 8px 20px rgba(0,0,0,0.15);
+            opacity: 0;
+            visibility: hidden;
+            transition: 0.3s cubic-bezier(0.175, 0.885, 0.32, 1.275);
+            z-index: 100;
+            border: 2px solid #4caf50;
         }
 
-        button {
-            width: 100%;
-            background: var(--text);
-            color: white;
-            border: none;
-            padding: 16px;
-            font-size: 1rem;
-            font-weight: 600;
-            border-radius: 12px;
-            cursor: pointer;
-            transition: transform 0.1s, background 0.2s;
+        .interactive-word:hover .word-tooltip {
+            opacity: 1;
+            visibility: visible;
+            bottom: 130%;
         }
 
-        button:active {
-            transform: scale(0.98);
-            background: #000;
+        /* --- ALBERO MAGICO --- */
+        #magic-tree-scene {
+            height: 200px;
+            background: white;
+            border-radius: 20px;
+            margin: 20px 0;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            font-size: 6rem;
+            position: relative;
+            border: 2px solid #c8e6c9;
+            overflow: hidden;
         }
 
-        #victory-message {
-            display: none;
-            margin-top: 24px;
-            font-weight: 700;
-            color: var(--success);
-            font-size: 1.1rem;
-            animation: fadeIn 0.5s ease-out;
+        .gift-icon {
+            position: absolute;
+            font-size: 2.5rem;
+            animation: popIn 0.5s ease-out;
         }
 
-        @keyframes fadeIn {
-            from { opacity: 0; transform: translateY(10px); }
-            to { opacity: 1; transform: translateY(0); }
+        @keyframes popIn {
+            0% { transform: scale(0); rotate: -45deg; }
+            100% { transform: scale(1); rotate: 0deg; }
         }
 
-        .hint {
-            font-size: 0.875rem;
-            color: #64748b;
-            margin-bottom: 40px;
+        /* --- CONTROLLI --- */
+        .stars-container {
+            display: flex;
+            gap: 15px;
+            font-size: 3.5rem;
+            color: #e0e0e0;
+            justify-content: center;
+            margin: 15px 0;
         }
+
+        .star { cursor: pointer; transition: 0.3s; }
+        .star.active { color: #fbc02d; transform: scale(1.2); text-shadow: 0 0 15px rgba(251, 192, 45, 0.6); }
+
+        #msg { font-size: 1.4rem; color: #388e3c; font-weight: bold; min-height: 1.5em; }
     </style>
 </head>
 <body>
 
     <div class="container">
-        <h1>Challenge: La pianta dei doni</h1>
-        <p class="hint">Tocca le parole per ascoltare, leggi tutto 5 volte!</p>
-
-        <div class="progress-dots" id="dots">
-            <div class="dot"></div>
-            <div class="dot"></div>
-            <div class="dot"></div>
-            <div class="dot"></div>
-            <div class="dot"></div>
+        <h1>🌳 LA PIANTA MAGICA 🎁</h1>
+        
+        <div class="story-box">
+            <div id="textDisplay"></div>
         </div>
 
-        <div class="story-box" id="story">
-            </div>
+        <div id="magic-tree-scene">
+            <span id="tree-base">🌱</span>
+        </div>
 
-        <button id="mainBtn" onclick="nextStep()">HO LETTO TUTTO</button>
-        <div id="victory-message">🏆 BRAVISSIMA JULIE! SFIDA COMPLETATA!</div>
+        <div class="controls">
+            <div id="msg">Leggi forte e tocca una stella!</div>
+            <div class="stars-container">
+                <div class="star" onclick="registerRead(1)" id="s1">★</div>
+                <div class="star" onclick="registerRead(2)" id="s2">★</div>
+                <div class="star" onclick="registerRead(3)" id="s3">★</div>
+                <div class="star" onclick="registerRead(4)" id="s4">★</div>
+                <div class="star" onclick="registerRead(5)" id="s5">★</div>
+            </div>
+        </div>
     </div>
 
     <script>
-        const storyText = "LA MIA PIANTA È MOLTO ALTA, MA NON È UN PINO O UN MELO. SU DI LEI SPUNTANO TANTI DONI... PATTINI, ALTALENE, DONDOLI! E LA TUA PIANTA?";
-        let currentLevel = 0;
-        const synth = window.speechSynthesis;
+        const dictionary = {
+            "PIANTA": "🌳",
+            "ALTA": "🔝",
+            "PINO": "🌲",
+            "MELO": "🍎",
+            "DONI": "🎁",
+            "PATTINI": "🛼",
+            "ALTALENE": "⛓️",
+            "DONDOLI": "🎠",
+            "TUA": "❓"
+        };
 
-        // Inizializzazione testo
-        const storyContainer = document.getElementById('story');
-        storyText.split(' ').forEach(w => {
-            const span = document.createElement('span');
-            span.className = 'word';
-            span.textContent = w + ' ';
-            span.onclick = () => {
-                const u = new SpeechSynthesisUtterance(w.replace(/[^a-zA-Z]/g, ""));
-                u.lang = 'it-IT';
-                u.rate = 0.9;
-                synth.cancel();
-                synth.speak(u);
-            };
-            storyContainer.appendChild(span);
-        });
+        const storyText = `LA MIA PIANTA È MOLTO ALTA,
+MA NON È UN PINO O UN MELO.
+SU DI LEI SPUNTANO TANTI DONI...
+PATTINI, ALTALENE, DONDOLI!
+E LA TUA PIANTA?`;
 
-        function nextStep() {
-            if (currentLevel < 5) {
-                const dots = document.querySelectorAll('.dot');
-                dots[currentLevel].classList.add('active');
-                currentLevel++;
-
-                if (currentLevel === 5) {
-                    finishChallenge();
-                }
-            }
+        function buildText() {
+            const display = document.getElementById('textDisplay');
+            display.innerHTML = storyText.split('\n').map(line => {
+                return line.split(' ').map(word => {
+                    const clean = word.replace(/[.,!?…]/g, '').toUpperCase();
+                    const emoji = dictionary[clean];
+                    if (emoji) {
+                        return `<span class="interactive-word">${word}<div class="word-tooltip">${emoji}</div></span>`;
+                    }
+                    return `<span class="interactive-word">${word}</span>`;
+                }).join(' ');
+            }).join('<br>');
         }
 
-        function finishChallenge() {
-            document.getElementById('mainBtn').style.display = 'none';
-            document.getElementById('victory-message').style.display = 'block';
+        buildText();
+
+        let count = 0;
+        const messages = [
+            "Brava Julie! L'albero sta crescendo! 🌳",
+            "Guarda quante foglie! 🍃",
+            "Sono spuntati i pattini! 🛼",
+            "Ci sono anche le altalene! 🎡",
+            "CHE ALBERO MERAVIGLIOSO! 🎉"
+        ];
+
+        function addGift(emoji, top, left) {
+            const scene = document.getElementById('magic-tree-scene');
+            const span = document.createElement('span');
+            span.innerText = emoji;
+            span.className = 'gift-icon';
+            span.style.top = top + '%';
+            span.style.left = left + '%';
+            scene.appendChild(span);
+        }
+
+        function registerRead(num) {
+            if (num !== count + 1) return;
+            count = num;
+
+            document.getElementById(`s${count}`).classList.add('active');
+            const treeBase = document.getElementById('tree-base');
+            const msgEl = document.getElementById('msg');
+            msgEl.innerText = messages[count-1];
+
+            // Evoluzione dell'albero
+            if(count === 1) treeBase.innerText = "🪵"; 
+            if(count === 2) treeBase.innerText = "🌳";
+            if(count === 3) {
+                addGift("🛼", 40, 30);
+                addGift("🛼", 50, 60);
+            }
+            if(count === 4) {
+                addGift("🎡", 20, 45);
+                addGift("🎁", 60, 20);
+            }
+            if(count === 5) {
+                addGift("🎠", 55, 70);
+                addGift("✨", 10, 20);
+                addGift("✨", 15, 80);
+                confetti({
+                    particleCount: 150,
+                    spread: 70,
+                    origin: { y: 0.6 },
+                    colors: ['#4caf50', '#ffeb3b', '#ffffff']
+                });
+                msgEl.style.color = "#e64a19";
+                msgEl.style.fontSize = "1.8rem";
+            }
             
-            confetti({
-                particleCount: 150,
-                spread: 70,
-                origin: { y: 0.6 },
-                colors: ['#2563eb', '#059669', '#f59e0b']
-            });
+            // Suono di feedback
+            const audioCtx = new (window.AudioContext || window.webkitAudioContext)();
+            const osc = audioCtx.createOscillator();
+            const gain = audioCtx.createGain();
+            osc.connect(gain);
+            gain.connect(audioCtx.destination);
+            osc.frequency.value = 500 + (count * 100);
+            gain.gain.exponentialRampToValueAtTime(0.01, audioCtx.currentTime + 0.3);
+            osc.start(); osc.stop(audioCtx.currentTime + 0.3);
         }
     </script>
 </body>
