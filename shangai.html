@@ -1,0 +1,153 @@
+<!DOCTYPE html>
+<html lang="it">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+    <title>Chris Mikado Gravity</title>
+    <style>
+        body { margin: 0; overflow: hidden; background: #f0f0f0; font-family: sans-serif; }
+        canvas { display: block; }
+        #ui { position: absolute; top: 20px; left: 20px; pointer-events: none; }
+        button { 
+            position: absolute; top: 50%; left: 50%; 
+            transform: translate(-50%, -50%);
+            padding: 20px 40px; font-size: 24px; 
+            background: #4CAF50; color: white; border: none; border-radius: 15px;
+            cursor: pointer;
+        }
+    </style>
+</head>
+<body>
+
+    <div id="ui">
+        <h2 id="score">Presi: 0</h2>
+    </div>
+    <button id="startBtn">Tocca per Giocare con Chris</button>
+    <canvas id="gameCanvas"></canvas>
+
+<script>
+const canvas = document.getElementById('gameCanvas');
+const ctx = canvas.getContext('2d');
+const startBtn = document.getElementById('startBtn');
+const scoreEl = document.getElementById('score');
+
+let sticks = [];
+let ball = { x: 0, y: 0, radius: 25, vx: 0, vy: 0 };
+let score = 0;
+let permissionGranted = false;
+
+// Configurazione
+const STICK_COUNT = 12;
+const COLORS = ['#FF5252', '#FFEB3B', '#2196F3', '#4CAF50', '#9C27B0'];
+
+function init() {
+    canvas.width = window.innerWidth;
+    canvas.height = window.innerHeight;
+    ball.x = canvas.width / 2;
+    ball.y = canvas.height / 2;
+    createSticks();
+}
+
+function createSticks() {
+    sticks = [];
+    for (let i = 0; i < STICK_COUNT; i++) {
+        sticks.push({
+            x: Math.random() * (canvas.width - 60) + 30,
+            y: Math.random() * (canvas.height - 60) + 30,
+            width: 10,
+            height: 100 + Math.random() * 100,
+            angle: Math.random() * Math.PI,
+            color: COLORS[Math.floor(Math.random() * COLORS.length)],
+            active: true
+        });
+    }
+}
+
+function draw() {
+    ctx.clearRect(0, 0, canvas.width, canvas.height);
+
+    // Disegna bastoncini
+    sticks.forEach(s => {
+        if (!s.active) return;
+        ctx.save();
+        ctx.translate(s.x, s.y);
+        ctx.rotate(s.angle);
+        ctx.fillStyle = s.color;
+        ctx.beginPath();
+        ctx.roundRect(-s.width/2, -s.height/2, s.width, s.height, 5);
+        ctx.fill();
+        ctx.restore();
+    });
+
+    // Disegna pallina (Chris)
+    ctx.beginPath();
+    ctx.arc(ball.x, ball.y, ball.radius, 0, Math.PI * 2);
+    ctx.fillStyle = "#333";
+    ctx.fill();
+    ctx.closePath();
+
+    update();
+    requestAnimationFrame(draw);
+}
+
+function update() {
+    ball.x += ball.vx;
+    ball.y += ball.vy;
+
+    // Bordi
+    if (ball.x < ball.radius) ball.x = ball.radius;
+    if (ball.x > canvas.width - ball.radius) ball.x = canvas.width - ball.radius;
+    if (ball.y < ball.radius) ball.y = ball.radius;
+    if (ball.y > canvas.height - ball.radius) ball.y = canvas.height - ball.radius;
+
+    // Collisione semplice
+    sticks.forEach(s => {
+        if (s.active) {
+            let dx = ball.x - s.x;
+            let dy = ball.y - s.y;
+            let dist = Math.sqrt(dx*dx + dy*dy);
+            if (dist < ball.radius + 20) {
+                s.active = false;
+                score++;
+                scoreEl.innerText = `Presi: ${score}`;
+                if (score % STICK_COUNT === 0) createSticks();
+            }
+        }
+    });
+}
+
+// Gestione Giroscopio
+function handleOrientation(event) {
+    // Gamma: inclinazione sinistra/destra (-90 a 90)
+    // Beta: inclinazione avanti/dietro (-180 a 180)
+    ball.vx = event.gamma / 5;
+    ball.vy = event.beta / 5;
+}
+
+startBtn.onclick = () => {
+    // Richiesta permessi per iOS
+    if (typeof DeviceOrientationEvent.requestPermission === 'function') {
+        DeviceOrientationEvent.requestPermission()
+            .then(response => {
+                if (response == 'granted') {
+                    window.addEventListener('deviceorientation', handleOrientation);
+                    startGame();
+                }
+            })
+            .catch(console.error);
+    } else {
+        window.addEventListener('deviceorientation', handleOrientation);
+        startGame();
+    }
+};
+
+function startGame() {
+    startBtn.style.display = 'none';
+    init();
+    draw();
+}
+
+window.addEventListener('resize', init);
+</script>
+</body>
+</html>
