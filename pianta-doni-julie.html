@@ -3,185 +3,202 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Sfida per Julie!</title>
+    <title>Julie - Reading Challenge</title>
     <script src="https://cdn.jsdelivr.net/npm/canvas-confetti@1.5.1/dist/confetti.browser.min.js"></script>
     <style>
         :root {
-            --primary: #ff6f61;
-            --gold: #ffcf33;
-            --bg: #fdf6e3;
+            --primary: #2563eb;
+            --success: #059669;
+            --bg: #f8fafc;
+            --text: #1e293b;
+            --card-bg: #ffffff;
+        }
+
+        * {
+            box-sizing: border-box;
+            -webkit-tap-highlight-color: transparent;
         }
 
         body {
-            font-family: 'Comic Sans MS', cursive, sans-serif;
+            font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, Helvetica, Arial, sans-serif;
             background-color: var(--bg);
+            color: var(--text);
+            margin: 0;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            justify-content: center;
+            min-height: 100vh;
+            padding: 20px;
+        }
+
+        .container {
+            width: 100%;
+            max-width: 500px;
+            background: var(--card-bg);
+            padding: 40px 24px;
+            border-radius: 16px;
+            box-shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.1), 0 2px 4px -1px rgba(0, 0, 0, 0.06);
             text-align: center;
-            padding: 20px;
-            color: #444;
         }
 
-        .challenge-box {
-            background: white;
-            padding: 20px;
-            border-radius: 30px;
-            box-shadow: 0 10px 30px rgba(0,0,0,0.1);
-            max-width: 600px;
-            margin: 0 auto;
+        h1 {
+            font-size: 1.25rem;
+            font-weight: 700;
+            letter-spacing: -0.025em;
+            text-transform: uppercase;
+            margin-bottom: 24px;
+            color: var(--text);
         }
 
-        h1 { color: var(--primary); text-transform: uppercase; }
-
-        .stars-container {
-            font-size: 3rem;
-            margin: 20px 0;
+        .progress-dots {
             display: flex;
             justify-content: center;
-            gap: 10px;
+            gap: 12px;
+            margin-bottom: 32px;
         }
 
-        .gift-icon {
-            filter: grayscale(1);
-            opacity: 0.3;
-            transition: all 0.5s cubic-bezier(0.175, 0.885, 0.32, 1.275);
+        .dot {
+            width: 14px;
+            height: 14px;
+            border-radius: 50%;
+            background: #e2e8f0;
+            transition: all 0.4s ease;
         }
 
-        .gift-icon.active {
-            filter: grayscale(0);
-            opacity: 1;
+        .dot.active {
+            background: var(--primary);
             transform: scale(1.2);
+            box-shadow: 0 0 10px rgba(37, 99, 235, 0.3);
         }
 
-        .story-text {
-            font-size: 1.8rem;
-            line-height: 1.6;
-            margin: 30px 0;
-            padding: 20px;
-            border: 3px solid #eee;
-            border-radius: 15px;
+        .story-box {
+            font-size: 1.5rem;
+            line-height: 1.5;
+            font-weight: 600;
             text-transform: uppercase;
+            margin-bottom: 32px;
+            text-align: left;
+            padding: 20px;
+            border-left: 4px solid var(--primary);
+            background: #f1f5f9;
+            border-radius: 0 8px 8px 0;
         }
 
         .word {
             display: inline-block;
             cursor: pointer;
-            margin: 0 4px;
+            margin-right: 4px;
+            transition: color 0.2s;
         }
-        .word:hover { color: var(--primary); }
 
-        .btn-finish {
-            background: #4caf50;
+        .word:active {
+            color: var(--primary);
+        }
+
+        button {
+            width: 100%;
+            background: var(--text);
             color: white;
             border: none;
-            padding: 15px 30px;
-            font-size: 1.5rem;
-            border-radius: 50px;
+            padding: 16px;
+            font-size: 1rem;
+            font-weight: 600;
+            border-radius: 12px;
             cursor: pointer;
-            box-shadow: 0 5px 15px rgba(76,175,80,0.4);
-            transition: transform 0.2s;
+            transition: transform 0.1s, background 0.2s;
         }
 
-        .btn-finish:active { transform: scale(0.9); }
+        button:active {
+            transform: scale(0.98);
+            background: #000;
+        }
 
-        #victory-msg {
+        #victory-message {
             display: none;
-            font-size: 2rem;
-            color: #e91e63;
-            font-weight: bold;
-            margin-top: 20px;
-            animation: pulse 1s infinite;
+            margin-top: 24px;
+            font-weight: 700;
+            color: var(--success);
+            font-size: 1.1rem;
+            animation: fadeIn 0.5s ease-out;
         }
 
-        @keyframes pulse {
-            0% { transform: scale(1); }
-            50% { transform: scale(1.05); }
-            100% { transform: scale(1); }
+        @keyframes fadeIn {
+            from { opacity: 0; transform: translateY(10px); }
+            to { opacity: 1; transform: translateY(0); }
+        }
+
+        .hint {
+            font-size: 0.875rem;
+            color: #64748b;
+            margin-bottom: 40px;
         }
     </style>
 </head>
 <body>
 
-    <div class="challenge-box">
-        <h1>🏆 SFIDA PER JULIE 🏆</h1>
-        <p>Leggi la storia 5 volte per vincere i doni!</p>
+    <div class="container">
+        <h1>Challenge: La pianta dei doni</h1>
+        <p class="hint">Tocca le parole per ascoltare, leggi tutto 5 volte!</p>
 
-        <div class="stars-container" id="stars">
-            <span class="gift-icon">🎁</span>
-            <span class="gift-icon">🎁</span>
-            <span class="gift-icon">🎁</span>
-            <span class="gift-icon">🎁</span>
-            <span class="gift-icon">🎁</span>
+        <div class="progress-dots" id="dots">
+            <div class="dot"></div>
+            <div class="dot"></div>
+            <div class="dot"></div>
+            <div class="dot"></div>
+            <div class="dot"></div>
         </div>
 
-        <div class="story-text" id="story">
+        <div class="story-box" id="story">
             </div>
 
-        <button class="btn-finish" onclick="completeReading()">HO FINITO DI LEGGERE! ✅</button>
-        
-        <div id="victory-msg">🌟 BRAVISSIMA JULIE! SEI UNA CAMPIONESSA! 🌟</div>
+        <button id="mainBtn" onclick="nextStep()">HO LETTO TUTTO</button>
+        <div id="victory-message">🏆 BRAVISSIMA JULIE! SFIDA COMPLETATA!</div>
     </div>
 
     <script>
-        const text = "LA MIA PIANTA È MOLTO ALTA, MA NON È UN PINO O UN MELO. SU DI LEI SPUNTANO TANTI DONI... PATTINI, ALTALENE, DONDOLI! E LA TUA PIANTA?";
-        let count = 0;
+        const storyText = "LA MIA PIANTA È MOLTO ALTA, MA NON È UN PINO O UN MELO. SU DI LEI SPUNTANO TANTI DONI... PATTINI, ALTALENE, DONDOLI! E LA TUA PIANTA?";
+        let currentLevel = 0;
         const synth = window.speechSynthesis;
 
-        // Inizializza il testo cliccabile
-        const storyDiv = document.getElementById('story');
-        text.split(' ').forEach(w => {
+        // Inizializzazione testo
+        const storyContainer = document.getElementById('story');
+        storyText.split(' ').forEach(w => {
             const span = document.createElement('span');
             span.className = 'word';
             span.textContent = w + ' ';
             span.onclick = () => {
                 const u = new SpeechSynthesisUtterance(w.replace(/[^a-zA-Z]/g, ""));
                 u.lang = 'it-IT';
+                u.rate = 0.9;
+                synth.cancel();
                 synth.speak(u);
             };
-            storyDiv.appendChild(span);
+            storyContainer.appendChild(span);
         });
 
-        function completeReading() {
-            if (count < 5) {
-                const gifts = document.querySelectorAll('.gift-icon');
-                gifts[count].classList.add('active');
-                
-                // Audio di successo per il passo singolo
-                const bell = new Audio('https://www.soundjay.com/misc/sounds/bell-ringing-05.mp3'); 
-                // Nota: se l'audio esterno non carica, non blocca il resto
-                
-                count++;
+        function nextStep() {
+            if (currentLevel < 5) {
+                const dots = document.querySelectorAll('.dot');
+                dots[currentLevel].classList.add('active');
+                currentLevel++;
 
-                if (count === 5) {
-                    showVictory();
-                } else {
-                    alert("Ottimo! Ti mancano " + (5 - count) + " letture!");
+                if (currentLevel === 5) {
+                    finishChallenge();
                 }
             }
         }
 
-        function showVictory() {
-            document.getElementById('victory-msg').style.display = 'block';
-            document.querySelector('.btn-finish').style.display = 'none';
+        function finishChallenge() {
+            document.getElementById('mainBtn').style.display = 'none';
+            document.getElementById('victory-message').style.display = 'block';
             
-            // Pioggia di coriandoli
-            var duration = 5 * 1000;
-            var animationEnd = Date.now() + duration;
-            var defaults = { startVelocity: 30, spread: 360, ticks: 60, zIndex: 0 };
-
-            function randomInRange(min, max) {
-              return Math.random() * (max - min) + min;
-            }
-
-            var interval = setInterval(function() {
-              var timeLeft = animationEnd - Date.now();
-
-              if (timeLeft <= 0) {
-                return clearInterval(interval);
-              }
-
-              var particleCount = 50 * (timeLeft / duration);
-              confetti(Object.assign({}, defaults, { particleCount, origin: { x: randomInRange(0.1, 0.3), y: Math.random() - 0.2 } }));
-              confetti(Object.assign({}, defaults, { particleCount, origin: { x: randomInRange(0.7, 0.9), y: Math.random() - 0.2 } }));
-            }, 250);
+            confetti({
+                particleCount: 150,
+                spread: 70,
+                origin: { y: 0.6 },
+                colors: ['#2563eb', '#059669', '#f59e0b']
+            });
         }
     </script>
 </body>
