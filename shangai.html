@@ -3,42 +3,44 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
-    <title>Chris Mikado Gravity</title>
+    <title>Chris Gravity Game - Debug Mode</title>
     <style>
-        body { margin: 0; overflow: hidden; background: #f0f0f0; font-family: sans-serif; }
+        body { margin: 0; overflow: hidden; background: #1a1a1a; font-family: sans-serif; color: white; }
         canvas { display: block; }
-        #ui { position: absolute; top: 20px; left: 20px; pointer-events: none; }
+        #overlay {
+            position: absolute; top: 0; left: 0; width: 100%; height: 100%;
+            display: flex; flex-direction: column; justify-content: center; align-items: center;
+            background: rgba(0,0,0,0.8); z-index: 10;
+        }
+        #debug { position: absolute; bottom: 10px; left: 10px; font-size: 12px; color: #0f0; pointer-events: none; }
         button { 
-            position: absolute; top: 50%; left: 50%; 
-            transform: translate(-50%, -50%);
-            padding: 20px 40px; font-size: 24px; 
-            background: #4CAF50; color: white; border: none; border-radius: 15px;
-            cursor: pointer;
+            padding: 25px 50px; font-size: 28px; font-weight: bold;
+            background: #4CAF50; color: white; border: none; border-radius: 50px;
+            box-shadow: 0 10px 20px rgba(0,0,0,0.3); cursor: pointer;
         }
     </style>
 </head>
 <body>
 
-    <div id="ui">
-        <h2 id="score">Presi: 0</h2>
+    <div id="overlay">
+        <h1 style="text-align: center; padding: 20px;">Pronto per Chris?</h1>
+        <button id="startBtn">GIOCA ORA</button>
+        <p style="margin-top: 20px; color: #aaa;">Usa il telefono in verticale</p>
     </div>
-    <button id="startBtn">Tocca per Giocare con Chris</button>
+
+    <div id="debug">Attesa sensori...</div>
     <canvas id="gameCanvas"></canvas>
 
 <script>
 const canvas = document.getElementById('gameCanvas');
 const ctx = canvas.getContext('2d');
 const startBtn = document.getElementById('startBtn');
-const scoreEl = document.getElementById('score');
+const overlay = document.getElementById('overlay');
+const debugEl = document.getElementById('debug');
 
-let sticks = [];
 let ball = { x: 0, y: 0, radius: 25, vx: 0, vy: 0 };
+let sticks = [];
 let score = 0;
-let permissionGranted = false;
-
-// Configurazione
-const STICK_COUNT = 12;
-const COLORS = ['#FF5252', '#FFEB3B', '#2196F3', '#4CAF50', '#9C27B0'];
 
 function init() {
     canvas.width = window.innerWidth;
@@ -50,21 +52,68 @@ function init() {
 
 function createSticks() {
     sticks = [];
-    for (let i = 0; i < STICK_COUNT; i++) {
+    for (let i = 0; i < 10; i++) {
         sticks.push({
-            x: Math.random() * (canvas.width - 60) + 30,
-            y: Math.random() * (canvas.height - 60) + 30,
-            width: 10,
-            height: 100 + Math.random() * 100,
+            x: Math.random() * (canvas.width - 100) + 50,
+            y: Math.random() * (canvas.height - 100) + 50,
+            w: 10, h: 120,
             angle: Math.random() * Math.PI,
-            color: COLORS[Math.floor(Math.random() * COLORS.length)],
+            color: `hsl(${Math.random() * 360}, 70%, 60%)`,
             active: true
         });
     }
 }
 
-function draw() {
-    ctx.clearRect(0, 0, canvas.width, canvas.height);
+function handleOrientation(event) {
+    // Debug dei dati grezzi
+    debugEl.innerHTML = `Beta: ${Math.round(event.beta)} | Gamma: ${Math.round(event.gamma)}`;
+    
+    // Mappatura: Beta (avanti/dietro), Gamma (sinistra/destra)
+    // Sensibilità regolata per le mani di un bimbo
+    ball.vx = event.gamma * 0.15; 
+    ball.vy = event.beta * 0.15;
+}
+
+async function requestPermissions() {
+    // Caso iOS 13+
+    if (typeof DeviceOrientationEvent.requestPermission === 'function') {
+        try {
+            const permissionState = await DeviceOrientationEvent.requestPermission();
+            if (permissionState === 'granted') {
+                window.addEventListener('deviceorientation', handleOrientation);
+                startGame();
+            } else {
+                alert("Permesso negato! Controlla le impostazioni di Safari.");
+            }
+        } catch (e) {
+            alert("Errore richiesta permessi: " + e);
+        }
+    } else {
+        // Android o browser desktop/vecchi
+        window.addEventListener('deviceorientation', handleOrientation);
+        startGame();
+    }
+}
+
+function startGame() {
+    overlay.style.display = 'none';
+    init();
+    animate();
+}
+
+function animate() {
+    ctx.fillStyle = '#1a1a1a';
+    ctx.fillRect(0, 0, canvas.width, canvas.height);
+
+    // Movimento pallina
+    ball.x += ball.vx;
+    ball.y += ball.vy;
+
+    // Rimbalzo bordi
+    if (ball.x < ball.radius) ball.x = ball.radius;
+    if (ball.x > canvas.width - ball.radius) ball.x = canvas.width - ball.radius;
+    if (ball.y < ball.radius) ball.y = ball.radius;
+    if (ball.y > canvas.height - ball.radius) ball.y = canvas.height - ball.radius;
 
     // Disegna bastoncini
     sticks.forEach(s => {
@@ -73,80 +122,31 @@ function draw() {
         ctx.translate(s.x, s.y);
         ctx.rotate(s.angle);
         ctx.fillStyle = s.color;
-        ctx.beginPath();
-        ctx.roundRect(-s.width/2, -s.height/2, s.width, s.height, 5);
-        ctx.fill();
+        ctx.fillRect(-s.w/2, -s.h/2, s.w, s.h);
         ctx.restore();
-    });
 
-    // Disegna pallina (Chris)
-    ctx.beginPath();
-    ctx.arc(ball.x, ball.y, ball.radius, 0, Math.PI * 2);
-    ctx.fillStyle = "#333";
-    ctx.fill();
-    ctx.closePath();
-
-    update();
-    requestAnimationFrame(draw);
-}
-
-function update() {
-    ball.x += ball.vx;
-    ball.y += ball.vy;
-
-    // Bordi
-    if (ball.x < ball.radius) ball.x = ball.radius;
-    if (ball.x > canvas.width - ball.radius) ball.x = canvas.width - ball.radius;
-    if (ball.y < ball.radius) ball.y = ball.radius;
-    if (ball.y > canvas.height - ball.radius) ball.y = canvas.height - ball.radius;
-
-    // Collisione semplice
-    sticks.forEach(s => {
-        if (s.active) {
-            let dx = ball.x - s.x;
-            let dy = ball.y - s.y;
-            let dist = Math.sqrt(dx*dx + dy*dy);
-            if (dist < ball.radius + 20) {
-                s.active = false;
-                score++;
-                scoreEl.innerText = `Presi: ${score}`;
-                if (score % STICK_COUNT === 0) createSticks();
-            }
+        // Collisione semplificata
+        let dist = Math.hypot(ball.x - s.x, ball.y - s.y);
+        if (dist < ball.radius + 20) {
+            s.active = false;
+            score++;
+            if (sticks.every(st => !st.active)) createSticks();
         }
     });
+
+    // Disegna Chris (la pallina)
+    ctx.beginPath();
+    ctx.arc(ball.x, ball.y, ball.radius, 0, Math.PI*2);
+    ctx.fillStyle = '#fff';
+    ctx.fill();
+    ctx.lineWidth = 3;
+    ctx.strokeStyle = '#4CAF50';
+    ctx.stroke();
+
+    requestAnimationFrame(animate);
 }
 
-// Gestione Giroscopio
-function handleOrientation(event) {
-    // Gamma: inclinazione sinistra/destra (-90 a 90)
-    // Beta: inclinazione avanti/dietro (-180 a 180)
-    ball.vx = event.gamma / 5;
-    ball.vy = event.beta / 5;
-}
-
-startBtn.onclick = () => {
-    // Richiesta permessi per iOS
-    if (typeof DeviceOrientationEvent.requestPermission === 'function') {
-        DeviceOrientationEvent.requestPermission()
-            .then(response => {
-                if (response == 'granted') {
-                    window.addEventListener('deviceorientation', handleOrientation);
-                    startGame();
-                }
-            })
-            .catch(console.error);
-    } else {
-        window.addEventListener('deviceorientation', handleOrientation);
-        startGame();
-    }
-};
-
-function startGame() {
-    startBtn.style.display = 'none';
-    init();
-    draw();
-}
-
+startBtn.addEventListener('click', requestPermissions);
 window.addEventListener('resize', init);
 </script>
 </body>
