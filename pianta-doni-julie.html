@@ -1,0 +1,201 @@
+<!DOCTYPE html>
+<html lang="it">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>La Pianta dei Doni - Per Julie</title>
+    <style>
+        :root {
+            --primary-color: #ff6f61;
+            --bg-color: #f0f9ff;
+            --text-color: #2c3e50;
+        }
+
+        body {
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+            background-color: var(--bg-color);
+            color: var(--text-color);
+            margin: 0;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            padding: 20px;
+        }
+
+        h1 {
+            color: var(--primary-color);
+            font-size: 2.5rem;
+            text-transform: uppercase;
+            margin-bottom: 10px;
+            text-shadow: 2px 2px #fff;
+        }
+
+        .story-container {
+            background: white;
+            padding: 30px;
+            border-radius: 20px;
+            box-shadow: 0 10px 20px rgba(0,0,0,0.1);
+            max-width: 600px;
+            text-align: center;
+            line-height: 1.8;
+            margin-bottom: 20px;
+        }
+
+        .word {
+            display: inline-block;
+            font-size: 2rem;
+            font-weight: bold;
+            margin: 0 5px;
+            cursor: pointer;
+            transition: transform 0.2s, color 0.2s;
+            text-transform: uppercase;
+        }
+
+        .word:hover {
+            color: var(--primary-color);
+            transform: scale(1.2);
+        }
+
+        .word.active {
+            color: #4caf50;
+            transform: scale(1.3);
+        }
+
+        .canvas-area {
+            background: white;
+            border: 4px dashed #bdc3c7;
+            border-radius: 20px;
+            position: relative;
+        }
+
+        canvas {
+            cursor: crosshair;
+            touch-action: none;
+        }
+
+        .controls {
+            margin-top: 10px;
+            display: flex;
+            gap: 10px;
+        }
+
+        button {
+            padding: 10px 20px;
+            font-size: 1rem;
+            border: none;
+            border-radius: 10px;
+            background: var(--primary-color);
+            color: white;
+            cursor: pointer;
+            font-weight: bold;
+        }
+
+        button:active { transform: scale(0.95); }
+        .btn-clear { background: #95a5a6; }
+
+        .hint {
+            font-style: italic;
+            color: #7f8c8d;
+            margin-bottom: 10px;
+        }
+    </style>
+</head>
+<body>
+
+    <h1>La Pianta dei Doni</h1>
+    <p class="hint">Tocca le parole per ascoltarle!</p>
+
+    <div class="story-container" id="story">
+        </div>
+
+    <div class="canvas-section">
+        <h2 style="text-align: center; text-transform: uppercase;">E la tua pianta?</h2>
+        <div class="canvas-area">
+            <canvas id="drawCanvas" width="350" height="300"></canvas>
+        </div>
+        <div class="controls">
+            <button class="btn-clear" onclick="clearCanvas()">Cancella Disegno</button>
+            <button onclick="readFullStory()">Leggi Tutto</button>
+        </div>
+    </div>
+
+    <script>
+        const text = "LA MIA PIANTA È MOLTO ALTA, MA NON È UN PINO O UN MELO. SU DI LEI SPUNTANO TANTI DONI... PATTINI, ALTALENE, DONDOLI! E LA TUA PIANTA?";
+        const storyContainer = document.getElementById('story');
+        const synth = window.speechSynthesis;
+
+        // Creazione parole interattive
+        text.split(' ').forEach(wordStr => {
+            const span = document.createElement('span');
+            span.className = 'word';
+            span.textContent = wordStr + ' ';
+            span.onclick = () => speak(wordStr, span);
+            storyContainer.appendChild(span);
+        });
+
+        function speak(word, element) {
+            // Rimuove punteggiatura per la sintesi vocale
+            const cleanWord = word.replace(/[.,\/#!$%\^&\*;:{}=\-_`~()!]/g,"");
+            const utterance = new SpeechSynthesisUtterance(cleanWord);
+            utterance.lang = 'it-IT';
+            utterance.rate = 0.9;
+
+            // Effetto visivo
+            element.classList.add('active');
+            utterance.onend = () => element.classList.remove('active');
+            
+            synth.cancel(); // Interrompe letture precedenti
+            synth.speak(utterance);
+        }
+
+        function readFullStory() {
+            const utterance = new SpeechSynthesisUtterance(text);
+            utterance.lang = 'it-IT';
+            utterance.rate = 0.8;
+            synth.speak(utterance);
+        }
+
+        // Logica del Disegno (Canvas)
+        const canvas = document.getElementById('drawCanvas');
+        const ctx = canvas.getContext('2d');
+        let painting = false;
+
+        function startPosition(e) {
+            painting = true;
+            draw(e);
+        }
+
+        function finishedPosition() {
+            painting = false;
+            ctx.beginPath();
+        }
+
+        function draw(e) {
+            if (!painting) return;
+            ctx.lineWidth = 5;
+            ctx.lineCap = 'round';
+            ctx.strokeStyle = '#2c3e50';
+
+            const rect = canvas.getBoundingClientRect();
+            const x = (e.clientX || e.touches[0].clientX) - rect.left;
+            const y = (e.clientY || e.touches[0].clientY) - rect.top;
+
+            ctx.lineTo(x, y);
+            ctx.stroke();
+            ctx.beginPath();
+            ctx.moveTo(x, y);
+        }
+
+        canvas.addEventListener('mousedown', startPosition);
+        canvas.addEventListener('mouseup', finishedPosition);
+        canvas.addEventListener('mousemove', draw);
+        canvas.addEventListener('touchstart', (e) => { e.preventDefault(); startPosition(e.touches[0]); });
+        canvas.addEventListener('touchend', finishedPosition);
+        canvas.addEventListener('touchmove', (e) => { e.preventDefault(); draw(e.touches[0]); });
+
+        function clearCanvas() {
+            ctx.clearRect(0, 0, canvas.width, canvas.height);
+        }
+    </script>
+</body>
+</html>
