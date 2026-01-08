@@ -3,198 +3,185 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>La Pianta dei Doni - Per Julie</title>
+    <title>Sfida per Julie!</title>
+    <script src="https://cdn.jsdelivr.net/npm/canvas-confetti@1.5.1/dist/confetti.browser.min.js"></script>
     <style>
         :root {
-            --primary-color: #ff6f61;
-            --bg-color: #f0f9ff;
-            --text-color: #2c3e50;
+            --primary: #ff6f61;
+            --gold: #ffcf33;
+            --bg: #fdf6e3;
         }
 
         body {
-            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
-            background-color: var(--bg-color);
-            color: var(--text-color);
-            margin: 0;
-            display: flex;
-            flex-direction: column;
-            align-items: center;
-            padding: 20px;
-        }
-
-        h1 {
-            color: var(--primary-color);
-            font-size: 2.5rem;
-            text-transform: uppercase;
-            margin-bottom: 10px;
-            text-shadow: 2px 2px #fff;
-        }
-
-        .story-container {
-            background: white;
-            padding: 30px;
-            border-radius: 20px;
-            box-shadow: 0 10px 20px rgba(0,0,0,0.1);
-            max-width: 600px;
+            font-family: 'Comic Sans MS', cursive, sans-serif;
+            background-color: var(--bg);
             text-align: center;
-            line-height: 1.8;
-            margin-bottom: 20px;
+            padding: 20px;
+            color: #444;
+        }
+
+        .challenge-box {
+            background: white;
+            padding: 20px;
+            border-radius: 30px;
+            box-shadow: 0 10px 30px rgba(0,0,0,0.1);
+            max-width: 600px;
+            margin: 0 auto;
+        }
+
+        h1 { color: var(--primary); text-transform: uppercase; }
+
+        .stars-container {
+            font-size: 3rem;
+            margin: 20px 0;
+            display: flex;
+            justify-content: center;
+            gap: 10px;
+        }
+
+        .gift-icon {
+            filter: grayscale(1);
+            opacity: 0.3;
+            transition: all 0.5s cubic-bezier(0.175, 0.885, 0.32, 1.275);
+        }
+
+        .gift-icon.active {
+            filter: grayscale(0);
+            opacity: 1;
+            transform: scale(1.2);
+        }
+
+        .story-text {
+            font-size: 1.8rem;
+            line-height: 1.6;
+            margin: 30px 0;
+            padding: 20px;
+            border: 3px solid #eee;
+            border-radius: 15px;
+            text-transform: uppercase;
         }
 
         .word {
             display: inline-block;
-            font-size: 2rem;
-            font-weight: bold;
-            margin: 0 5px;
             cursor: pointer;
-            transition: transform 0.2s, color 0.2s;
-            text-transform: uppercase;
+            margin: 0 4px;
         }
+        .word:hover { color: var(--primary); }
 
-        .word:hover {
-            color: var(--primary-color);
-            transform: scale(1.2);
-        }
-
-        .word.active {
-            color: #4caf50;
-            transform: scale(1.3);
-        }
-
-        .canvas-area {
-            background: white;
-            border: 4px dashed #bdc3c7;
-            border-radius: 20px;
-            position: relative;
-        }
-
-        canvas {
-            cursor: crosshair;
-            touch-action: none;
-        }
-
-        .controls {
-            margin-top: 10px;
-            display: flex;
-            gap: 10px;
-        }
-
-        button {
-            padding: 10px 20px;
-            font-size: 1rem;
-            border: none;
-            border-radius: 10px;
-            background: var(--primary-color);
+        .btn-finish {
+            background: #4caf50;
             color: white;
+            border: none;
+            padding: 15px 30px;
+            font-size: 1.5rem;
+            border-radius: 50px;
             cursor: pointer;
-            font-weight: bold;
+            box-shadow: 0 5px 15px rgba(76,175,80,0.4);
+            transition: transform 0.2s;
         }
 
-        button:active { transform: scale(0.95); }
-        .btn-clear { background: #95a5a6; }
+        .btn-finish:active { transform: scale(0.9); }
 
-        .hint {
-            font-style: italic;
-            color: #7f8c8d;
-            margin-bottom: 10px;
+        #victory-msg {
+            display: none;
+            font-size: 2rem;
+            color: #e91e63;
+            font-weight: bold;
+            margin-top: 20px;
+            animation: pulse 1s infinite;
+        }
+
+        @keyframes pulse {
+            0% { transform: scale(1); }
+            50% { transform: scale(1.05); }
+            100% { transform: scale(1); }
         }
     </style>
 </head>
 <body>
 
-    <h1>La Pianta dei Doni</h1>
-    <p class="hint">Tocca le parole per ascoltarle!</p>
+    <div class="challenge-box">
+        <h1>🏆 SFIDA PER JULIE 🏆</h1>
+        <p>Leggi la storia 5 volte per vincere i doni!</p>
 
-    <div class="story-container" id="story">
+        <div class="stars-container" id="stars">
+            <span class="gift-icon">🎁</span>
+            <span class="gift-icon">🎁</span>
+            <span class="gift-icon">🎁</span>
+            <span class="gift-icon">🎁</span>
+            <span class="gift-icon">🎁</span>
         </div>
 
-    <div class="canvas-section">
-        <h2 style="text-align: center; text-transform: uppercase;">E la tua pianta?</h2>
-        <div class="canvas-area">
-            <canvas id="drawCanvas" width="350" height="300"></canvas>
-        </div>
-        <div class="controls">
-            <button class="btn-clear" onclick="clearCanvas()">Cancella Disegno</button>
-            <button onclick="readFullStory()">Leggi Tutto</button>
-        </div>
+        <div class="story-text" id="story">
+            </div>
+
+        <button class="btn-finish" onclick="completeReading()">HO FINITO DI LEGGERE! ✅</button>
+        
+        <div id="victory-msg">🌟 BRAVISSIMA JULIE! SEI UNA CAMPIONESSA! 🌟</div>
     </div>
 
     <script>
         const text = "LA MIA PIANTA È MOLTO ALTA, MA NON È UN PINO O UN MELO. SU DI LEI SPUNTANO TANTI DONI... PATTINI, ALTALENE, DONDOLI! E LA TUA PIANTA?";
-        const storyContainer = document.getElementById('story');
+        let count = 0;
         const synth = window.speechSynthesis;
 
-        // Creazione parole interattive
-        text.split(' ').forEach(wordStr => {
+        // Inizializza il testo cliccabile
+        const storyDiv = document.getElementById('story');
+        text.split(' ').forEach(w => {
             const span = document.createElement('span');
             span.className = 'word';
-            span.textContent = wordStr + ' ';
-            span.onclick = () => speak(wordStr, span);
-            storyContainer.appendChild(span);
+            span.textContent = w + ' ';
+            span.onclick = () => {
+                const u = new SpeechSynthesisUtterance(w.replace(/[^a-zA-Z]/g, ""));
+                u.lang = 'it-IT';
+                synth.speak(u);
+            };
+            storyDiv.appendChild(span);
         });
 
-        function speak(word, element) {
-            // Rimuove punteggiatura per la sintesi vocale
-            const cleanWord = word.replace(/[.,\/#!$%\^&\*;:{}=\-_`~()!]/g,"");
-            const utterance = new SpeechSynthesisUtterance(cleanWord);
-            utterance.lang = 'it-IT';
-            utterance.rate = 0.9;
+        function completeReading() {
+            if (count < 5) {
+                const gifts = document.querySelectorAll('.gift-icon');
+                gifts[count].classList.add('active');
+                
+                // Audio di successo per il passo singolo
+                const bell = new Audio('https://www.soundjay.com/misc/sounds/bell-ringing-05.mp3'); 
+                // Nota: se l'audio esterno non carica, non blocca il resto
+                
+                count++;
 
-            // Effetto visivo
-            element.classList.add('active');
-            utterance.onend = () => element.classList.remove('active');
+                if (count === 5) {
+                    showVictory();
+                } else {
+                    alert("Ottimo! Ti mancano " + (5 - count) + " letture!");
+                }
+            }
+        }
+
+        function showVictory() {
+            document.getElementById('victory-msg').style.display = 'block';
+            document.querySelector('.btn-finish').style.display = 'none';
             
-            synth.cancel(); // Interrompe letture precedenti
-            synth.speak(utterance);
-        }
+            // Pioggia di coriandoli
+            var duration = 5 * 1000;
+            var animationEnd = Date.now() + duration;
+            var defaults = { startVelocity: 30, spread: 360, ticks: 60, zIndex: 0 };
 
-        function readFullStory() {
-            const utterance = new SpeechSynthesisUtterance(text);
-            utterance.lang = 'it-IT';
-            utterance.rate = 0.8;
-            synth.speak(utterance);
-        }
+            function randomInRange(min, max) {
+              return Math.random() * (max - min) + min;
+            }
 
-        // Logica del Disegno (Canvas)
-        const canvas = document.getElementById('drawCanvas');
-        const ctx = canvas.getContext('2d');
-        let painting = false;
+            var interval = setInterval(function() {
+              var timeLeft = animationEnd - Date.now();
 
-        function startPosition(e) {
-            painting = true;
-            draw(e);
-        }
+              if (timeLeft <= 0) {
+                return clearInterval(interval);
+              }
 
-        function finishedPosition() {
-            painting = false;
-            ctx.beginPath();
-        }
-
-        function draw(e) {
-            if (!painting) return;
-            ctx.lineWidth = 5;
-            ctx.lineCap = 'round';
-            ctx.strokeStyle = '#2c3e50';
-
-            const rect = canvas.getBoundingClientRect();
-            const x = (e.clientX || e.touches[0].clientX) - rect.left;
-            const y = (e.clientY || e.touches[0].clientY) - rect.top;
-
-            ctx.lineTo(x, y);
-            ctx.stroke();
-            ctx.beginPath();
-            ctx.moveTo(x, y);
-        }
-
-        canvas.addEventListener('mousedown', startPosition);
-        canvas.addEventListener('mouseup', finishedPosition);
-        canvas.addEventListener('mousemove', draw);
-        canvas.addEventListener('touchstart', (e) => { e.preventDefault(); startPosition(e.touches[0]); });
-        canvas.addEventListener('touchend', finishedPosition);
-        canvas.addEventListener('touchmove', (e) => { e.preventDefault(); draw(e.touches[0]); });
-
-        function clearCanvas() {
-            ctx.clearRect(0, 0, canvas.width, canvas.height);
+              var particleCount = 50 * (timeLeft / duration);
+              confetti(Object.assign({}, defaults, { particleCount, origin: { x: randomInRange(0.1, 0.3), y: Math.random() - 0.2 } }));
+              confetti(Object.assign({}, defaults, { particleCount, origin: { x: randomInRange(0.7, 0.9), y: Math.random() - 0.2 } }));
+            }, 250);
         }
     </script>
 </body>
