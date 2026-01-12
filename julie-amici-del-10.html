@@ -1,0 +1,415 @@
+<!DOCTYPE html>
+<html lang="it">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+    <title>Il Quaderno di Julie</title>
+    <link href="https://fonts.googleapis.com/css2?family=Patrick+Hand&display=swap" rel="stylesheet">
+    <style>
+        :root {
+            --paper-color: #fff;
+            --grid-color: #cceeff; /* Celeste quadretto */
+            --ink-color: #2c3e50;
+            --pencil-blue: #0044cc; /* Blu penna */
+            --marker-blue: #2980b9; /* Colore pallino pieno */
+        }
+
+        body {
+            font-family: 'Patrick Hand', cursive;
+            background-color: #f0f0f0;
+            margin: 0;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            min-height: 100vh;
+            overflow: hidden;
+        }
+
+        /* IL FOGLIO A QUADRETTI */
+        .notebook-sheet {
+            background-color: var(--paper-color);
+            background-image: 
+                linear-gradient(var(--grid-color) 1px, transparent 1px),
+                linear-gradient(90deg, var(--grid-color) 1px, transparent 1px);
+            background-size: 30px 30px; /* Dimensione quadretto */
+            width: 100%;
+            max-width: 600px;
+            height: 100vh;
+            max-height: 900px;
+            position: relative;
+            box-shadow: 0 0 20px rgba(0,0,0,0.1);
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            padding-top: 20px;
+        }
+
+        /* TITOLO SCRITTO A PENNA */
+        h1 {
+            color: #c0392b; /* Rosso come il titolo nel quaderno */
+            font-size: 2.5rem;
+            margin: 10px 0 20px 0;
+            text-transform: uppercase;
+            letter-spacing: 2px;
+            text-align: center;
+            width: 100%;
+            border-bottom: 2px solid #c0392b; /* Sottolineatura rossa */
+        }
+
+        /* ZONA GIOCO */
+        .game-area {
+            width: 90%;
+            text-align: center;
+            flex-grow: 1;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+        }
+
+        /* I PALLINI (GETTONI) */
+        .tokens-container {
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            margin: 30px 0;
+            gap: 8px;
+            padding: 10px;
+            background: rgba(255,255,255,0.6);
+            border-radius: 50px;
+        }
+
+        .token {
+            width: 35px;
+            height: 35px;
+            border: 2px solid var(--ink-color);
+            border-radius: 50%;
+            transition: all 0.3s ease;
+        }
+
+        /* Separatore ogni 5 pallini (come nel quaderno) */
+        .token:nth-child(5) {
+            margin-right: 20px; /* Spazio extra dopo il 5° */
+            position: relative;
+        }
+        /* Lineetta verticale dopo il 5° */
+        .token:nth-child(5)::after {
+            content: '';
+            position: absolute;
+            right: -14px;
+            top: -5px;
+            height: 45px;
+            width: 2px;
+            background-color: #999;
+            opacity: 0.5;
+        }
+
+        .token.filled {
+            background-color: var(--marker-blue);
+            box-shadow: inset 3px 3px 5px rgba(0,0,0,0.2); /* Effetto profondità */
+            /* Simuliamo l'imperfezione della colorazione a mano */
+            background-image: radial-gradient(circle at 30% 30%, rgba(255,255,255,0.2) 0%, transparent 20%);
+        }
+
+        .token.empty {
+            background-color: white;
+        }
+
+        .token.correct-fill {
+            background-color: #27ae60; /* Verde quando indovina */
+            transform: scale(1.1);
+        }
+
+        /* L'EQUAZIONE */
+        .equation {
+            font-size: 3.5rem;
+            color: var(--ink-color);
+            margin: 20px 0;
+            font-weight: bold;
+        }
+
+        .missing-number {
+            color: #c0392b; /* Rosso per il numero mancante */
+            border-bottom: 3px dotted #c0392b;
+            min-width: 50px;
+            display: inline-block;
+        }
+
+        /* TASTIERINO NUMERICO */
+        .numpad {
+            display: grid;
+            grid-template-columns: repeat(5, 1fr);
+            gap: 10px;
+            width: 100%;
+            max-width: 400px;
+        }
+
+        button {
+            font-family: 'Patrick Hand', cursive;
+            font-size: 1.8rem;
+            background: white;
+            border: 2px solid var(--ink-color);
+            border-radius: 10px;
+            padding: 10px;
+            cursor: pointer;
+            box-shadow: 2px 2px 0px rgba(0,0,0,0.1);
+            transition: transform 0.1s;
+        }
+
+        button:active {
+            transform: scale(0.95);
+            background: #eee;
+        }
+
+        /* BOTTONE MENU */
+        .btn-menu {
+            position: absolute;
+            top: 10px;
+            left: 10px;
+            font-size: 1rem;
+            padding: 5px 10px;
+            border: 1px solid #999;
+            background: #fff;
+        }
+
+        /* ANIMALI (EMOJI GRANDI) */
+        .animals-footer {
+            width: 100%;
+            height: 100px;
+            position: relative;
+            overflow: hidden;
+            border-top: 1px solid #ccc;
+            margin-top: auto; /* Spinge in basso */
+        }
+
+        .animal {
+            font-size: 4rem;
+            position: absolute;
+            bottom: -10px; /* Spuntano dal basso */
+            transition: transform 0.3s cubic-bezier(0.175, 0.885, 0.32, 1.275);
+            cursor: pointer;
+        }
+        
+        .animal:hover { transform: translateY(-10px); }
+        .dog { left: 10%; }
+        .cat { left: 40%; }
+        .dog2 { right: 10%; }
+
+        /* SCHERMATA MENU */
+        #menu-screen {
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            justify-content: center;
+            height: 100%;
+            width: 100%;
+            position: absolute;
+            top: 0;
+            left: 0;
+            background: rgba(255,255,255,0.95);
+            z-index: 10;
+        }
+
+        .hidden { display: none !important; }
+
+        .feedback-msg {
+            font-size: 1.5rem;
+            height: 30px;
+            color: #27ae60;
+        }
+
+    </style>
+</head>
+<body>
+
+    <div class="notebook-sheet">
+        
+        <div id="menu-screen">
+            <h1>Scegli il numero</h1>
+            <p style="font-size: 1.5rem">Di quale numero vuoi trovare gli amici?</p>
+            <div class="numpad" style="max-width: 300px; grid-template-columns: repeat(3, 1fr);" id="level-select">
+                </div>
+        </div>
+
+        <button class="btn-menu" onclick="showMenu()">Cambia Numero</button>
+        
+        <h1 id="page-title">GLI AMICI DEL 10</h1>
+
+        <div class="game-area">
+            
+            <p style="font-size: 1.2rem; margin-bottom: 0; color: #666;">Conta i pallini vuoti!</p>
+            
+            <div id="tokens-row" class="tokens-container">
+                </div>
+
+            <div class="equation">
+                <span id="num-filled">3</span> + 
+                <span id="num-missing" class="missing-number">?</span> = 
+                <span id="num-target">10</span>
+            </div>
+
+            <div class="feedback-msg" id="feedback"></div>
+
+            <div class="numpad" id="answer-pad">
+                </div>
+        </div>
+
+        <div class="animals-footer">
+            <div class="animal dog" onclick="bark()">🐶</div>
+            <div class="animal cat" onclick="meow()">🐱</div>
+            <div class="animal dog2" onclick="bark()">🐕</div>
+        </div>
+
+    </div>
+
+    <script>
+        // --- LOGICA ---
+        let currentTarget = 10;
+        let filledCount = 0;
+        let missingCount = 0;
+        let isWaiting = false;
+
+        // Elementi DOM
+        const menuScreen = document.getElementById('menu-screen');
+        const tokensRow = document.getElementById('tokens-row');
+        const numFilled = document.getElementById('num-filled');
+        const numMissing = document.getElementById('num-missing');
+        const numTarget = document.getElementById('num-target');
+        const pageTitle = document.getElementById('page-title');
+        const feedback = document.getElementById('feedback');
+        const answerPad = document.getElementById('answer-pad');
+        const levelSelect = document.getElementById('level-select');
+
+        // AUDIO (Semplice Web Audio API)
+        const audioCtx = new (window.AudioContext || window.webkitAudioContext)();
+        function playSound(type) {
+            if(audioCtx.state === 'suspended') audioCtx.resume();
+            const osc = audioCtx.createOscillator();
+            const gain = audioCtx.createGain();
+            osc.connect(gain);
+            gain.connect(audioCtx.destination);
+            
+            if (type === 'win') {
+                osc.frequency.setValueAtTime(523.25, audioCtx.currentTime); // Do
+                osc.frequency.setValueAtTime(659.25, audioCtx.currentTime + 0.1); // Mi
+                gain.gain.setValueAtTime(0.1, audioCtx.currentTime);
+                gain.gain.exponentialRampToValueAtTime(0.01, audioCtx.currentTime + 0.3);
+                osc.start();
+                osc.stop(audioCtx.currentTime + 0.3);
+            } else if (type === 'bark') {
+                osc.type = 'sawtooth';
+                osc.frequency.setValueAtTime(150, audioCtx.currentTime);
+                osc.frequency.exponentialRampToValueAtTime(80, audioCtx.currentTime + 0.1);
+                gain.gain.setValueAtTime(0.1, audioCtx.currentTime);
+                gain.gain.exponentialRampToValueAtTime(0.01, audioCtx.currentTime + 0.1);
+                osc.start();
+                osc.stop(audioCtx.currentTime + 0.1);
+            }
+        }
+        function bark() { playSound('bark'); }
+        function meow() { playSound('win'); } // Riciclo il suono win per il miao :)
+
+        // SETUP INIZIALE
+        function init() {
+            // Crea menu livelli (da 5 a 10, i più comuni per questa età)
+            for (let i = 5; i <= 10; i++) {
+                let btn = document.createElement('button');
+                btn.innerText = i;
+                btn.onclick = () => startGame(i);
+                levelSelect.appendChild(btn);
+            }
+
+            // Crea tastierino risposte (0-10)
+            for (let i = 0; i <= 10; i++) {
+                let btn = document.createElement('button');
+                btn.innerText = i;
+                btn.onclick = () => checkAnswer(i, btn);
+                answerPad.appendChild(btn);
+            }
+        }
+
+        function showMenu() {
+            menuScreen.classList.remove('hidden');
+        }
+
+        function startGame(target) {
+            currentTarget = target;
+            pageTitle.innerText = "GLI AMICI DEL " + target;
+            numTarget.innerText = target;
+            menuScreen.classList.add('hidden');
+            
+            // Aggiorna tastierino: mostra solo numeri <= target per non confondere
+            Array.from(answerPad.children).forEach(btn => {
+                if (parseInt(btn.innerText) > target) btn.style.display = 'none';
+                else btn.style.display = 'block';
+            });
+
+            generateQuestion();
+        }
+
+        function drawTokens(total, filled) {
+            tokensRow.innerHTML = '';
+            for (let i = 0; i < total; i++) {
+                let token = document.createElement('div');
+                token.className = 'token';
+                if (i < filled) {
+                    token.classList.add('filled');
+                } else {
+                    token.classList.add('empty');
+                    token.id = `empty-${i}`; // ID per animazione successiva
+                }
+                tokensRow.appendChild(token);
+            }
+        }
+
+        function generateQuestion() {
+            isWaiting = false;
+            feedback.innerText = "";
+            numMissing.innerText = "?";
+            numMissing.style.color = "#c0392b";
+
+            // Logica matematica
+            filledCount = Math.floor(Math.random() * (currentTarget + 1));
+            missingCount = currentTarget - filledCount;
+
+            numFilled.innerText = filledCount;
+            
+            // DISEGNA I PALLINI (VISUAL AID)
+            drawTokens(currentTarget, filledCount);
+        }
+
+        function checkAnswer(guess, btn) {
+            if (isWaiting) return;
+
+            if (guess === missingCount) {
+                // CORRETTO
+                isWaiting = true;
+                playSound('win');
+                feedback.innerText = "Bravissima! 🌟";
+                numMissing.innerText = missingCount;
+                numMissing.style.color = "#27ae60";
+
+                // Colora i pallini vuoti di verde per mostrare che ora sono pieni
+                const emptyTokens = document.querySelectorAll('.token.empty');
+                emptyTokens.forEach(t => t.classList.add('correct-fill'));
+
+                setTimeout(generateQuestion, 2000);
+            } else {
+                // SBAGLIATO
+                btn.style.backgroundColor = "#ffcccc";
+                feedback.innerText = "Riprova...";
+                setTimeout(() => {
+                    btn.style.backgroundColor = "white";
+                    feedback.innerText = "";
+                }, 500);
+            }
+        }
+
+        // Fix audio context per browser moderni
+        document.body.addEventListener('click', () => {
+             if (audioCtx.state === 'suspended') audioCtx.resume();
+        }, {once:true});
+
+        init();
+    </script>
+</body>
+</html>
