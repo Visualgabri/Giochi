@@ -1,0 +1,265 @@
+<!DOCTYPE html>
+<html lang="it">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Julie - La spesa di Zia Emma 🛒</title>
+    <link href="https://fonts.googleapis.com/css2?family=Patrick+Hand&family=Fredoka+One&display=swap" rel="stylesheet">
+    <script src="https://cdn.jsdelivr.net/npm/canvas-confetti@1.6.0/dist/confetti.browser.min.js"></script>
+    <style>
+        :root {
+            --bg-start: #fff3e0; 
+            --highlight: #e65100;
+        }
+
+        body {
+            font-family: 'Patrick Hand', cursive;
+            margin: 0;
+            min-height: 100vh;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            background: linear-gradient(to bottom, #ffb74d, #fff3e0);
+            user-select: none;
+            padding-bottom: 50px;
+        }
+
+        .container {
+            max-width: 800px;
+            width: 90%;
+            background: rgba(255, 255, 255, 0.96);
+            padding: 2rem;
+            border-radius: 25px;
+            box-shadow: 0 15px 35px rgba(0,0,0,0.1);
+            margin-top: 20px;
+            text-align: center;
+            border: 6px solid #ffffff;
+        }
+
+        h1 { font-family: 'Fredoka One', cursive; color: #bf360c; font-size: 2.2rem; margin-bottom: 5px; }
+
+        .story-box {
+            font-size: 1.9rem;
+            line-height: 1.6;
+            color: #4e342e;
+            text-align: left;
+            padding: 25px;
+            background: #fff8e1;
+            border-radius: 20px;
+            border: 3px dashed #ffa000;
+            margin: 15px 0;
+            white-space: pre-line;
+        }
+
+        /* --- PAROLE INTERATTIVE --- */
+        .interactive-word {
+            display: inline-block;
+            transition: all 0.2s;
+            position: relative;
+            cursor: pointer;
+            color: #5d4037;
+            font-weight: bold;
+        }
+        
+        .interactive-word:hover {
+            color: #ff6f00;
+            transform: scale(1.1);
+        }
+
+        .word-tooltip {
+            position: absolute;
+            bottom: 120%;
+            left: 50%;
+            transform: translateX(-50%);
+            font-size: 3.5rem;
+            background: white;
+            padding: 5px 15px;
+            border-radius: 20px;
+            box-shadow: 0 8px 20px rgba(0,0,0,0.15);
+            opacity: 0;
+            visibility: hidden;
+            transition: 0.3s cubic-bezier(0.175, 0.885, 0.32, 1.275);
+            z-index: 100;
+            border: 2px solid #ffa000;
+        }
+
+        .interactive-word:hover .word-tooltip {
+            opacity: 1;
+            visibility: visible;
+            bottom: 130%;
+        }
+
+        /* --- SCENA DELLA SPESA --- */
+        #shopping-scene {
+            height: 200px;
+            background: white;
+            border-radius: 20px;
+            margin: 20px 0;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            font-size: 6rem;
+            position: relative;
+            border: 2px solid #ffecb3;
+            overflow: hidden;
+        }
+
+        .item-icon {
+            position: absolute;
+            font-size: 3rem;
+            animation: bounceIn 0.6s ease-out;
+        }
+
+        @keyframes bounceIn {
+            0% { transform: scale(0); opacity: 0; }
+            60% { transform: scale(1.2); }
+            100% { transform: scale(1); opacity: 1; }
+        }
+
+        /* --- CONTROLLI --- */
+        .stars-container {
+            display: flex;
+            gap: 15px;
+            font-size: 3.5rem;
+            color: #ffe0b2;
+            justify-content: center;
+            margin: 15px 0;
+        }
+
+        .star { cursor: pointer; transition: 0.3s; }
+        .star.active { color: #ffab00; transform: scale(1.2); text-shadow: 0 0 15px rgba(255, 171, 0, 0.6); }
+
+        #msg { font-size: 1.4rem; color: #bf360c; font-weight: bold; min-height: 1.5em; }
+    </style>
+</head>
+<body>
+
+    <div class="container">
+        <h1>🛒 LA SPESA DI ZIA EMMA 🛍️</h1>
+        
+        <div class="story-box">
+            <div id="textDisplay"></div>
+        </div>
+
+        <div id="shopping-scene">
+            <span id="main-character">👩‍🦱</span>
+        </div>
+
+        <div class="controls">
+            <div id="msg">Aiuta Zia Emma! Leggi e tocca una stella!</div>
+            <div class="stars-container">
+                <div class="star" onclick="registerRead(1)" id="s1">★</div>
+                <div class="star" onclick="registerRead(2)" id="s2">★</div>
+                <div class="star" onclick="registerRead(3)" id="s3">★</div>
+                <div class="star" onclick="registerRead(4)" id="s4">★</div>
+                <div class="star" onclick="registerRead(5)" id="s5">★</div>
+            </div>
+        </div>
+    </div>
+
+    <script>
+        const dictionary = {
+            "ZIA": "👩‍🦱",
+            "EMMA": "👩",
+            "SPESA": "🛒",
+            "BORSA": "🛍️",
+            "MELE": "🍎",
+            "PERE": "🍐",
+            "PATATE": "🥔",
+            "PENNE": "🖋️",
+            "MATITE": "✏️",
+            "ORSO": "🧸",
+            "STOFFA": "🧵"
+        };
+
+        const storyText = `LA ZIA EMMA È ANDATA A FARE LA SPESA.
+AL SUO RITORNO SI TROVERÀ DI TUTTO
+DENTRO LA BORSA DELLA SPESA:
+MELE ROSSE,
+PERE MATURE,
+PATATE,
+PENNE E MATITE,
+UN ORSO DI STOFFA.`;
+
+        function buildText() {
+            const display = document.getElementById('textDisplay');
+            display.innerHTML = storyText.split('\n').map(line => {
+                return line.split(' ').map(word => {
+                    const clean = word.replace(/[.,!?…]/g, '').toUpperCase();
+                    const emoji = dictionary[clean];
+                    if (emoji) {
+                        return `<span class="interactive-word">${word}<div class="word-tooltip">${emoji}</div></span>`;
+                    }
+                    return `<span class="interactive-word">${word}</span>`;
+                }).join(' ');
+            }).join('<br>');
+        }
+
+        buildText();
+
+        let count = 0;
+        const messages = [
+            "Brava Julie! Zia Emma è tornata! 👩‍🦱",
+            "Gnam! Mele e pere fresche! 🍎🍐",
+            "Quante patate per la cena! 🥔",
+            "Penne e matite per colorare! ✏️",
+            "LA SORPRESA! L'ORSO DI STOFFA! 🧸🎉"
+        ];
+
+        function addItem(emoji, top, left) {
+            const scene = document.getElementById('shopping-scene');
+            const span = document.createElement('span');
+            span.innerText = emoji;
+            span.className = 'item-icon';
+            span.style.top = top + '%';
+            span.style.left = left + '%';
+            scene.appendChild(span);
+        }
+
+        function registerRead(num) {
+            if (num !== count + 1) return;
+            count = num;
+
+            document.getElementById(`s${count}`).classList.add('active');
+            const msgEl = document.getElementById('msg');
+            msgEl.innerText = messages[count-1];
+
+            // Riempimento della scena
+            if(count === 1) addItem("🛍️", 50, 60); 
+            if(count === 2) {
+                addItem("🍎", 30, 30);
+                addItem("🍐", 40, 20);
+            }
+            if(count === 3) {
+                addItem("🥔", 65, 35);
+                addItem("🥔", 70, 50);
+            }
+            if(count === 4) {
+                addItem("✏️", 20, 70);
+                addItem("🖋️", 30, 80);
+            }
+            if(count === 5) {
+                addItem("🧸", 45, 45);
+                confetti({
+                    particleCount: 150,
+                    spread: 70,
+                    origin: { y: 0.6 },
+                    colors: ['#ffa000', '#ff6f00', '#ffffff']
+                });
+                msgEl.style.color = "#d84315";
+                msgEl.style.fontSize = "1.8rem";
+            }
+            
+            // Suono di feedback
+            const audioCtx = new (window.AudioContext || window.webkitAudioContext)();
+            const osc = audioCtx.createOscillator();
+            const gain = audioCtx.createGain();
+            osc.connect(gain);
+            gain.connect(audioCtx.destination);
+            osc.frequency.value = 440 + (count * 110);
+            gain.gain.exponentialRampToValueAtTime(0.01, audioCtx.currentTime + 0.3);
+            osc.start(); osc.stop(audioCtx.currentTime + 0.3);
+        }
+    </script>
+</body>
+</html>
