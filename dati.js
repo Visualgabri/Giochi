@@ -1,8 +1,8 @@
 const GIOCHI_DATA = [
   {
     "name": "prenotazioneGoogle.html",
-    "path": "prenotazioneGoogle.html",
-    "category": "Vari",
+    "path": "Chris/prenotazioneGoogle.html",
+    "category": "Chris",
     "updatedAt": 1768758594050.533
   },
   {
@@ -85,14 +85,14 @@ const GIOCHI_DATA = [
   },
   {
     "name": "corsa-chris.html",
-    "path": "Bolle Famiglia/corsa-chris.html",
-    "category": "Bolle Famiglia",
+    "path": "Famiglia/corsa-chris.html",
+    "category": "Famiglia",
     "updatedAt": 1766012493724
   },
   {
     "name": "corsa-chris-computer.html",
-    "path": "Bolle Famiglia/corsa-chris-computer.html",
-    "category": "Bolle Famiglia",
+    "path": "Famiglia/corsa-chris-computer.html",
+    "category": "Famiglia",
     "updatedAt": 1765968318088.4814
   },
   {
@@ -103,14 +103,14 @@ const GIOCHI_DATA = [
   },
   {
     "name": "famiglia-memory.html",
-    "path": "Bolle Famiglia/famiglia-memory.html",
-    "category": "Bolle Famiglia",
+    "path": "Famiglia/famiglia-memory.html",
+    "category": "Famiglia",
     "updatedAt": 1765727060536.3713
   },
   {
     "name": "bolle-famiglia.html",
-    "path": "Bolle Famiglia/bolle-famiglia.html",
-    "category": "Bolle Famiglia",
+    "path": "Famiglia/bolle-famiglia.html",
+    "category": "Famiglia",
     "updatedAt": 1765726892788.6091
   },
   {
