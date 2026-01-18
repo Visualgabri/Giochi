@@ -13,8 +13,8 @@ const GIOCHI_DATA = [
   },
   {
     "name": "prenotazioneGoogle.html",
-    "path": "Chris/prenotazioneGoogle.html",
-    "category": "Chris",
+    "path": "prenotazioneGoogle.html",
+    "category": "Vari",
     "updatedAt": 1768758594050.533
   },
   {
