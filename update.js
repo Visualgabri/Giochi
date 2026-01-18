@@ -1,9 +1,21 @@
 const fs = require('fs');
 const path = require('path');
 
+// Configurazione
 const rootDir = './';
-const outputJs = 'dati.js'; // CAMBIATO: Ora è un file .js
-const excludedFiles = ['index.html', 'update.js', 'dati.js', 'favicon.ico'];
+const outputJs = 'dati.js';
+// Lista file da NON mostrare come giochi
+const excludedFiles = [
+    'index.html', 
+    'index2.html', 
+    'index3.html', 
+    'update.js', 
+    'dati.js', 
+    'favicon.ico', 
+    'games-data.json',
+    'package.json',
+    'node_modules'
+];
 
 function getGames(dir, category = 'Vari') {
     let results = [];
@@ -14,17 +26,19 @@ function getGames(dir, category = 'Vari') {
         const stat = fs.statSync(filePath);
 
         if (stat && stat.isDirectory()) {
-            // Escludi cartelle di sistema o nascoste
-            if (!file.startsWith('.') && file !== 'node_modules') {
+            // Se è una cartella, entra e usa il nome cartella come categoria
+            if (!file.startsWith('.') && !excludedFiles.includes(file)) {
                 results = results.concat(getGames(filePath, file));
             }
         } else {
-            if (file.toLowerCase().endsWith('.html') && !excludedFiles.includes(file.toLowerCase())) {
+            // Se è un file HTML ed è un gioco vero (non un index)
+            const fileNameLower = file.toLowerCase();
+            if (fileNameLower.endsWith('.html') && !excludedFiles.includes(fileNameLower)) {
                 results.push({
                     name: file,
                     path: filePath.replace(/\\/g, '/'),
                     category: category,
-                    updatedAt: stat.mtimeMs
+                    updatedAt: stat.mtimeMs // USIAMO LA DATA DI ULTIMA MODIFICA
                 });
             }
         }
@@ -32,14 +46,20 @@ function getGames(dir, category = 'Vari') {
     return results;
 }
 
-console.log('--- Aggiornamento dati giochi ---');
-const allGames = getGames(rootDir);
+console.log('--- Scansione file per Ultima Modifica ---');
 
-// Ordina per data: più recente sopra
-allGames.sort((a, b) => b.updatedAt - a.updatedAt);
+try {
+    const allGames = getGames(rootDir);
 
-// Crea il contenuto del file JS
-const content = `const GIOCHI_DATA = ${JSON.stringify(allGames, null, 2)};`;
+    // ORDINAMENTO: Il più recente (mtimeMs più alto) va in cima
+    allGames.sort((a, b) => b.updatedAt - a.updatedAt);
 
-fs.writeFileSync(outputJs, content);
-console.log(`✅ Successo! Creato ${outputJs} con ${allGames.length} giochi.`);
+    // Scrittura del file dati.js
+    const content = `const GIOCHI_DATA = ${JSON.stringify(allGames, null, 2)};`;
+    fs.writeFileSync(outputJs, content);
+
+    console.log(`✅ Successo! ${allGames.length} giochi trovati.`);
+    console.log(`Aggiornato ${outputJs} (Ordine: Ultima modifica).`);
+} catch (error) {
+    console.error('❌ Errore durante l\'aggiornamento:', error);
+}

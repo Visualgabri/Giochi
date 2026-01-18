@@ -1,11 +1,5 @@
 const GIOCHI_DATA = [
   {
-    "name": "index2.html",
-    "path": "index2.html",
-    "category": "Vari",
-    "updatedAt": 1768730569440.2673
-  },
-  {
     "name": "julie-spesa-emma.html",
     "path": "Julie/julie-spesa-emma.html",
     "category": "Julie",
@@ -22,12 +16,6 @@ const GIOCHI_DATA = [
     "path": "Julie/julie-spesa-emma (con icone).html",
     "category": "Julie",
     "updatedAt": 1768576713664.9185
-  },
-  {
-    "name": "index3.html",
-    "path": "index3.html",
-    "category": "Vari",
-    "updatedAt": 1768249392192.3394
   },
   {
     "name": "julie-amici-del-10.html",
