@@ -1,212 +1,237 @@
 <!DOCTYPE html>
 <html lang="it">
 <head>
-<link rel="icon" type="image/x-icon" href="../favicon.ico">
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
-    <title>Il Gioco di Christopher</title>
+    <title>Christopher - Super Gioco</title>
     <style>
-        body {
-            margin: 0;
-            padding: 0;
+        :root {
+            --spider-red: #e74c3c;
+            --spider-blue: #2980b9;
+        }
+
+        body, html {
+            margin: 0; padding: 0; width: 100%; height: 100%;
             overflow: hidden;
-            background-color: #2c3e50;
-            font-family: 'Arial Rounded MT Bold', Arial, sans-serif;
-            touch-action: manipulation;
+            background: radial-gradient(circle, #2c3e50, #000);
+            font-family: 'Arial Rounded MT Bold', sans-serif;
+            touch-action: none; /* Impedisce lo zoom e lo scroll */
             user-select: none;
         }
 
-        #game-container {
-            width: 100vw;
-            height: 100vh;
-            background: linear-gradient(to bottom, #1e3c72, #2a5298);
+        #game-canvas {
+            width: 100vw; height: 100vh;
             position: relative;
-            cursor: crosshair;
+            overflow: hidden;
         }
 
-        .header {
+        .item {
             position: absolute;
-            top: 20px;
-            width: 100%;
-            text-align: center;
-            color: white;
-            font-size: 32px;
-            text-shadow: 2px 2px #ff0000;
-            z-index: 10;
-            pointer-events: none;
-        }
-
-        .emoji {
-            position: absolute;
-            font-size: 80px;
-            transition: transform 0.2s cubic-bezier(0.175, 0.885, 0.32, 1.275);
+            font-size: 100px; /* Grandi per dita piccole */
             cursor: pointer;
-            user-select: none;
-            filter: drop-shadow(5px 5px 5px rgba(0,0,0,0.3));
+            filter: drop-shadow(0 10px 10px rgba(0,0,0,0.5));
+            transition: transform 0.1s;
+            z-index: 2;
         }
 
-        .web-effect {
+        /* Effetto ragnatela quando si tocca */
+        .web-shot {
             position: absolute;
-            width: 100px;
-            height: 100px;
-            background: radial-gradient(circle, rgba(255,255,255,0.8) 0%, rgba(255,255,255,0) 70%);
+            width: 20px; height: 20px;
+            background: white;
             border-radius: 50%;
             pointer-events: none;
-            animation: explode 0.5s ease-out forwards;
-            z-index: 5;
+            z-index: 1;
+            box-shadow: 0 0 20px 5px white;
+            animation: web-shoot 0.4s ease-out forwards;
         }
 
-        @keyframes explode {
-            0% { transform: scale(0.5); opacity: 1; }
-            100% { transform: scale(2); opacity: 0; }
+        @keyframes web-shoot {
+            0% { transform: scale(1); opacity: 1; }
+            100% { transform: scale(10); opacity: 0; }
         }
 
-        .pop {
-            animation: pop-anim 0.4s ease-out;
-        }
-
-        @keyframes pop-anim {
-            0% { transform: scale(1); }
-            50% { transform: scale(1.5); }
-            100% { transform: scale(1); }
-        }
-
-        /* Istruzioni iniziali */
-        #overlay {
-            position: fixed;
-            top: 0; left: 0; width: 100%; height: 100%;
-            background: rgba(0,0,0,0.7);
-            display: flex;
-            justify-content: center;
-            align-items: center;
-            color: white;
-            z-index: 100;
+        /* Titolo dinamico */
+        .ui {
+            position: absolute;
+            top: 10px; width: 100%;
             text-align: center;
-            padding: 20px;
+            color: white;
+            font-size: 24px;
+            text-shadow: 0 0 10px var(--spider-red);
+            pointer-events: none;
+            z-index: 10;
         }
 
-        .btn-start {
-            padding: 20px 40px;
-            font-size: 30px;
-            background: #e74c3c;
-            color: white;
-            border: none;
-            border-radius: 50px;
-            cursor: pointer;
+        /* Schermata iniziale */
+        #start-screen {
+            position: fixed; top: 0; left: 0; width: 100%; height: 100%;
+            background: var(--spider-red);
+            display: flex; flex-direction: column;
+            justify-content: center; align-items: center;
+            z-index: 100; color: white;
+            text-align: center;
         }
+
+        .start-btn {
+            background: var(--spider-blue);
+            border: 5px solid white;
+            color: white;
+            padding: 30px 60px;
+            font-size: 40px;
+            border-radius: 100px;
+            margin-top: 20px;
+            box-shadow: 0 10px 0 #1a5276;
+        }
+
+        .start-btn:active { transform: translateY(10px); box-shadow: none; }
     </style>
 </head>
 <body>
 
-    <div id="overlay">
-        <div>
-            <h1>Ciao Christopher!</h1>
-            <p>Tocca lo schermo per giocare con Spiderman!</p>
-            <button class="btn-start" onclick="startGame()">GIOCA!</button>
-        </div>
+    <div id="start-screen">
+        <h1>CIAO CHRISTOPHER!</h1>
+        <div style="font-size: 80px;">🕷️🦖🐯🔫</div>
+        <button class="start-btn" onclick="start()">GIOCA!</button>
     </div>
 
-    <div class="header">IL GIOCO DI CHRISTOPHER 🕷️🦖🐯</div>
-    <div id="game-container"></div>
+    <div class="ui">TOCCA TUTTO! 🕷️🕸️</div>
+    <div id="game-canvas"></div>
 
-    <script>
-        const container = document.getElementById('game-container');
-        const items = ['🕷️', '🦖', '🐯', '🕷️', '🦖', '🐯', '🕸️', '🔫'];
-        const colors = ['#f1c40f', '#e67e22', '#e74c3c', '#3498db', '#2ecc71'];
+<script>
+    const canvas = document.getElementById('game-canvas');
+    const emojis = ['🕷️', '🦖', '🐯', '🔫', '🕸️', '🦕', '⚡'];
+    let audioCtx = null;
 
-        function startGame() {
-            document.getElementById('overlay').style.display = 'none';
-            
-            // Crea alcuni elementi iniziali
-            for(let i=0; i<10; i++) {
-                spawnEmoji();
-            }
+    // Inizializza l'audio dopo il primo tocco (regola dei browser)
+    function initAudio() {
+        if (!audioCtx) {
+            audioCtx = new (window.AudioContext || window.webkitAudioContext)();
+        }
+    }
+
+    // Funzione per creare suoni buffi sintetizzati
+    function playSound(type) {
+        if(!audioCtx) return;
+        const osc = audioCtx.createOscillator();
+        const gain = audioCtx.createGain();
+        osc.connect(gain);
+        gain.connect(audioCtx.destination);
+
+        const now = audioCtx.currentTime;
+
+        if (type === 'web') { // Suono sparo ragnatela
+            osc.type = 'triangle';
+            osc.frequency.setValueAtTime(150, now);
+            osc.frequency.exponentialRampToValueAtTime(1000, now + 0.1);
+            gain.gain.setValueAtTime(0.3, now);
+            gain.gain.linearRampToValueAtTime(0, now + 0.1);
+        } else if (type === 'pop') { // Suono dinosauro/tigre
+            osc.type = 'sine';
+            osc.frequency.setValueAtTime(400, now);
+            osc.frequency.exponentialRampToValueAtTime(100, now + 0.2);
+            gain.gain.setValueAtTime(0.5, now);
+            gain.gain.linearRampToValueAtTime(0, now + 0.2);
+        } else if (type === 'laser') { // Suono pistola
+            osc.type = 'sawtooth';
+            osc.frequency.setValueAtTime(800, now);
+            osc.frequency.linearRampToValueAtTime(200, now + 0.15);
+            gain.gain.setValueAtTime(0.2, now);
+            gain.gain.linearRampToValueAtTime(0, now + 0.15);
         }
 
-        function spawnEmoji() {
-            const emoji = document.createElement('div');
-            emoji.className = 'emoji';
-            emoji.innerHTML = items[Math.floor(Math.random() * items.length)];
-            
-            // Posizione casuale
-            const x = Math.random() * (window.innerWidth - 100);
-            const y = Math.random() * (window.innerHeight - 150) + 50;
-            
-            emoji.style.left = x + 'px';
-            emoji.style.top = y + 'px';
-            
-            // Movimento casuale
-            animateFloating(emoji);
+        osc.start();
+        osc.stop(now + 0.2);
+    }
 
-            emoji.addEventListener('mousedown', (e) => handleInteraction(e, emoji));
-            emoji.addEventListener('touchstart', (e) => {
-                e.preventDefault();
-                handleInteraction(e.touches[0], emoji);
-            });
+    function createItem() {
+        const item = document.createElement('div');
+        item.className = 'item';
+        const char = emojis[Math.floor(Math.random() * emojis.length)];
+        item.innerHTML = char;
+        
+        // Posizione casuale
+        const x = Math.random() * (window.innerWidth - 120);
+        const y = Math.random() * (window.innerHeight - 150) + 50;
+        
+        item.style.left = x + 'px';
+        item.style.top = y + 'px';
+        
+        // Velocità casuale per il galleggiamento
+        let dx = (Math.random() - 0.5) * 4;
+        let dy = (Math.random() - 0.5) * 4;
 
-            container.appendChild(emoji);
+        function move() {
+            let left = parseFloat(item.style.left);
+            let top = parseFloat(item.style.top);
+
+            if (left < 0 || left > window.innerWidth - 100) dx *= -1;
+            if (top < 50 || top > window.innerHeight - 100) dy *= -1;
+
+            item.style.left = (left + dx) + 'px';
+            item.style.top = (top + dy) + 'px';
+            item.aniFrame = requestAnimationFrame(move);
         }
+        move();
 
-        function handleInteraction(e, element) {
-            // Effetto ragnatela/colpo
-            createWebEffect(e.clientX, e.clientY);
+        // Interazione
+        const interact = (e) => {
+            e.preventDefault();
+            const rect = item.getBoundingClientRect();
+            createWebEffect(rect.left + 50, rect.top + 50);
             
-            // Animazione "Pop"
-            element.classList.add('pop');
-            setTimeout(() => element.classList.remove('pop'), 400);
+            // Reazione al tocco
+            item.style.transform = "scale(2) rotate(20deg)";
+            
+            if (char === '🕷️' || char === '🕸️') playSound('web');
+            else if (char === '🔫') playSound('laser');
+            else playSound('pop');
 
-            // Cambia emoji dopo il tocco
             setTimeout(() => {
-                element.innerHTML = items[Math.floor(Math.random() * items.length)];
+                item.style.transform = "scale(1) rotate(0deg)";
+                item.innerHTML = emojis[Math.floor(Math.random() * emojis.length)];
             }, 200);
+        };
 
-            // Suono (finto suono se non ci sono file audio, vibrazione se possibile)
-            if (navigator.vibrate) navigator.vibrate(50);
+        item.addEventListener('touchstart', interact);
+        item.addEventListener('mousedown', interact);
+
+        canvas.appendChild(item);
+    }
+
+    function createWebEffect(x, y) {
+        const web = document.createElement('div');
+        web.className = 'web-shot';
+        web.style.left = x + 'px';
+        web.style.top = y + 'px';
+        canvas.appendChild(web);
+        setTimeout(() => web.remove(), 400);
+    }
+
+    // Tocco dello sfondo (Spara ragnatela ovunque)
+    canvas.addEventListener('touchstart', (e) => {
+        if(e.target === canvas) {
+            initAudio();
+            const touch = e.touches[0];
+            createWebEffect(touch.clientX, touch.clientY);
+            playSound('web');
         }
+    });
 
-        function createWebEffect(x, y) {
-            const web = document.createElement('div');
-            web.className = 'web-effect';
-            web.style.left = (x - 50) + 'px';
-            web.style.top = (y - 50) + 'px';
-            
-            // Aggiungi un piccolo testo "BANG!" o "THWIP!"
-            const txt = document.createElement('div');
-            txt.style.position = 'absolute';
-            txt.style.color = 'white';
-            txt.style.fontWeight = 'bold';
-            txt.innerText = 'POW!';
-            web.appendChild(txt);
-
-            container.appendChild(web);
-            setTimeout(() => web.remove(), 500);
+    function start() {
+        initAudio();
+        document.getElementById('start-screen').style.display = 'none';
+        for(let i=0; i<8; i++) {
+            setTimeout(createItem, i * 200);
         }
+    }
 
-        function animateFloating(el) {
-            let posX = parseFloat(el.style.left);
-            let posY = parseFloat(el.style.top);
-            let speedX = (Math.random() - 0.5) * 2;
-            let speedY = (Math.random() - 0.5) * 2;
-
-            function move() {
-                posX += speedX;
-                posY += speedY;
-
-                // Rimbalzo bordi
-                if (posX < 0 || posX > window.innerWidth - 80) speedX *= -1;
-                if (posY < 50 || posY > window.innerHeight - 80) speedY *= -1;
-
-                el.style.left = posX + 'px';
-                el.style.top = posY + 'px';
-                requestAnimationFrame(move);
-            }
-            move();
-        }
-
-        // Se tocca lo sfondo vuoto, spara comunque una ragnatela
-        container.addEventListener('mousedown', (e) => {
-            if(e.target === container) createWebEffect(e.clientX, e.clientY);
-        });
-    </script>
+    // Impedisce menu contestuale su tablet (pressione lunga)
+    window.oncontextmenu = function(event) {
+        event.preventDefault();
+        event.stopPropagation();
+        return false;
+    };
+</script>
 </body>
 </html>

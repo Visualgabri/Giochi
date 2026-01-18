@@ -1,5 +1,11 @@
 const GIOCHI_DATA = [
   {
+    "name": "chris-dino-spiderman.html",
+    "path": "Chris/chris-dino-spiderman.html",
+    "category": "Chris",
+    "updatedAt": 1768759161816.519
+  },
+  {
     "name": "index2.html",
     "path": "index2.html",
     "category": "Vari",
@@ -10,12 +16,6 @@ const GIOCHI_DATA = [
     "path": "Chris/prenotazioneGoogle.html",
     "category": "Chris",
     "updatedAt": 1768758594050.533
-  },
-  {
-    "name": "chris-dino-spiderman.html",
-    "path": "Chris/chris-dino-spiderman.html",
-    "category": "Chris",
-    "updatedAt": 1768732630099.0422
   },
   {
     "name": "julie-spesa-emma.html",
