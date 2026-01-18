@@ -116,7 +116,7 @@
         const card = document.createElement('div');
         card.className = 'game-card';
         card.innerHTML = `
-          ${isNew ? '<div class="badge-new">AGGIORNATO!</div>' : ''}
+          ${isNew ? '<div class="badge-new">NUOVO!</div>' : ''}
           <div class="game-icon">${emojis[game.name.length % emojis.length]}</div>
           <div class="game-title">${game.name.replace('.html', '').replace(/[_-]/g, ' ')}</div>
           <div class="game-date">Aggiornato il ${dateStr}</div>

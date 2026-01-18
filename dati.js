@@ -1,15 +1,15 @@
 const GIOCHI_DATA = [
   {
+    "name": "index2.html",
+    "path": "index2.html",
+    "category": "Vari",
+    "updatedAt": 1768731999703.0845
+  },
+  {
     "name": "chris-dino-spiderman.html",
     "path": "Chris/chris-dino-spiderman.html",
     "category": "Chris",
     "updatedAt": 1768731813676.4272
-  },
-  {
-    "name": "index2.html",
-    "path": "index2.html",
-    "category": "Vari",
-    "updatedAt": 1768731628327.8853
   },
   {
     "name": "julie-spesa-emma.html",
