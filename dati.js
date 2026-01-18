@@ -1,5 +1,11 @@
 const GIOCHI_DATA = [
   {
+    "name": "chris-dino-spiderman.html",
+    "path": "Chris/chris-dino-spiderman.html",
+    "category": "Chris",
+    "updatedAt": 1768731813676.4272
+  },
+  {
     "name": "index2.html",
     "path": "index2.html",
     "category": "Vari",
@@ -138,8 +144,8 @@ const GIOCHI_DATA = [
     "updatedAt": 1765533107686.7617
   },
   {
-    "name": "BabboNataleGiroscopio.html",
-    "path": "Chris/BabboNataleGiroscopio.html",
+    "name": "Babbo-Natale-Giroscopio.html",
+    "path": "Chris/Babbo-Natale-Giroscopio.html",
     "category": "Chris",
     "updatedAt": 1765407795940.8347
   },
