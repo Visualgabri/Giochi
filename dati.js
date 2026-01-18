@@ -85,14 +85,14 @@ const GIOCHI_DATA = [
   },
   {
     "name": "corsa-chris.html",
-    "path": "Famiglia/corsa-chris.html",
-    "category": "Famiglia",
+    "path": "Bolle Famiglia/corsa-chris.html",
+    "category": "Bolle Famiglia",
     "updatedAt": 1766012493724
   },
   {
     "name": "corsa-chris-computer.html",
-    "path": "Famiglia/corsa-chris-computer.html",
-    "category": "Famiglia",
+    "path": "Bolle Famiglia/corsa-chris-computer.html",
+    "category": "Bolle Famiglia",
     "updatedAt": 1765968318088.4814
   },
   {
@@ -103,14 +103,14 @@ const GIOCHI_DATA = [
   },
   {
     "name": "famiglia-memory.html",
-    "path": "Famiglia/famiglia-memory.html",
-    "category": "Famiglia",
+    "path": "Bolle Famiglia/famiglia-memory.html",
+    "category": "Bolle Famiglia",
     "updatedAt": 1765727060536.3713
   },
   {
     "name": "bolle-famiglia.html",
-    "path": "Famiglia/bolle-famiglia.html",
-    "category": "Famiglia",
+    "path": "Bolle Famiglia/bolle-famiglia.html",
+    "category": "Bolle Famiglia",
     "updatedAt": 1765726892788.6091
   },
   {
