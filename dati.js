@@ -6,6 +6,12 @@ const GIOCHI_DATA = [
     "createdAt": 1768726744343.8716
   },
   {
+    "name": "julie-spesa-emma (con icone).html",
+    "path": "Julie/julie-spesa-emma (con icone).html",
+    "category": "Julie",
+    "createdAt": 1768576704580.384
+  },
+  {
     "name": "julie-spesa-emma.html",
     "path": "Julie/julie-spesa-emma.html",
     "category": "Julie",

@@ -51,28 +51,43 @@
             white-space: pre-line;
         }
 
-        /* --- PAROLE INTERATTIVE (Modificato) --- */
+        /* --- PAROLE INTERATTIVE --- */
         .interactive-word {
             display: inline-block;
             transition: all 0.2s;
-            /* position: relative;  <-- Non serve più */
+            position: relative;
             cursor: pointer;
             color: #5d4037;
             font-weight: bold;
-            padding: 2px 5px; /* Un po' di spazio per l'effetto hover */
-            border-radius: 5px;
         }
         
-        /* Solo cambio colore e ingrandimento, niente icona */
         .interactive-word:hover {
             color: #ff6f00;
             transform: scale(1.1);
-            background-color: rgba(255, 160, 0, 0.2); /* Leggero sfondo per evidenziare */
         }
 
-        /* --- CLASSE TOOLTIP RIMOSSA --- */
-        /* La classe .word-tooltip e il relativo hover sono stati cancellati */
+        .word-tooltip {
+            position: absolute;
+            bottom: 120%;
+            left: 50%;
+            transform: translateX(-50%);
+            font-size: 3.5rem;
+            background: white;
+            padding: 5px 15px;
+            border-radius: 20px;
+            box-shadow: 0 8px 20px rgba(0,0,0,0.15);
+            opacity: 0;
+            visibility: hidden;
+            transition: 0.3s cubic-bezier(0.175, 0.885, 0.32, 1.275);
+            z-index: 100;
+            border: 2px solid #ffa000;
+        }
 
+        .interactive-word:hover .word-tooltip {
+            opacity: 1;
+            visibility: visible;
+            bottom: 130%;
+        }
 
         /* --- SCENA DELLA SPESA --- */
         #shopping-scene {
@@ -171,13 +186,11 @@ UN ORSO DI STOFFA.`;
             display.innerHTML = storyText.split('\n').map(line => {
                 return line.split(' ').map(word => {
                     const clean = word.replace(/[.,!?…]/g, '').toUpperCase();
-                    // Controllo se la parola è nel dizionario
-                    if (dictionary[clean]) {
-                        // MODIFICA: Assegno solo la classe per il colore, SENZA aggiungere il div del tooltip
-                        return `<span class="interactive-word">${word}</span>`;
+                    const emoji = dictionary[clean];
+                    if (emoji) {
+                        return `<span class="interactive-word">${word}<div class="word-tooltip">${emoji}</div></span>`;
                     }
-                    // Parola normale
-                    return `<span>${word}</span>`;
+                    return `<span class="interactive-word">${word}</span>`;
                 }).join(' ');
             }).join('<br>');
         }
