@@ -3,7 +3,7 @@ const GIOCHI_DATA = [
     "name": "chris-dino-spiderman.html",
     "path": "Chris/chris-dino-spiderman.html",
     "category": "Chris",
-    "updatedAt": 1768732577674.6018
+    "updatedAt": 1768732630099.0422
   },
   {
     "name": "index2.html",
