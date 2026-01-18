@@ -10,6 +10,7 @@
         :root {
             --bg-start: #fff3e0; 
             --highlight: #e65100;
+            --highlight-bg: #ffe0b2;
         }
 
         body {
@@ -39,8 +40,8 @@
         h1 { font-family: 'Fredoka One', cursive; color: #bf360c; font-size: 2.2rem; margin-bottom: 5px; }
 
         .story-box {
-            font-size: 1.9rem;
-            line-height: 1.6;
+            font-size: 2rem;
+            line-height: 1.8;
             color: #4e342e;
             text-align: left;
             padding: 25px;
@@ -51,28 +52,27 @@
             white-space: pre-line;
         }
 
-        /* --- PAROLE INTERATTIVE (Modificato) --- */
+        /* --- PAROLE INTERATTIVE (MODIFICATO) --- */
         .interactive-word {
             display: inline-block;
-            transition: all 0.2s;
-            /* position: relative;  <-- Non serve più */
+            transition: all 0.15s ease-in-out;
+            position: relative;
             cursor: pointer;
             color: #5d4037;
             font-weight: bold;
-            padding: 2px 5px; /* Un po' di spazio per l'effetto hover */
-            border-radius: 5px;
+            padding: 2px 6px; /* Un po' di spazio per l'evidenziazione */
+            border-radius: 8px;
         }
         
-        /* Solo cambio colore e ingrandimento, niente icona */
+        /* Stile quando il dito/mouse passa sopra */
         .interactive-word:hover {
-            color: #ff6f00;
-            transform: scale(1.1);
-            background-color: rgba(255, 160, 0, 0.2); /* Leggero sfondo per evidenziare */
+            color: var(--highlight);
+            background-color: var(--highlight-bg); /* Sfondo arancione chiaro */
+            transform: scale(1.1); /* Leggero ingrandimento */
+            box-shadow: 0 2px 5px rgba(0,0,0,0.1);
         }
 
-        /* --- CLASSE TOOLTIP RIMOSSA --- */
-        /* La classe .word-tooltip e il relativo hover sono stati cancellati */
-
+        /* RIMOSSO: Stile .word-tooltip */
 
         /* --- SCENA DELLA SPESA --- */
         #shopping-scene {
@@ -143,18 +143,11 @@
     </div>
 
     <script>
+        // Il dizionario serve ora solo per le animazioni della scena, non per il testo
         const dictionary = {
-            "ZIA": "👩‍🦱",
-            "EMMA": "👩",
-            "SPESA": "🛒",
-            "BORSA": "🛍️",
-            "MELE": "🍎",
-            "PERE": "🍐",
-            "PATATE": "🥔",
-            "PENNE": "🖋️",
-            "MATITE": "✏️",
-            "ORSO": "🧸",
-            "STOFFA": "🧵"
+            "ZIA": "👩‍🦱", "EMMA": "👩", "SPESA": "🛒", "BORSA": "🛍️",
+            "MELE": "🍎", "PERE": "🍐", "PATATE": "🥔",
+            "PENNE": "🖋️", "MATITE": "✏️", "ORSO": "🧸", "STOFFA": "🧵"
         };
 
         const storyText = `LA ZIA EMMA È ANDATA A FARE LA SPESA.
@@ -166,18 +159,13 @@ PATATE,
 PENNE E MATITE,
 UN ORSO DI STOFFA.`;
 
+        // Funzione modificata: avvolge TUTTE le parole per l'evidenziazione
         function buildText() {
             const display = document.getElementById('textDisplay');
             display.innerHTML = storyText.split('\n').map(line => {
                 return line.split(' ').map(word => {
-                    const clean = word.replace(/[.,!?…]/g, '').toUpperCase();
-                    // Controllo se la parola è nel dizionario
-                    if (dictionary[clean]) {
-                        // MODIFICA: Assegno solo la classe per il colore, SENZA aggiungere il div del tooltip
-                        return `<span class="interactive-word">${word}</span>`;
-                    }
-                    // Parola normale
-                    return `<span>${word}</span>`;
+                    // Avvolge semplicemente ogni parola nello span interattivo
+                    return `<span class="interactive-word">${word}</span>`;
                 }).join(' ');
             }).join('<br>');
         }
@@ -237,7 +225,6 @@ UN ORSO DI STOFFA.`;
                 msgEl.style.fontSize = "1.8rem";
             }
             
-            // Suono di feedback
             const audioCtx = new (window.AudioContext || window.webkitAudioContext)();
             const osc = audioCtx.createOscillator();
             const gain = audioCtx.createGain();
