@@ -13,43 +13,147 @@
   
   <style>
     * { box-sizing: border-box; margin: 0; padding: 0; }
+    
     body {
       font-family: system-ui, -apple-system, sans-serif;
       background: linear-gradient(135deg, #fce4ec, #e3f2fd);
-      padding: 20px; display: flex; flex-direction: column; align-items: center; min-height: 100vh;
+      padding: 20px; 
+      display: flex; 
+      flex-direction: column; 
+      align-items: center; 
+      min-height: 100vh;
     }
+
     .container { width: 100%; max-width: 1000px; }
+    
     header { text-align: center; margin-bottom: 30px; }
     h1 { color: #283593; font-size: 2.2rem; margin-bottom: 10px; }
-    .status { background: rgba(255,255,255,0.8); padding: 8px 15px; border-radius: 20px; font-size: 0.85rem; color: #455a64; display: inline-block; }
+    
+    .status { 
+      background: rgba(255,255,255,0.8); 
+      padding: 8px 15px; 
+      border-radius: 20px; 
+      font-size: 0.85rem; 
+      color: #455a64; 
+      display: inline-block; 
+    }
 
     .category-section { margin-bottom: 40px; width: 100%; }
-    .category-title { font-size: 1.6rem; color: #1565c0; margin-bottom: 15px; border-bottom: 3px solid rgba(25,118,210,0.1); padding-bottom: 5px; }
-    .games-grid { display: grid; grid-template-columns: repeat(auto-fill, minmax(180px, 1fr)); gap: 20px; }
+    
+    .category-title { 
+      font-size: 1.6rem; 
+      color: #1565c0; 
+      margin-bottom: 15px; 
+      border-bottom: 3px solid rgba(25,118,210,0.1); 
+      padding-bottom: 5px; 
+    }
+
+    /* Griglia per Desktop */
+    .games-grid { 
+      display: grid; 
+      grid-template-columns: repeat(auto-fill, minmax(180px, 1fr)); 
+      gap: 20px; 
+    }
 
     .game-card {
-      background: white; border-radius: 18px; padding: 15px; text-align: center;
-      box-shadow: 0 4px 10px rgba(0,0,0,0.05); transition: transform 0.2s;
-      border: 2px solid transparent; display: flex; flex-direction: column; gap: 8px; position: relative;
+      background: white; 
+      border-radius: 18px; 
+      padding: 15px; 
+      text-align: center;
+      box-shadow: 0 4px 10px rgba(0,0,0,0.05); 
+      transition: transform 0.2s;
+      border: 2px solid transparent; 
+      display: flex; 
+      flex-direction: column; 
+      gap: 8px; 
+      position: relative;
     }
+    
     .game-card:hover { transform: translateY(-5px); border-color: #64b5f6; }
 
     .badge-new {
-      position: absolute; top: -8px; left: -8px; background: #ff5252; color: white;
-      padding: 4px 8px; border-radius: 8px; font-size: 0.65rem; font-weight: bold;
+      position: absolute; 
+      top: -8px; 
+      left: -8px; 
+      background: #ff5252; 
+      color: white;
+      padding: 4px 8px; 
+      border-radius: 8px; 
+      font-size: 0.65rem; 
+      font-weight: bold;
       box-shadow: 0 2px 4px rgba(0,0,0,0.2);
+      z-index: 10;
     }
 
     .game-icon { font-size: 40px; margin-bottom: 5px; }
-    .game-title { font-weight: 700; color: #283593; font-size: 0.95rem; line-height: 1.2; min-height: 2.4em; display: flex; align-items: center; justify-content: center; }
+    
+    .game-title { 
+      font-weight: 700; 
+      color: #283593; 
+      font-size: 0.95rem; 
+      line-height: 1.2; 
+      min-height: 2.4em; 
+      display: flex; 
+      align-items: center; 
+      justify-content: center; 
+    }
+    
     .game-date { font-size: 0.7rem; color: #90a4ae; }
     
     .play-button {
-      background: linear-gradient(135deg, #42a5f5, #1976d2); color: white;
-      text-decoration: none; padding: 10px; border-radius: 12px; font-weight: 600;
-      margin-top: 10px; font-size: 0.9rem;
+      background: linear-gradient(135deg, #42a5f5, #1976d2); 
+      color: white;
+      text-decoration: none; 
+      padding: 10px; 
+      border-radius: 12px; 
+      font-weight: 600;
+      margin-top: auto; 
+      font-size: 0.9rem;
     }
+    
     .play-button:hover { filter: brightness(1.1); }
+
+    /* --- OTTIMIZZAZIONE PER SMARTPHONE --- */
+    @media (max-width: 600px) {
+      body { padding: 10px; }
+      
+      h1 { font-size: 1.6rem; }
+      
+      .category-title { font-size: 1.3rem; }
+
+      .games-grid {
+        /* Forza 2 colonne riducendo la dimensione minima a 140px */
+        grid-template-columns: repeat(auto-fill, minmax(145px, 1fr));
+        gap: 12px; /* Spazio ridotto tra le card */
+      }
+
+      .game-card {
+        padding: 10px;
+        border-radius: 15px;
+      }
+
+      .game-icon { font-size: 32px; }
+      
+      .game-title { 
+        font-size: 0.8rem; 
+        min-height: 2.2em; 
+      }
+      
+      .game-date { font-size: 0.6rem; }
+      
+      .play-button { 
+        padding: 8px; 
+        font-size: 0.8rem; 
+        border-radius: 10px;
+      }
+
+      .badge-new {
+        font-size: 0.55rem;
+        padding: 3px 6px;
+        top: -5px;
+        left: -5px;
+      }
+    }
   </style>
 </head>
 <body>
@@ -67,11 +171,10 @@
 <script>
   const emojis = ["🎮", "🚀", "🐼", "🐯", "🦄", "🎨", "🧩", "⭐", "🎈", "🐸"];
   
-  // Elenco file da non mostrare mai nella lista giochi
   const blacklist = [
     'index.html', 
     'index2.html', 
-	'index2 (old).html', 
+    'index2 (old).html', 
     'index3.html', 
     'dati.js', 
     'generatore_dati.py', 
@@ -89,17 +192,13 @@
       return;
     }
 
-    // 1. Filtriamo i dati per rimuovere file non pertinenti
     const filteredGames = GIOCHI_DATA.filter(game => {
       const filename = game.path.split('/').pop().toLowerCase();
-      // Escludi se è nella blacklist o se non è un file .html
       return !blacklist.includes(filename) && game.path.endsWith('.html');
     });
 
-    // 2. Ordinamento per data di modifica (più recente prima)
     filteredGames.sort((a, b) => (b.updatedAt || 0) - (a.updatedAt || 0));
 
-    // 3. Raggruppamento per categoria
     const organized = {};
     filteredGames.forEach(game => {
       const cat = game.category.charAt(0).toUpperCase() + game.category.slice(1);
@@ -109,7 +208,6 @@
 
     mainContent.innerHTML = '';
     
-    // Ordine categorie preferito
     const order = ["Chris", "Julie", "Vari"];
     const sortedCats = Object.keys(organized).sort((a, b) => {
       let ia = order.indexOf(a); let ib = order.indexOf(b);
@@ -130,12 +228,10 @@
       grid.className = 'games-grid';
 
       organized[catName].forEach((game) => {
-        // I primi 3 giochi in assoluto più recenti hanno il badge "NUOVO"
         const isNew = filteredGames.indexOf(game) < 3;
         const dateObj = new Date(game.updatedAt);
         const dateStr = dateObj.toLocaleDateString('it-IT', { day: '2-digit', month: '2-digit', year: 'numeric' });
 
-        // Pulizia nome file per il titolo
         let displayTitle = game.name
           .replace('.html', '')
           .replace(/[_-]/g, ' ')
