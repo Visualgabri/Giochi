@@ -1,3 +1,4 @@
+--- START OF FILE index2.html ---
 <!DOCTYPE html>
 <html lang="it">
 <head>
@@ -67,12 +68,15 @@
     const mainContent = document.getElementById('main-content');
     const statusEl = document.getElementById('status');
 
-    // Controllo se i dati sono stati caricati dal file dati.js
+    // Controllo se i dati sono stati caricati
     if (typeof GIOCHI_DATA === 'undefined') {
-      statusEl.textContent = "Errore: dati.js non trovato. Esegui 'node update.js'";
+      statusEl.textContent = "Errore: dati.js non trovato.";
       statusEl.style.color = "red";
       return;
     }
+
+    // Ordinamento per data di modifica (più recente prima)
+    GIOCHI_DATA.sort((a, b) => (b.updatedAt || 0) - (a.updatedAt || 0));
 
     // Raggruppamento per categoria
     const organized = {};
@@ -104,19 +108,19 @@
       const grid = document.createElement('div');
       grid.className = 'games-grid';
 
-      organized[catName].forEach((game, index) => {
-        // I primi 3 giochi in assoluto della lista (i più recenti) avranno il badge "Nuovo"
+      organized[catName].forEach((game) => {
+        // I primi 3 giochi modificati più di recente hanno il badge
         const isNew = GIOCHI_DATA.indexOf(game) < 3;
-        const dateObj = new Date(game.createdAt);
-        const dateStr = dateObj.toLocaleDateString('it-IT');
+        const dateObj = new Date(game.updatedAt);
+        const dateStr = dateObj.toLocaleDateString('it-IT', { day: '2-digit', month: '2-digit', year: 'numeric' });
 
         const card = document.createElement('div');
         card.className = 'game-card';
         card.innerHTML = `
-          ${isNew ? '<div class="badge-new">NUOVO!</div>' : ''}
+          ${isNew ? '<div class="badge-new">AGGIORNATO!</div>' : ''}
           <div class="game-icon">${emojis[game.name.length % emojis.length]}</div>
           <div class="game-title">${game.name.replace('.html', '').replace(/[_-]/g, ' ')}</div>
-          <div class="game-date">Aggiunto il ${dateStr}</div>
+          <div class="game-date">Aggiornato il ${dateStr}</div>
           <a href="${game.path}" class="play-button" target="_blank">GIOCA ORA</a>
         `;
         grid.appendChild(card);
@@ -126,10 +130,9 @@
       mainContent.appendChild(section);
     });
 
-    statusEl.textContent = `Trovati ${GIOCHI_DATA.length} giochi in ordine di data`;
+    statusEl.textContent = `Trovati ${GIOCHI_DATA.length} giochi (ordinati per ultima modifica)`;
   }
 
-  // Avvia la funzione
   init();
 </script>
 </body>

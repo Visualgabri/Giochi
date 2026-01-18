@@ -1,8 +1,9 @@
+
 const fs = require('fs');
 const path = require('path');
 
 const rootDir = './';
-const outputJs = 'dati.js'; // CAMBIATO: Ora è un file .js
+const outputJs = 'dati.js'; 
 const excludedFiles = ['index.html', 'update.js', 'dati.js', 'favicon.ico'];
 
 function getGames(dir, category = 'Vari') {
@@ -24,7 +25,7 @@ function getGames(dir, category = 'Vari') {
                     name: file,
                     path: filePath.replace(/\\/g, '/'),
                     category: category,
-                    createdAt: stat.birthtimeMs // Data creazione reale
+                    updatedAt: stat.mtimeMs // USIAMO LA DATA DI ULTIMA MODIFICA
                 });
             }
         }
@@ -32,11 +33,11 @@ function getGames(dir, category = 'Vari') {
     return results;
 }
 
-console.log('--- Aggiornamento dati giochi ---');
+console.log('--- Aggiornamento dati giochi (per data di modifica) ---');
 const allGames = getGames(rootDir);
 
-// Ordina per data: più recente sopra
-allGames.sort((a, b) => b.createdAt - a.createdAt);
+// Ordina per data di modifica: più recente sopra
+allGames.sort((a, b) => b.updatedAt - a.updatedAt);
 
 // Crea il contenuto del file JS
 const content = `const GIOCHI_DATA = ${JSON.stringify(allGames, null, 2)};`;
