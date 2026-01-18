@@ -2,7 +2,7 @@
 <html lang="it">
 <head>
   <meta charset="UTF-8">
-  <title>Giochi di Chris e Julie</title>
+  <title>Stanza dei Giochi di Chris e Julie</title>
   <link rel="icon" type="image/png" href="favicon.ico">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
 
@@ -38,6 +38,7 @@
       gap: 8px;
       color: #455a64;
     }
+    .status.error { background: #ffebee; color: #c62828; border: 1px solid #ffcdd2; }
     .loader {
       width: 14px; height: 14px; border-radius: 50%;
       border: 2px solid rgba(25,118,210,0.2); border-top-color: #1976d2;
@@ -109,7 +110,13 @@
     .game-icon { font-size: 36px; text-align: center; }
     .game-title { font-size: 1rem; font-weight: 700; color: #283593; text-align: center; line-height: 1.3; }
     
-    .game-date { font-size: 0.7rem; color: #90a4ae; text-align: center; margin-top: -5px; font-style: italic; }
+    .game-date {
+      font-size: 0.7rem;
+      color: #78909c;
+      text-align: center;
+      margin-top: -5px;
+      font-style: italic;
+    }
 
     .play-button {
       margin-top: auto;
@@ -121,8 +128,7 @@
     }
     .play-button:hover { filter: brightness(1.1); box-shadow: 0 4px 8px rgba(33,150,243,0.3); }
 
-    /* --- FOOTER --- */
-    footer { margin-top: 40px; font-size: 0.75rem; color: #90a4ae; text-align: center; }
+    footer { margin-top: 40px; font-size: 0.75rem; color: #90a4ae; text-align: center; padding: 20px; }
 
     @media (max-width: 480px) {
       h1 { font-size: 1.6rem; }
@@ -138,11 +144,11 @@
         <h1>Stanza dei Giochi</h1>
         <span class="emoji">🚀</span>
       </div>
-      <p class="subtitle">Benvenuti nella sala giochi di Julie e Christopher</p>
+      <p class="subtitle">I giochi preferiti di Julie e Christopher</p>
       
       <div id="status" class="status">
         <span class="loader"></span>
-        <span>Sto ordinando i giochi dal più nuovo...</span>
+        <span>Caricamento scaffali locali...</span>
       </div>
     </header>
 
@@ -157,9 +163,6 @@
     const mainContent = document.getElementById("main-content");
     const statusEl = document.getElementById("status");
     const emojis = ["🎮", "🧸", "🚀", "🐼", "🦄", "🐸", "🐯", "⭐", "🎈", "🎯", "🎨", "🧩"];
-    
-    const REPO = "visualgabri/Giochi";
-    const BRANCH = "main";
 
     function pickEmoji(name) {
       return emojis[name.length % emojis.length];
@@ -173,7 +176,6 @@
 
     function setStatus(text, isError) {
       statusEl.innerHTML = "";
-      statusEl.style.display = 'inline-flex';
       statusEl.className = isError ? "status error" : "status";
       if (!isError && text.includes("...")) {
         const loader = document.createElement("span");
@@ -185,88 +187,113 @@
       statusEl.appendChild(span);
     }
 
-    // Funzione per ottenere la data dell'ultimo commit di un file
-    async function getFileDate(path) {
-      // Usiamo sessionStorage per non bruciare il rate limit di GitHub ad ogni refresh
-      const cacheKey = `date_${path}`;
-      const cached = sessionStorage.getItem(cacheKey);
-      if (cached) return new Date(cached);
-
+    async function loadGames() {
       try {
-        const res = await fetch(`https://api.github.com/repos/${REPO}/commits?path=${path}&page=1&per_page=1`);
-        const data = await res.json();
-        if (data && data.length > 0) {
-          const dateStr = data[0].commit.committer.date;
-          sessionStorage.setItem(cacheKey, dateStr);
-          return new Date(dateStr);
+        // Legge il file JSON generato localmente
+        const res = await fetch('games-data.json');
+        
+        if (!res.ok) {
+          throw new Error("Impossibile trovare 'games-data.json'. Assicurati di aver lanciato lo script di aggiornamento.");
         }
-      } catch (e) { console.error("Errore data per", path); }
-      return new Date(0); // Data minima in caso di errore
+        
+        const games = await res.json();
+
+        if (games.length === 0) {
+          setStatus("Nessun gioco trovato nel database!", true);
+          return;
+        }
+
+        // 1. ORDINAMENTO PER DATA (Dal più recente al più vecchio)
+        // Lo script Node.js dovrebbe già farlo, ma lo rifacciamo per sicurezza
+        games.sort((a, b) => b.createdAt - a.createdAt);
+
+        // 2. RAGGRUPPAMENTO PER CATEGORIA
+        const organized = {};
+
+        games.forEach(game => {
+          let category = game.category || "Vari";
+          category = category.charAt(0).toUpperCase() + category.slice(1);
+          
+          // Cerchiamo la sottocategoria dal percorso (es. Julie/Puzzle/gioco.html)
+          const parts = game.path.split('/');
+          let subcategory = "Generale";
+          
+          if (parts.length > 2) {
+             subcategory = parts[1].charAt(0).toUpperCase() + parts[1].slice(1);
+          }
+
+          if (!organized[category]) organized[category] = {};
+          if (!organized[category][subcategory]) organized[category][subcategory] = [];
+
+          organized[category][subcategory].push(game);
+        });
+
+        // 3. RENDERIZZAZIONE
+        mainContent.innerHTML = "";
+        
+        // Ordine di priorità visiva per le categorie
+        const priority = ["Chris", "Julie", "Vari"];
+        const sortedCategories = Object.keys(organized).sort((a, b) => {
+          let idxA = priority.indexOf(a);
+          let idxB = priority.indexOf(b);
+          return (idxA === -1 ? 99 : idxA) - (idxB === -1 ? 99 : idxB);
+        });
+
+        sortedCategories.forEach(catName => {
+          const catSection = document.createElement("section");
+          catSection.className = "category-section";
+
+          // Header Categoria
+          const header = document.createElement("div");
+          header.className = "category-header";
+          let icon = "📂";
+          if (catName.toLowerCase().includes("julie")) icon = "🦄";
+          if (catName.toLowerCase().includes("chris")) icon = "🐯";
+          header.innerHTML = `<span style="font-size:24px">${icon}</span><h2 class="category-title">${catName}</h2>`;
+          catSection.appendChild(header);
+
+          const subcats = organized[catName];
+          Object.keys(subcats).forEach(subName => {
+            const subGroup = document.createElement("div");
+            subGroup.className = "subcategory-group";
+
+            if (subName !== "Generale" || Object.keys(subcats).length > 1) {
+              const subTitle = document.createElement("h3");
+              subTitle.className = "subcategory-title";
+              subTitle.textContent = subName;
+              subGroup.appendChild(subTitle);
+            }
+
+            const grid = document.createElement("div");
+            grid.className = "games-grid";
+
+            subcats[subName].forEach(game => {
+              const card = createGameCard(game, catName);
+              grid.appendChild(card);
+            });
+
+            subGroup.appendChild(grid);
+            catSection.appendChild(subGroup);
+          });
+
+          mainContent.appendChild(catSection);
+        });
+
+        setStatus(`${games.length} giochi pronti per giocare!`, false);
+        setTimeout(() => { statusEl.style.opacity = '0'; }, 5000);
+
+      } catch (err) {
+        console.error(err);
+        setStatus(err.message, true);
+      }
     }
 
-async function loadGames() {
-  try {
-    // Leggiamo il file generato localmente dallo script
-    const res = await fetch('games-data.json');
-    if (!res.ok) throw new Error("File games-data.json non trovato. Esegui prima lo script update.js!");
-    
-    const filesWithDates = await res.json();
-
-    // --- LOGICA DI RAGGRUPPAMENTO (Identica a prima) ---
-    const organized = {};
-
-    filesWithDates.forEach(file => {
-      // Usiamo la categoria salvata nel JSON o la ricaviamo dal path
-      let category = file.category.charAt(0).toUpperCase() + file.category.slice(1);
-      let subcategory = "Generale"; 
-
-      // Se vuoi ancora gestire le sottocartelle fisiche:
-      const parts = file.path.split('/');
-      if (parts.length > 2) {
-          subcategory = parts[1].charAt(0).toUpperCase() + parts[1].slice(1);
-      }
-
-      if (!organized[category]) organized[category] = {};
-      if (!organized[category][subcategory]) organized[category][subcategory] = [];
-
-      organized[category][subcategory].push(file);
-    });
-
-    // --- RENDERIZZAZIONE ---
-    mainContent.innerHTML = "";
-    
-    // Ordine di apparizione categorie
-    const priority = ["Chris", "Julie", "Vari"];
-    const sortedCategories = Object.keys(organized).sort((a, b) => {
-      let idxA = priority.indexOf(a);
-      let idxB = priority.indexOf(b);
-      return (idxA === -1 ? 99 : idxA) - (idxB === -1 ? 99 : idxB);
-    });
-
-    sortedCategories.forEach(catName => {
-      const catSection = document.createElement("section");
-      catSection.className = "category-section";
-      // ... (qui il resto del codice di creazione HTML che hai già usato) ...
-      // (Usa file.createdAt per mostrare la data se vuoi)
-      
-      // Esempio: 
-      // const card = createGameCard(file, catName); 
-      // grid.appendChild(card);
-    });
-
-    setStatus(`Giochi caricati dal computer!`, false);
-
-  } catch (err) {
-    console.error(err);
-    setStatus(err.message, true);
-  }
-}    function createGameCard(file, category) {
-      const fileName = file.path.split('/').pop();
-      const prettyTitle = cleanName(fileName);
-      
+    function createGameCard(game, category) {
+      const prettyTitle = cleanName(game.name);
       const card = document.createElement("article");
       card.className = "game-card";
 
+      // Tag proprietario
       const tag = document.createElement("div");
       tag.className = "owner-tag";
       if (category.toLowerCase().includes("chris")) {
@@ -278,27 +305,31 @@ async function loadGames() {
       }
       card.appendChild(tag);
 
+      // Icona
       const icon = document.createElement("div");
       icon.className = "game-icon";
       icon.textContent = pickEmoji(prettyTitle);
       card.appendChild(icon);
 
+      // Titolo
       const title = document.createElement("div");
       title.className = "game-title";
       title.textContent = prettyTitle;
       card.appendChild(title);
 
-      // Aggiunge la data in piccolo per conferma visiva
-      if (file.date && file.date.getFullYear() > 1970) {
+      // Data (se disponibile)
+      if (game.createdAt) {
+        const date = new Date(game.createdAt);
         const dateEl = document.createElement("div");
         dateEl.className = "game-date";
-        dateEl.textContent = file.date.toLocaleDateString('it-IT', { day: '2-digit', month: '2-digit', year: '2-digit' });
+        dateEl.textContent = "Nuovo! " + date.toLocaleDateString('it-IT', { day: '2-digit', month: '2-digit', year: 'numeric' });
         card.appendChild(dateEl);
       }
 
+      // Bottone
       const link = document.createElement("a");
       link.className = "play-button";
-      link.href = file.path;
+      link.href = game.path;
       link.target = "_blank";
       link.innerHTML = `<span>▶</span> Gioca`;
       card.appendChild(link);
@@ -306,6 +337,7 @@ async function loadGames() {
       return card;
     }
 
+    // Avvio
     loadGames();
   </script>
 </body>
