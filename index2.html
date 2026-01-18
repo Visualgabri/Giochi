@@ -1,9 +1,14 @@
+--- START OF FILE index2.html ---
 <!DOCTYPE html>
 <html lang="it">
 <head>
   <meta charset="UTF-8">
   <title>Stanza dei Giochi di Chris e Julie</title>
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  
+  <!-- Icona del sito -->
+  <link rel="icon" type="image/x-icon" href="favicon.ico">
+  
   <!-- Carichiamo il file dei dati creato dallo script -->
   <script src="dati.js"></script>
   
@@ -62,24 +67,41 @@
 
 <script>
   const emojis = ["🎮", "🚀", "🐼", "🐯", "🦄", "🎨", "🧩", "⭐", "🎈", "🐸"];
+  
+  // Elenco file da non mostrare mai nella lista giochi
+  const blacklist = [
+    'index.html', 
+    'index2.html', 
+    'index3.html', 
+    'dati.js', 
+    'generatore_dati.py', 
+    'style.css',
+    'README.md'
+  ];
 
   function init() {
     const mainContent = document.getElementById('main-content');
     const statusEl = document.getElementById('status');
 
-    // Controllo se i dati sono stati caricati
     if (typeof GIOCHI_DATA === 'undefined') {
       statusEl.textContent = "Errore: dati.js non trovato.";
       statusEl.style.color = "red";
       return;
     }
 
-    // Ordinamento per data di modifica (più recente prima)
-    GIOCHI_DATA.sort((a, b) => (b.updatedAt || 0) - (a.updatedAt || 0));
+    // 1. Filtriamo i dati per rimuovere file non pertinenti
+    const filteredGames = GIOCHI_DATA.filter(game => {
+      const filename = game.path.split('/').pop().toLowerCase();
+      // Escludi se è nella blacklist o se non è un file .html
+      return !blacklist.includes(filename) && game.path.endsWith('.html');
+    });
 
-    // Raggruppamento per categoria
+    // 2. Ordinamento per data di modifica (più recente prima)
+    filteredGames.sort((a, b) => (b.updatedAt || 0) - (a.updatedAt || 0));
+
+    // 3. Raggruppamento per categoria
     const organized = {};
-    GIOCHI_DATA.forEach(game => {
+    filteredGames.forEach(game => {
       const cat = game.category.charAt(0).toUpperCase() + game.category.slice(1);
       if (!organized[cat]) organized[cat] = [];
       organized[cat].push(game);
@@ -87,7 +109,7 @@
 
     mainContent.innerHTML = '';
     
-    // Ordine categorie
+    // Ordine categorie preferito
     const order = ["Chris", "Julie", "Vari"];
     const sortedCats = Object.keys(organized).sort((a, b) => {
       let ia = order.indexOf(a); let ib = order.indexOf(b);
@@ -108,17 +130,23 @@
       grid.className = 'games-grid';
 
       organized[catName].forEach((game) => {
-        // I primi 3 giochi modificati più di recente hanno il badge
-        const isNew = GIOCHI_DATA.indexOf(game) < 3;
+        // I primi 3 giochi in assoluto più recenti hanno il badge "NUOVO"
+        const isNew = filteredGames.indexOf(game) < 3;
         const dateObj = new Date(game.updatedAt);
         const dateStr = dateObj.toLocaleDateString('it-IT', { day: '2-digit', month: '2-digit', year: 'numeric' });
+
+        // Pulizia nome file per il titolo
+        let displayTitle = game.name
+          .replace('.html', '')
+          .replace(/[_-]/g, ' ')
+          .trim();
 
         const card = document.createElement('div');
         card.className = 'game-card';
         card.innerHTML = `
           ${isNew ? '<div class="badge-new">NUOVO!</div>' : ''}
           <div class="game-icon">${emojis[game.name.length % emojis.length]}</div>
-          <div class="game-title">${game.name.replace('.html', '').replace(/[_-]/g, ' ')}</div>
+          <div class="game-title">${displayTitle}</div>
           <div class="game-date">Aggiornato il ${dateStr}</div>
           <a href="${game.path}" class="play-button" target="_blank">GIOCA ORA</a>
         `;
@@ -129,7 +157,7 @@
       mainContent.appendChild(section);
     });
 
-    statusEl.textContent = `Trovati ${GIOCHI_DATA.length} giochi (ordinati per ultima modifica)`;
+    statusEl.textContent = `Trovati ${filteredGames.length} giochi`;
   }
 
   init();
