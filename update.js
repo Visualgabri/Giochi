@@ -4,7 +4,7 @@ const path = require('path');
 
 const rootDir = './';
 const outputJs = 'dati.js'; 
-const excludedFiles = ['index.html', 'update.js', 'dati.js', 'favicon.ico'];
+const excludedFiles = ['index.html', 'update.js', 'dati.js'];
 
 function getGames(dir, category = 'Vari') {
     let results = [];
