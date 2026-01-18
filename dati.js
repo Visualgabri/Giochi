@@ -1,4 +1,4 @@
-[
+const GIOCHI_DATA = [
   {
     "name": "index4.html",
     "path": "index4.html",
@@ -16,6 +16,12 @@
     "path": "Julie/julie-spesa-emma.html",
     "category": "Julie",
     "createdAt": 1768576704580.384
+  },
+  {
+    "name": "index3.html",
+    "path": "index3.html",
+    "category": "Vari",
+    "createdAt": 1768249384905.1494
   },
   {
     "name": "julie-amici-del-10.html",
@@ -126,6 +132,12 @@
     "createdAt": 1765405437369.8137
   },
   {
+    "name": "index2.html",
+    "path": "index2.html",
+    "category": "Vari",
+    "createdAt": 1765189199211.0105
+  },
+  {
     "name": "Julie-parole-sfidanti.html",
     "path": "Julie/Julie-parole-sfidanti.html",
     "category": "Julie",
@@ -137,4 +149,4 @@
     "category": "Julie",
     "createdAt": 1765179443020.834
   }
-]
+];
