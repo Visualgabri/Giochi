@@ -1,0 +1,97 @@
+<!DOCTYPE html>
+<html lang="it">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Prenota il tuo Allenamento</title>
+    <link href="https://fonts.googleapis.com/css2?family=Poppins:wght@300;400;600&display=swap" rel="stylesheet">
+    <style>
+        body {
+            font-family: 'Poppins', sans-serif;
+            background-color: #f4f7f6;
+            margin: 0;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+        }
+
+        header {
+            background-color: #1a1a1a;
+            color: white;
+            width: 100%;
+            padding: 2rem 0;
+            text-align: center;
+            box-shadow: 0 4px 10px rgba(0,0,0,0.1);
+        }
+
+        .container {
+            max-width: 900px;
+            width: 95%;
+            margin: 2rem auto;
+            background: white;
+            padding: 20px;
+            border-radius: 15px;
+            box-shadow: 0 10px 30px rgba(0,0,0,0.05);
+        }
+
+        .info-section {
+            text-align: center;
+            margin-bottom: 2rem;
+        }
+
+        .info-section h2 { color: #333; }
+        .info-section p { color: #666; }
+
+        /* Stile per il Calendario incorporato */
+        .calendar-wrapper {
+            position: relative;
+            overflow: hidden;
+            width: 100%;
+            padding-top: 75%; /* Aspect Ratio 4:3 */
+        }
+
+        .calendar-wrapper iframe {
+            position: absolute;
+            top: 0;
+            left: 0;
+            bottom: 0;
+            right: 0;
+            width: 100%;
+            height: 100%;
+            border: none;
+            border-radius: 10px;
+        }
+
+        footer {
+            margin-top: 2rem;
+            color: #888;
+            font-size: 0.9rem;
+            padding-bottom: 2rem;
+        }
+    </style>
+</head>
+<body>
+
+    <header>
+        <h1>Personal Trainer Online</h1>
+        <p>Prenota la tua sessione da 60 minuti</p>
+    </header>
+
+    <div class="container">
+        <div class="info-section">
+            <h2>Scegli il tuo orario</h2>
+            <p>Seleziona una data disponibile nel calendario qui sotto. Riceverai una conferma immediata via email.</p>
+        </div>
+
+        <div class="calendar-wrapper">
+            <!-- SOSTITUISCI IL LINK QUI SOTTO CON IL TUO LINK DI GOOGLE O CALENDLY -->
+            <iframe src="https://calendar.google.com/calendar/u/0/appointments/schedules/AcZssZ0C2_32R5zPnfL7FFpzIHAWfxfu-l34VSksRKVrwIDMlTqvtou-ZmyEoGHPFN44gPviQrFmWC6s" frameborder="0" scrolling="no"></iframe>
+        </div>
+    </div>
+
+    <footer>
+        &copy; 2023 Il Tuo Nome Fitness. Tutti i diritti riservati.
+    </footer>
+
+</body>
+</html>
