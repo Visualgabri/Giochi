@@ -204,118 +204,63 @@
       return new Date(0); // Data minima in caso di errore
     }
 
-    async function loadGames() {
-      try {
-        const apiUrl = `https://api.github.com/repos/${REPO}/git/trees/${BRANCH}?recursive=1`;
-        const res = await fetch(apiUrl);
-        if (!res.ok) throw new Error("Errore API: " + res.status);
-        
-        const data = await res.json();
-        let files = (data.tree || [])
-          .filter(f => f.type === "blob" && f.path.toLowerCase().endsWith(".html") && !f.path.toLowerCase().includes("index"));
+async function loadGames() {
+  try {
+    // Leggiamo il file generato localmente dallo script
+    const res = await fetch('games-data.json');
+    if (!res.ok) throw new Error("File games-data.json non trovato. Esegui prima lo script update.js!");
+    
+    const filesWithDates = await res.json();
 
-        if (files.length === 0) {
-          setStatus("Nessun gioco trovato!", true);
-          return;
-        }
+    // --- LOGICA DI RAGGRUPPAMENTO (Identica a prima) ---
+    const organized = {};
 
-        // --- RECUPERO DATE E ORDINAMENTO ---
-        setStatus("Controllo le date dei nuovi arrivi...", false);
-        
-        // Recuperiamo le date per tutti i file in parallelo
-        const filesWithDates = await Promise.all(files.map(async (file) => {
-          const date = await getFileDate(file.path);
-          return { ...file, date };
-        }));
+    filesWithDates.forEach(file => {
+      // Usiamo la categoria salvata nel JSON o la ricaviamo dal path
+      let category = file.category.charAt(0).toUpperCase() + file.category.slice(1);
+      let subcategory = "Generale"; 
 
-        // Ordiniamo l'intero array: dal più recente (data grande) al più vecchio (data piccola)
-        filesWithDates.sort((a, b) => b.date - a.date);
-
-        // --- RAGGRUPPAMENTO ---
-        const organized = {};
-        filesWithDates.forEach(file => {
-          const parts = file.path.split('/');
-          let category = "Giochi Vari";
-          let subcategory = "Generale";
-
-          if (parts.length > 1) {
-            category = parts[0].charAt(0).toUpperCase() + parts[0].slice(1);
-            if (parts.length > 2) {
-              subcategory = parts[1].charAt(0).toUpperCase() + parts[1].slice(1);
-            }
-          }
-
-          if (!organized[category]) organized[category] = {};
-          if (!organized[category][subcategory]) organized[category][subcategory] = [];
-          organized[category][subcategory].push(file);
-        });
-
-        // --- RENDER ---
-        mainContent.innerHTML = "";
-        
-        // Ordine categorie (priorità ai nomi fissi, poi in base alla data del gioco più recente contenuto)
-        const sortedCategories = Object.keys(organized).sort((a, b) => {
-          const getNewestDate = (cat) => {
-            let max = 0;
-            Object.values(organized[cat]).forEach(sub => {
-              sub.forEach(f => { if(f.date > max) max = f.date; });
-            });
-            return max;
-          };
-          return getNewestDate(b) - getNewestDate(a);
-        });
-
-        sortedCategories.forEach(catName => {
-          const catSection = document.createElement("section");
-          catSection.className = "category-section";
-
-          const header = document.createElement("div");
-          header.className = "category-header";
-          let icon = "📂";
-          if (catName.toLowerCase().includes("julie")) icon = "🦄";
-          if (catName.toLowerCase().includes("chris")) icon = "🐯";
-          
-          header.innerHTML = `<span style="font-size:24px">${icon}</span><h2 class="category-title">${catName}</h2>`;
-          catSection.appendChild(header);
-
-          const subcats = organized[catName];
-          // Sottocategorie ordinate per data più recente
-          Object.keys(subcats).sort((a,b) => subcats[b][0].date - subcats[a][0].date).forEach(subName => {
-            const subGroup = document.createElement("div");
-            subGroup.className = "subcategory-group";
-
-            if (subName !== "Generale" || Object.keys(subcats).length > 1) {
-              const subTitle = document.createElement("h3");
-              subTitle.className = "subcategory-title";
-              subTitle.textContent = subName;
-              subGroup.appendChild(subTitle);
-            }
-
-            const grid = document.createElement("div");
-            grid.className = "games-grid";
-
-            subcats[subName].forEach(file => {
-              const card = createGameCard(file, catName);
-              grid.appendChild(card);
-            });
-
-            subGroup.appendChild(grid);
-            catSection.appendChild(subGroup);
-          });
-
-          mainContent.appendChild(catSection);
-        });
-
-        setStatus(`Tutti i giochi sono pronti!`, false);
-        setTimeout(() => { statusEl.style.display = 'none'; }, 3000);
-
-      } catch (err) {
-        console.error(err);
-        setStatus("GitHub è stanco (troppe richieste). Riprova tra un po'!", true);
+      // Se vuoi ancora gestire le sottocartelle fisiche:
+      const parts = file.path.split('/');
+      if (parts.length > 2) {
+          subcategory = parts[1].charAt(0).toUpperCase() + parts[1].slice(1);
       }
-    }
 
-    function createGameCard(file, category) {
+      if (!organized[category]) organized[category] = {};
+      if (!organized[category][subcategory]) organized[category][subcategory] = [];
+
+      organized[category][subcategory].push(file);
+    });
+
+    // --- RENDERIZZAZIONE ---
+    mainContent.innerHTML = "";
+    
+    // Ordine di apparizione categorie
+    const priority = ["Chris", "Julie", "Vari"];
+    const sortedCategories = Object.keys(organized).sort((a, b) => {
+      let idxA = priority.indexOf(a);
+      let idxB = priority.indexOf(b);
+      return (idxA === -1 ? 99 : idxA) - (idxB === -1 ? 99 : idxB);
+    });
+
+    sortedCategories.forEach(catName => {
+      const catSection = document.createElement("section");
+      catSection.className = "category-section";
+      // ... (qui il resto del codice di creazione HTML che hai già usato) ...
+      // (Usa file.createdAt per mostrare la data se vuoi)
+      
+      // Esempio: 
+      // const card = createGameCard(file, catName); 
+      // grid.appendChild(card);
+    });
+
+    setStatus(`Giochi caricati dal computer!`, false);
+
+  } catch (err) {
+    console.error(err);
+    setStatus(err.message, true);
+  }
+}    function createGameCard(file, category) {
       const fileName = file.path.split('/').pop();
       const prettyTitle = cleanName(fileName);
       
