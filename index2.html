@@ -107,7 +107,7 @@ GIOCHI_DATA.filter(game => !game.name.toLowerCase().startsWith('index')).forEach
       organized[catName].forEach((game, index) => {
         // I primi 3 giochi in assoluto della lista (i più recenti) avranno il badge "Nuovo"
         const isNew = GIOCHI_DATA.indexOf(game) < 3;
-        const dateObj = new Date(game.createdAt);
+        const dateObj = new Date(game.updatedAt);
         const dateStr = dateObj.toLocaleDateString('it-IT');
 
         const card = document.createElement('div');
