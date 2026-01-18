@@ -2,382 +2,135 @@
 <html lang="it">
 <head>
   <meta charset="UTF-8">
-  <title>Giochi di Chris e Julie</title>
-
-  <link rel="icon" type="image/png" href="favicon.ico">
-
+  <title>Stanza dei Giochi di Chris e Julie</title>
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
-
+  <!-- Carichiamo il file dei dati creato dallo script -->
+  <script src="dati.js"></script>
+  
   <style>
-    * {
-      box-sizing: border-box;
-      margin: 0;
-      padding: 0;
-    }
-
+    * { box-sizing: border-box; margin: 0; padding: 0; }
     body {
-      font-family: system-ui, -apple-system, BlinkMacSystemFont, "Segoe UI", sans-serif;
+      font-family: system-ui, -apple-system, sans-serif;
       background: linear-gradient(135deg, #fce4ec, #e3f2fd);
-      min-height: 100vh;
-      display: flex;
-      flex-direction: column;
-      align-items: center;
-      padding: 20px;
+      padding: 20px; display: flex; flex-direction: column; align-items: center; min-height: 100vh;
     }
+    .container { width: 100%; max-width: 1000px; }
+    header { text-align: center; margin-bottom: 30px; }
+    h1 { color: #283593; font-size: 2.2rem; margin-bottom: 10px; }
+    .status { background: rgba(255,255,255,0.8); padding: 8px 15px; border-radius: 20px; font-size: 0.85rem; color: #455a64; display: inline-block; }
 
-    .container {
-      width: 100%;
-      max-width: 900px;
-    }
-
-    header {
-      text-align: center;
-      margin-bottom: 25px;
-    }
-
-    .title-row {
-      display: flex;
-      justify-content: center;
-      align-items: center;
-      gap: 10px;
-      margin-bottom: 8px;
-    }
-
-    .title-row span.emoji {
-      font-size: 32px;
-    }
-
-    h1 {
-      font-size: 2rem;
-      color: #283593;
-      text-shadow: 0 2px 4px rgba(0,0,0,0.1);
-    }
-
-    .subtitle {
-      font-size: 0.95rem;
-      color: #455a64;
-      opacity: 0.9;
-    }
-
-    .badge {
-      display: inline-flex;
-      align-items: center;
-      gap: 6px;
-      margin-top: 10px;
-      padding: 6px 12px;
-      border-radius: 999px;
-      background: rgba(255,255,255,0.8);
-      box-shadow: 0 2px 6px rgba(0,0,0,0.08);
-      font-size: 0.85rem;
-      color: #37474f;
-    }
-
-    .badge span.icon {
-      font-size: 18px;
-    }
-
-    .games-grid {
-      display: grid;
-      grid-template-columns: repeat(auto-fit, minmax(180px, 1fr));
-      gap: 16px;
-      margin-top: 20px;
-    }
+    .category-section { margin-bottom: 40px; width: 100%; }
+    .category-title { font-size: 1.6rem; color: #1565c0; margin-bottom: 15px; border-bottom: 3px solid rgba(25,118,210,0.1); padding-bottom: 5px; }
+    .games-grid { display: grid; grid-template-columns: repeat(auto-fill, minmax(180px, 1fr)); gap: 20px; }
 
     .game-card {
-      background: rgba(255,255,255,0.95);
-      border-radius: 18px;
-      padding: 14px 14px 12px 14px;
-      box-shadow: 0 4px 10px rgba(0,0,0,0.08);
-      border: 2px solid rgba(144,202,249,0.7);
-      display: flex;
-      flex-direction: column;
-      gap: 8px;
-      transform: translateY(0);
-      transition: transform 0.15s ease-out, box-shadow 0.15s ease-out;
-      position: relative;
-      overflow: hidden;
+      background: white; border-radius: 18px; padding: 15px; text-align: center;
+      box-shadow: 0 4px 10px rgba(0,0,0,0.05); transition: transform 0.2s;
+      border: 2px solid transparent; display: flex; flex-direction: column; gap: 8px; position: relative;
+    }
+    .game-card:hover { transform: translateY(-5px); border-color: #64b5f6; }
+
+    .badge-new {
+      position: absolute; top: -8px; left: -8px; background: #ff5252; color: white;
+      padding: 4px 8px; border-radius: 8px; font-size: 0.65rem; font-weight: bold;
+      box-shadow: 0 2px 4px rgba(0,0,0,0.2);
     }
 
-    .game-card::before {
-      content: "★";
-      position: absolute;
-      top: -8px;
-      right: -4px;
-      font-size: 28px;
-      opacity: 0.2;
-      color: #ffb74d;
-      pointer-events: none;
-    }
-
-    .game-card:hover {
-      transform: translateY(-4px);
-      box-shadow: 0 8px 18px rgba(0,0,0,0.12);
-    }
-
-    .game-icon {
-      font-size: 30px;
-    }
-
-    .game-title {
-      font-size: 1rem;
-      font-weight: 600;
-      color: #1a237e;
-      word-break: break-word;
-    }
-
-    .game-meta {
-      font-size: 0.75rem;
-      color: #607d8b;
-      display: flex;
-      justify-content: space-between;
-      align-items: center;
-      gap: 4px;
-    }
-
-    .game-meta span.label {
-      padding: 3px 8px;
-      border-radius: 999px;
-      background: #e3f2fd;
-      font-size: 0.7rem;
-      color: #1565c0;
-      white-space: nowrap;
-      overflow: hidden;
-      text-overflow: ellipsis;
-      max-width: 100px;
-    }
-
+    .game-icon { font-size: 40px; margin-bottom: 5px; }
+    .game-title { font-weight: 700; color: #283593; font-size: 0.95rem; line-height: 1.2; min-height: 2.4em; display: flex; align-items: center; justify-content: center; }
+    .game-date { font-size: 0.7rem; color: #90a4ae; }
+    
     .play-button {
-      margin-top: 4px;
-      display: inline-flex;
-      align-items: center;
-      justify-content: center;
-      padding: 8px 10px;
-      border-radius: 999px;
-      background: linear-gradient(135deg, #ffb74d, #ff7043);
-      border: none;
-      color: white;
-      font-weight: 600;
-      font-size: 0.85rem;
-      text-decoration: none;
-      cursor: pointer;
-      box-shadow: 0 3px 6px rgba(0,0,0,0.16);
-      transition: transform 0.1s ease-out, box-shadow 0.1s ease-out;
+      background: linear-gradient(135deg, #42a5f5, #1976d2); color: white;
+      text-decoration: none; padding: 10px; border-radius: 12px; font-weight: 600;
+      margin-top: 10px; font-size: 0.9rem;
     }
-
-    .play-button span.icon {
-      margin-right: 6px;
-      font-size: 16px;
-    }
-
-    .play-button:hover {
-      transform: translateY(-1px);
-      box-shadow: 0 5px 10px rgba(0,0,0,0.18);
-    }
-
-    .status {
-      margin-top: 10px;
-      font-size: 0.85rem;
-      color: #455a64;
-      display: flex;
-      align-items: center;
-      gap: 8px;
-    }
-
-    .status span.loader {
-      width: 14px;
-      height: 14px;
-      border-radius: 50%;
-      border: 2px solid rgba(25,118,210,0.2);
-      border-top-color: #1976d2;
-      animation: spin 0.8s linear infinite;
-    }
-
-    @keyframes spin {
-      to {
-        transform: rotate(360deg);
-      }
-    }
-
-    .status.error {
-      color: #c62828;
-    }
-
-    footer {
-      margin-top: 24px;
-      font-size: 0.75rem;
-      color: #78909c;
-      text-align: center;
-    }
-
-    @media (max-width: 480px) {
-      h1 {
-        font-size: 1.6rem;
-      }
-      .games-grid {
-        grid-template-columns: repeat(auto-fit, minmax(150px, 1fr));
-      }
-    }
+    .play-button:hover { filter: brightness(1.1); }
   </style>
 </head>
 <body>
-  <div class="container">
-    <header>
-      <div class="title-row">
-        <span class="emoji">🧸</span>
-        <h1>Stanza dei Giochi</h1>
-        <span class="emoji">🚀</span>
-      </div>
-      <p class="subtitle">
-        Scegli un gioco e fai partire la magia
-      </p>
-      <div class="badge">
-        <span class="icon">✨</span>
-        <span>Lista aggiornata automaticamente dai file e cartelle</span>
-      </div>
-      <div id="status" class="status">
-        <span class="loader"></span>
-        <span>Sto cercando tutti i giochi nella scatola e nei cassetti...</span>
-      </div>
-    </header>
 
-    <main>
-      <div id="games" class="games-grid"></div>
-    </main>
+<div class="container">
+  <header>
+    <h1>🧸 La Stanza dei Giochi</h1>
+    <p style="color:#546e7a; margin-bottom: 10px;">Christopher & Julie</p>
+    <div id="status" class="status">Caricamento in corso...</div>
+  </header>
 
-    <footer>
-      Giochi di Gabri · GitHub Pages
-    </footer>
-  </div>
+  <main id="main-content"></main>
+</div>
 
-  <script>
-    const gamesContainer = document.getElementById("games");
-    const statusEl = document.getElementById("status");
+<script>
+  const emojis = ["🎮", "🚀", "🐼", "🐯", "🦄", "🎨", "🧩", "⭐", "🎈", "🐸"];
 
-    const emojis = ["🎮", "🧸", "🚀", "🐼", "🦄", "🐸", "🐯", "⭐", "🎈", "🎯"];
+  function init() {
+    const mainContent = document.getElementById('main-content');
+    const statusEl = document.getElementById('status');
 
-    function pickEmoji(index) {
-      return emojis[index % emojis.length];
+    // Controllo se i dati sono stati caricati dal file dati.js
+    if (typeof GIOCHI_DATA === 'undefined') {
+      statusEl.textContent = "Errore: dati.js non trovato. Esegui 'node update.js'";
+      statusEl.style.color = "red";
+      return;
     }
 
-    // Aggiornato per gestire i path completi (es: cartella/gioco.html)
-    function prettyName(filePath) {
-      // Prende solo l'ultima parte dopo lo slash (il nome del file)
-      const fileName = filePath.split('/').pop(); 
-      const withoutExt = fileName.replace(/\.html?$/i, "");
-      return withoutExt
-        .replace(/[_\-]+/g, " ")
-        .replace(/\s+/g, " ")
-        .trim()
-        .replace(/\b\w/g, c => c.toUpperCase());
-    }
+    // Raggruppamento per categoria
+    const organized = {};
+    GIOCHI_DATA.forEach(game => {
+      const cat = game.category.charAt(0).toUpperCase() + game.category.slice(1);
+      if (!organized[cat]) organized[cat] = [];
+      organized[cat].push(game);
+    });
 
-    function setStatus(text, isError) {
-      if (!statusEl) return;
-      statusEl.textContent = "";
-      statusEl.className = "status";
-      if (isError) {
-        statusEl.classList.add("error");
-      }
+    mainContent.innerHTML = '';
+    
+    // Ordine categorie
+    const order = ["Chris", "Julie", "Vari"];
+    const sortedCats = Object.keys(organized).sort((a, b) => {
+      let ia = order.indexOf(a); let ib = order.indexOf(b);
+      return (ia === -1 ? 99 : ia) - (ib === -1 ? 99 : ib);
+    });
 
-      const span = document.createElement("span");
-      span.textContent = text;
-      statusEl.appendChild(span);
-    }
+    sortedCats.forEach(catName => {
+      const section = document.createElement('section');
+      section.className = 'category-section';
+      
+      let catIcon = "📂";
+      if(catName === "Chris") catIcon = "🐯";
+      if(catName === "Julie") catIcon = "🦄";
 
-    async function loadGames() {
-      try {
-        // NOTA: Qui usiamo l'API 'git/trees' con 'recursive=1' per trovare anche i file nelle cartelle.
-        // Se il tuo branch principale si chiama 'master' invece di 'main', cambia 'main' con 'master' qui sotto.
-        const branchName = "main"; 
-        const apiUrl = `https://api.github.com/repos/visualgabri/Giochi/git/trees/${branchName}?recursive=1`;
-        
-        const res = await fetch(apiUrl);
+      section.innerHTML = `<h2 class="category-title">${catIcon} ${catName}</h2>`;
+      
+      const grid = document.createElement('div');
+      grid.className = 'games-grid';
 
-        if (!res.ok) {
-          throw new Error("Risposta non valida " + res.status);
-        }
+      organized[catName].forEach((game, index) => {
+        // I primi 3 giochi in assoluto della lista (i più recenti) avranno il badge "Nuovo"
+        const isNew = GIOCHI_DATA.indexOf(game) < 3;
+        const dateObj = new Date(game.createdAt);
+        const dateStr = dateObj.toLocaleDateString('it-IT');
 
-        const data = await res.json();
-        
-        // L'API trees restituisce un oggetto con una proprietà 'tree' che è l'array dei file
-        const allFiles = data.tree || [];
+        const card = document.createElement('div');
+        card.className = 'game-card';
+        card.innerHTML = `
+          ${isNew ? '<div class="badge-new">NUOVO!</div>' : ''}
+          <div class="game-icon">${emojis[game.name.length % emojis.length]}</div>
+          <div class="game-title">${game.name.replace('.html', '').replace(/[_-]/g, ' ')}</div>
+          <div class="game-date">Aggiunto il ${dateStr}</div>
+          <a href="${game.path}" class="play-button" target="_blank">GIOCA ORA</a>
+        `;
+        grid.appendChild(card);
+      });
 
-        const htmlFiles = allFiles
-          .filter(f => f.type === "blob") // 'blob' significa file
-          .filter(f => f.path.toLowerCase().endsWith(".html")) // Solo file HTML
-          .filter(f => {
-            // Escludiamo file che iniziano con 'index' (prendendo solo il nome file dal percorso)
-            const fName = f.path.split('/').pop().toLowerCase();
-            return !fName.startsWith("index");
-          });
+      section.appendChild(grid);
+      mainContent.appendChild(section);
+    });
 
-        gamesContainer.innerHTML = "";
+    statusEl.textContent = `Trovati ${GIOCHI_DATA.length} giochi in ordine di data`;
+  }
 
-        if (htmlFiles.length === 0) {
-          setStatus("Non ho trovato nessun gioco, neanche nei cassetti (cartelle)!", true);
-          return;
-        }
-
-        htmlFiles.forEach((file, index) => {
-          const card = document.createElement("article");
-          card.className = "game-card";
-
-          const icon = document.createElement("div");
-          icon.className = "game-icon";
-          icon.textContent = pickEmoji(index);
-
-          const title = document.createElement("div");
-          title.className = "game-title";
-          // Passiamo il path completo, la funzione estrarrà il nome
-          title.textContent = prettyName(file.path); 
-
-          const meta = document.createElement("div");
-          meta.className = "game-meta";
-
-          const fileLabel = document.createElement("span");
-          fileLabel.className = "label";
-          // Mostriamo solo il nome del file per pulizia, o file.path se vuoi vedere la cartella
-          fileLabel.textContent = file.path.split('/').pop(); 
-          fileLabel.title = file.path; // Tooltip con percorso completo
-
-          const typeSpan = document.createElement("span");
-          typeSpan.textContent = "Gioco";
-
-          meta.appendChild(fileLabel);
-          meta.appendChild(typeSpan);
-
-          const link = document.createElement("a");
-          link.className = "play-button";
-          link.href = file.path; // Il link ora punta al percorso corretto inclusa la cartella
-          link.target = "_blank";
-          link.rel = "noopener";
-
-          const playIcon = document.createElement("span");
-          playIcon.className = "icon";
-          playIcon.textContent = "▶";
-
-          const playText = document.createElement("span");
-          playText.textContent = "Gioca";
-
-          link.appendChild(playIcon);
-          link.appendChild(playText);
-
-          card.appendChild(icon);
-          card.appendChild(title);
-          card.appendChild(meta);
-          card.appendChild(link);
-
-          gamesContainer.appendChild(card);
-        });
-
-        setStatus(`Trovati ${htmlFiles.length} giochi pronti!`);
-      } catch (err) {
-        console.error(err);
-        setStatus("Ops, errore nel caricare la lista dei giochi. Controlla il branch (main/master).", true);
-      }
-    }
-
-    loadGames();
-  </script>
+  // Avvia la funzione
+  init();
+</script>
 </body>
 </html>

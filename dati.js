@@ -1,11 +1,5 @@
 const GIOCHI_DATA = [
   {
-    "name": "index4.html",
-    "path": "index4.html",
-    "category": "Vari",
-    "createdAt": 1768727231943.1284
-  },
-  {
     "name": "julie-amici-numeri-evoluto.html",
     "path": "Julie/julie-amici-numeri-evoluto.html",
     "category": "Julie",
@@ -130,6 +124,12 @@ const GIOCHI_DATA = [
     "path": "Chris/BabboNataleGiroscopio.html",
     "category": "Chris",
     "createdAt": 1765405437369.8137
+  },
+  {
+    "name": "index2 (old).html",
+    "path": "index2 (old).html",
+    "category": "Vari",
+    "createdAt": 1765189199211.0105
   },
   {
     "name": "index2.html",
