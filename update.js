@@ -24,7 +24,7 @@ function getGames(dir, category = 'Vari') {
                     name: file,
                     path: filePath.replace(/\\/g, '/'),
                     category: category,
-                    createdAt: stat.birthtimeMs // Data creazione reale
+                    updatedAt: stat.mtimeMs
                 });
             }
         }
@@ -36,7 +36,7 @@ console.log('--- Aggiornamento dati giochi ---');
 const allGames = getGames(rootDir);
 
 // Ordina per data: più recente sopra
-allGames.sort((a, b) => b.createdAt - a.createdAt);
+allGames.sort((a, b) => b.updatedAt - a.updatedAt);
 
 // Crea il contenuto del file JS
 const content = `const GIOCHI_DATA = ${JSON.stringify(allGames, null, 2)};`;
