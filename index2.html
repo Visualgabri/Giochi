@@ -76,7 +76,7 @@
 
     // Raggruppamento per categoria
     const organized = {};
-    GIOCHI_DATA.forEach(game => {
+GIOCHI_DATA.filter(game => !game.name.toLowerCase().startsWith('index')).forEach(game => {
       const cat = game.category.charAt(0).toUpperCase() + game.category.slice(1);
       if (!organized[cat]) organized[cat] = [];
       organized[cat].push(game);
