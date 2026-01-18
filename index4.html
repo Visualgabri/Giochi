@@ -2,343 +2,124 @@
 <html lang="it">
 <head>
   <meta charset="UTF-8">
-  <title>Stanza dei Giochi di Chris e Julie</title>
-  <link rel="icon" type="image/png" href="favicon.ico">
+  <title>Giochi di Chris e Julie</title>
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
-
   <style>
-    /* --- RESET & BASE --- */
+    /* --- STILE --- */
     * { box-sizing: border-box; margin: 0; padding: 0; }
     body {
-      font-family: system-ui, -apple-system, sans-serif;
+      font-family: system-ui, sans-serif;
       background: linear-gradient(135deg, #fce4ec, #e3f2fd);
-      min-height: 100vh;
-      display: flex;
-      flex-direction: column;
-      align-items: center;
-      padding: 20px;
+      padding: 20px; display: flex; flex-direction: column; align-items: center;
     }
     .container { width: 100%; max-width: 1000px; }
-
-    /* --- HEADER --- */
     header { text-align: center; margin-bottom: 30px; }
-    .title-row { display: flex; justify-content: center; align-items: center; gap: 10px; margin-bottom: 8px; }
-    .title-row span.emoji { font-size: 32px; }
-    h1 { font-size: 2rem; color: #283593; text-shadow: 0 2px 4px rgba(0,0,0,0.1); }
-    .subtitle { font-size: 0.95rem; color: #455a64; opacity: 0.9; }
+    h1 { color: #283593; font-size: 2.5rem; }
+    .status { background: white; padding: 10px 20px; border-radius: 20px; font-size: 0.9rem; margin-bottom: 20px; box-shadow: 0 2px 5px rgba(0,0,0,0.1); }
     
-    .status {
-      margin-top: 15px;
-      font-size: 0.85rem;
-      background: rgba(255,255,255,0.6);
-      padding: 8px 16px;
-      border-radius: 20px;
-      display: inline-flex;
-      align-items: center;
-      gap: 8px;
-      color: #455a64;
-    }
-    .status.error { background: #ffebee; color: #c62828; border: 1px solid #ffcdd2; }
-    .loader {
-      width: 14px; height: 14px; border-radius: 50%;
-      border: 2px solid rgba(25,118,210,0.2); border-top-color: #1976d2;
-      animation: spin 0.8s linear infinite;
-    }
-    @keyframes spin { to { transform: rotate(360deg); } }
-
-    /* --- CATEGORY SECTIONS --- */
+    /* Griglie e Card */
     .category-section { margin-bottom: 40px; }
+    .category-title { font-size: 1.8rem; color: #1565c0; margin-bottom: 15px; border-bottom: 3px solid #bbdefb; padding-bottom: 5px; }
+    .games-grid { display: grid; grid-template-columns: repeat(auto-fill, minmax(180px, 1fr)); gap: 20px; }
     
-    .category-header {
-      display: flex;
-      align-items: center;
-      gap: 10px;
-      margin-bottom: 15px;
-      padding-bottom: 8px;
-      border-bottom: 3px solid rgba(25,118,210,0.1);
-    }
-    
-    .category-title {
-      font-size: 1.5rem;
-      color: #1565c0;
-      font-weight: 700;
-      text-transform: capitalize;
-    }
-
-    .subcategory-group { margin-bottom: 25px; }
-    .subcategory-title {
-      font-size: 1.1rem;
-      color: #546e7a;
-      margin-bottom: 12px;
-      padding-left: 5px;
-      border-left: 4px solid #ffb74d;
-      font-weight: 600;
-      display: inline-block;
-    }
-
-    /* --- GAMES GRID --- */
-    .games-grid {
-      display: grid;
-      grid-template-columns: repeat(auto-fill, minmax(200px, 1fr));
-      gap: 20px;
-    }
-
-    /* --- GAME CARD --- */
     .game-card {
-      background: rgba(255,255,255,0.95);
-      border-radius: 18px;
-      padding: 15px;
-      box-shadow: 0 4px 10px rgba(0,0,0,0.05);
-      border: 2px solid rgba(144,202,249,0.5);
-      display: flex;
-      flex-direction: column;
-      gap: 10px;
-      transition: transform 0.2s, box-shadow 0.2s;
-      position: relative;
+      background: white; border-radius: 15px; padding: 15px; text-align: center;
+      box-shadow: 0 4px 6px rgba(0,0,0,0.05); transition: 0.3s; border: 1px solid #e0e0e0;
+      position: relative; display: flex; flex-direction: column; gap: 10px;
     }
-    .game-card:hover { transform: translateY(-4px); box-shadow: 0 8px 20px rgba(0,0,0,0.1); border-color: #64b5f6; }
+    .game-card:hover { transform: translateY(-5px); box-shadow: 0 10px 20px rgba(0,0,0,0.1); }
     
-    .owner-tag {
-      position: absolute; top: 10px; right: 10px;
-      font-size: 0.65rem; padding: 2px 6px;
-      border-radius: 4px; font-weight: bold; text-transform: uppercase;
+    .badge-new {
+      position: absolute; top: -10px; right: -10px; background: #ff5252; color: white;
+      padding: 5px 10px; border-radius: 10px; font-size: 0.7rem; font-weight: bold; transform: rotate(15deg);
     }
-    .owner-chris { background: #e3f2fd; color: #1565c0; }
-    .owner-julie { background: #fce4ec; color: #ad1457; }
-    .owner-other { background: #f5f5f5; color: #616161; }
-
-    .game-icon { font-size: 36px; text-align: center; }
-    .game-title { font-size: 1rem; font-weight: 700; color: #283593; text-align: center; line-height: 1.3; }
     
-    .game-date {
-      font-size: 0.7rem;
-      color: #78909c;
-      text-align: center;
-      margin-top: -5px;
-      font-style: italic;
-    }
-
+    .game-icon { font-size: 40px; }
+    .game-title { font-weight: bold; color: #333; height: 40px; display: flex; align-items: center; justify-content: center; }
+    .game-date { font-size: 0.75rem; color: #888; }
+    
     .play-button {
-      margin-top: auto;
-      display: flex; align-items: center; justify-content: center; gap: 6px;
-      padding: 10px; border-radius: 12px;
-      background: linear-gradient(135deg, #42a5f5, #1976d2);
-      color: white; text-decoration: none; font-weight: 600; font-size: 0.9rem;
-      transition: 0.2s;
+      background: #1976d2; color: white; text-decoration: none; padding: 10px;
+      border-radius: 10px; font-weight: bold; margin-top: auto;
     }
-    .play-button:hover { filter: brightness(1.1); box-shadow: 0 4px 8px rgba(33,150,243,0.3); }
-
-    footer { margin-top: 40px; font-size: 0.75rem; color: #90a4ae; text-align: center; padding: 20px; }
-
-    @media (max-width: 480px) {
-      h1 { font-size: 1.6rem; }
-      .games-grid { grid-template-columns: repeat(auto-fill, minmax(150px, 1fr)); }
-    }
+    .play-button:hover { background: #1565c0; }
   </style>
 </head>
 <body>
-  <div class="container">
-    <header>
-      <div class="title-row">
-        <span class="emoji">🧸</span>
-        <h1>Stanza dei Giochi</h1>
-        <span class="emoji">🚀</span>
-      </div>
-      <p class="subtitle">I giochi preferiti di Julie e Christopher</p>
-      
-      <div id="status" class="status">
-        <span class="loader"></span>
-        <span>Caricamento scaffali locali...</span>
-      </div>
-    </header>
 
-    <main id="main-content"></main>
+<div class="container">
+  <header>
+    <h1>🧸 La Stanza dei Giochi</h1>
+    <p>Christopher & Julie</p>
+    <div id="status" class="status">Caricamento giochi...</div>
+  </header>
 
-    <footer>
-      Giochi di Gabri · Creato con ❤️ per Julie & Chris
-    </footer>
-  </div>
+  <main id="main-content"></main>
+</div>
 
-  <script>
-    const mainContent = document.getElementById("main-content");
-    const statusEl = document.getElementById("status");
-    const emojis = ["🎮", "🧸", "🚀", "🐼", "🦄", "🐸", "🐯", "⭐", "🎈", "🎯", "🎨", "🧩"];
+<script>
+  const emojis = ["🎮", "🚀", "🦄", "🐯", "🎈", "🎨", "🧩", "⭐", "🐼", "🎯"];
+  
+  async function loadGames() {
+    try {
+      // Carichiamo il file JSON creato dallo script update.js
+      const response = await fetch('games-data.json');
+      if (!response.ok) throw new Error("File 'games-data.json' non trovato!");
+      const games = await response.json();
 
-    function pickEmoji(name) {
-      return emojis[name.length % emojis.length];
-    }
+      const mainContent = document.getElementById('main-content');
+      mainContent.innerHTML = '';
 
-    function cleanName(str) {
-      return str.replace(/\.html?$/i, "")
-                .replace(/[_\-]+/g, " ")
-                .replace(/\b\w/g, c => c.toUpperCase());
-    }
+      // Raggruppiamo per categoria
+      const categories = {};
+      games.forEach(game => {
+        if (!categories[game.category]) categories[game.category] = [];
+        categories[game.category].push(game);
+      });
 
-    function setStatus(text, isError) {
-      statusEl.innerHTML = "";
-      statusEl.className = isError ? "status error" : "status";
-      if (!isError && text.includes("...")) {
-        const loader = document.createElement("span");
-        loader.className = "loader";
-        statusEl.appendChild(loader);
-      }
-      const span = document.createElement("span");
-      span.textContent = text;
-      statusEl.appendChild(span);
-    }
-
-    async function loadGames() {
-      try {
-        // Legge il file JSON generato localmente
-        const res = await fetch('games-data.json');
+      // Creiamo le sezioni
+      Object.keys(categories).forEach((cat, index) => {
+        const section = document.createElement('section');
+        section.className = 'category-section';
         
-        if (!res.ok) {
-          throw new Error("Impossibile trovare 'games-data.json'. Assicurati di aver lanciato lo script di aggiornamento.");
-        }
+        let icon = "📂";
+        if (cat.toLowerCase() === 'chris') icon = "🐯";
+        if (cat.toLowerCase() === 'julie') icon = "🦄";
+
+        section.innerHTML = `<h2 class="category-title">${icon} ${cat}</h2>`;
         
-        const games = await res.json();
+        const grid = document.createElement('div');
+        grid.className = 'games-grid';
 
-        if (games.length === 0) {
-          setStatus("Nessun gioco trovato nel database!", true);
-          return;
-        }
-
-        // 1. ORDINAMENTO PER DATA (Dal più recente al più vecchio)
-        // Lo script Node.js dovrebbe già farlo, ma lo rifacciamo per sicurezza
-        games.sort((a, b) => b.createdAt - a.createdAt);
-
-        // 2. RAGGRUPPAMENTO PER CATEGORIA
-        const organized = {};
-
-        games.forEach(game => {
-          let category = game.category || "Vari";
-          category = category.charAt(0).toUpperCase() + category.slice(1);
+        categories[cat].forEach((game, i) => {
+          const isNew = i < 3 && index === 0; // Segna come nuovi i primi 3 dell'intera lista
+          const date = new Date(game.createdAt).toLocaleDateString('it-IT');
           
-          // Cerchiamo la sottocategoria dal percorso (es. Julie/Puzzle/gioco.html)
-          const parts = game.path.split('/');
-          let subcategory = "Generale";
-          
-          if (parts.length > 2) {
-             subcategory = parts[1].charAt(0).toUpperCase() + parts[1].slice(1);
-          }
-
-          if (!organized[category]) organized[category] = {};
-          if (!organized[category][subcategory]) organized[category][subcategory] = [];
-
-          organized[category][subcategory].push(game);
+          const card = document.createElement('div');
+          card.className = 'game-card';
+          card.innerHTML = `
+            ${isNew ? '<div class="badge-new">NUOVO!</div>' : ''}
+            <div class="game-icon">${emojis[game.name.length % emojis.length]}</div>
+            <div class="game-title">${game.name.replace('.html', '').replace(/_/g, ' ')}</div>
+            <div class="game-date">Aggiunto: ${date}</div>
+            <a href="${game.path}" class="play-button" target="_blank">GIOCA</a>
+          `;
+          grid.appendChild(card);
         });
 
-        // 3. RENDERIZZAZIONE
-        mainContent.innerHTML = "";
-        
-        // Ordine di priorità visiva per le categorie
-        const priority = ["Chris", "Julie", "Vari"];
-        const sortedCategories = Object.keys(organized).sort((a, b) => {
-          let idxA = priority.indexOf(a);
-          let idxB = priority.indexOf(b);
-          return (idxA === -1 ? 99 : idxA) - (idxB === -1 ? 99 : idxB);
-        });
+        section.appendChild(grid);
+        mainContent.appendChild(section);
+      });
 
-        sortedCategories.forEach(catName => {
-          const catSection = document.createElement("section");
-          catSection.className = "category-section";
+      document.getElementById('status').textContent = `Trovati ${games.length} giochi ordinati per data!`;
 
-          // Header Categoria
-          const header = document.createElement("div");
-          header.className = "category-header";
-          let icon = "📂";
-          if (catName.toLowerCase().includes("julie")) icon = "🦄";
-          if (catName.toLowerCase().includes("chris")) icon = "🐯";
-          header.innerHTML = `<span style="font-size:24px">${icon}</span><h2 class="category-title">${catName}</h2>`;
-          catSection.appendChild(header);
-
-          const subcats = organized[catName];
-          Object.keys(subcats).forEach(subName => {
-            const subGroup = document.createElement("div");
-            subGroup.className = "subcategory-group";
-
-            if (subName !== "Generale" || Object.keys(subcats).length > 1) {
-              const subTitle = document.createElement("h3");
-              subTitle.className = "subcategory-title";
-              subTitle.textContent = subName;
-              subGroup.appendChild(subTitle);
-            }
-
-            const grid = document.createElement("div");
-            grid.className = "games-grid";
-
-            subcats[subName].forEach(game => {
-              const card = createGameCard(game, catName);
-              grid.appendChild(card);
-            });
-
-            subGroup.appendChild(grid);
-            catSection.appendChild(subGroup);
-          });
-
-          mainContent.appendChild(catSection);
-        });
-
-        setStatus(`${games.length} giochi pronti per giocare!`, false);
-        setTimeout(() => { statusEl.style.opacity = '0'; }, 5000);
-
-      } catch (err) {
-        console.error(err);
-        setStatus(err.message, true);
-      }
+    } catch (err) {
+      document.getElementById('status').textContent = "Errore: " + err.message;
+      document.getElementById('status').style.color = "red";
     }
+  }
 
-    function createGameCard(game, category) {
-      const prettyTitle = cleanName(game.name);
-      const card = document.createElement("article");
-      card.className = "game-card";
-
-      // Tag proprietario
-      const tag = document.createElement("div");
-      tag.className = "owner-tag";
-      if (category.toLowerCase().includes("chris")) {
-         tag.classList.add("owner-chris"); tag.textContent = "Chris";
-      } else if (category.toLowerCase().includes("julie")) {
-         tag.classList.add("owner-julie"); tag.textContent = "Julie";
-      } else {
-         tag.classList.add("owner-other"); tag.textContent = "Tutti";
-      }
-      card.appendChild(tag);
-
-      // Icona
-      const icon = document.createElement("div");
-      icon.className = "game-icon";
-      icon.textContent = pickEmoji(prettyTitle);
-      card.appendChild(icon);
-
-      // Titolo
-      const title = document.createElement("div");
-      title.className = "game-title";
-      title.textContent = prettyTitle;
-      card.appendChild(title);
-
-      // Data (se disponibile)
-      if (game.createdAt) {
-        const date = new Date(game.createdAt);
-        const dateEl = document.createElement("div");
-        dateEl.className = "game-date";
-        dateEl.textContent = "Nuovo! " + date.toLocaleDateString('it-IT', { day: '2-digit', month: '2-digit', year: 'numeric' });
-        card.appendChild(dateEl);
-      }
-
-      // Bottone
-      const link = document.createElement("a");
-      link.className = "play-button";
-      link.href = game.path;
-      link.target = "_blank";
-      link.innerHTML = `<span>▶</span> Gioca`;
-      card.appendChild(link);
-
-      return card;
-    }
-
-    // Avvio
-    loadGames();
-  </script>
+  loadGames();
+</script>
 </body>
 </html>

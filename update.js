@@ -1,31 +1,46 @@
 const fs = require('fs');
 const path = require('path');
 
-const folders = ['./Chris', './Julie', './']; // Cartelle da scansionare
-const outputFileName = 'games-data.json';
-let allFiles = [];
+// Configurazione
+const rootDir = './'; // La cartella dove si trova lo script
+const outputJson = 'games-data.json';
+const excludedFiles = ['index.html', 'index2.html', 'index3.html', 'update.js', 'games-data.json'];
 
-folders.forEach(folder => {
-    if (!fs.existsSync(folder)) return;
-    
-    const files = fs.readdirSync(folder);
-    files.forEach(file => {
-        if (file.endsWith('.html') && !file.startsWith('index')) {
-            const filePath = path.join(folder, file);
-            const stats = fs.statSync(filePath);
-            
-            allFiles.push({
-                path: filePath.replace(/\\/g, '/'), // Converte i percorsi per il web
-                name: file,
-                category: folder === './' ? 'Vari' : folder.replace('./', ''),
-                createdAt: stats.birthtimeMs // Data creazione file
-            });
+function getGames(dir, category = 'Vari') {
+    let results = [];
+    const list = fs.readdirSync(dir);
+
+    list.forEach(file => {
+        const filePath = path.join(dir, file);
+        const stat = fs.statSync(filePath);
+
+        if (stat && stat.isDirectory()) {
+            // Se è una cartella (es. Chris o Julie), entra dentro
+            // Usa il nome della cartella come categoria
+            results = results.concat(getGames(filePath, file));
+        } else {
+            // Se è un file HTML
+            if (file.endsWith('.html') && !excludedFiles.includes(file.toLowerCase())) {
+                results.push({
+                    name: file,
+                    path: filePath.replace(/\\/g, '/'), // Converte percorsi Windows in web
+                    category: category,
+                    createdAt: stat.birthtimeMs // Data creazione file
+                });
+            }
         }
     });
-});
+    return results;
+}
 
-// Ordina dal più nuovo al più vecchio
-allFiles.sort((a, b) => b.createdAt - a.createdAt);
+console.log('--- Scansione cartella C:\\Repos\\Giochi ---');
+const allGames = getGames(rootDir);
 
-fs.writeFileSync(outputFileName, JSON.stringify(allFiles, null, 2));
-console.log(`✅ Lista aggiornata! Trovi ${allFiles.length} giochi in ${outputFileName}`);
+// ORDINA: Dal più nuovo al più vecchio
+allGames.sort((a, b) => b.createdAt - a.createdAt);
+
+// Salva il file JSON
+fs.writeFileSync(outputJson, JSON.stringify(allGames, null, 2));
+
+console.log(`✅ Successo! Trovati ${allGames.length} giochi.`);
+console.log(`Aggiornato: ${outputJson}`);
