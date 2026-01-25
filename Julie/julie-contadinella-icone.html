@@ -1,0 +1,266 @@
+<!DOCTYPE html>
+<html lang="it">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Julie - La Contadinella Lucia 🚣</title>
+    <link href="https://fonts.googleapis.com/css2?family=Patrick+Hand&family=Fredoka+One&display=swap" rel="stylesheet">
+    <script src="https://cdn.jsdelivr.net/npm/canvas-confetti@1.6.0/dist/confetti.browser.min.js"></script>
+    <style>
+        :root {
+            --bg-sky: #e1f5fe;
+            --bg-river: #81d4fa;
+            --highlight-text: #0277bd;
+            --highlight-bg: #b3e5fc;
+        }
+
+        body {
+            font-family: 'Patrick Hand', cursive;
+            margin: 0;
+            min-height: 100vh;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            background: linear-gradient(to bottom, var(--bg-sky), var(--bg-river));
+            user-select: none;
+            padding-bottom: 50px;
+        }
+
+        .container {
+            max-width: 800px;
+            width: 90%;
+            background: rgba(255, 255, 255, 0.96);
+            padding: 2rem;
+            border-radius: 25px;
+            box-shadow: 0 15px 35px rgba(0,0,0,0.1);
+            margin-top: 20px;
+            text-align: center;
+            border: 6px solid #ffffff;
+            position: relative;
+        }
+
+        h1 { font-family: 'Fredoka One', cursive; color: #01579b; font-size: 2rem; margin-bottom: 5px; }
+
+        .story-box {
+            font-size: 1.9rem;
+            line-height: 1.7;
+            color: #263238;
+            text-align: left;
+            padding: 25px;
+            background: #f1f8fb;
+            border-radius: 20px;
+            border: 3px dashed #039be5;
+            margin: 15px 0;
+            white-space: pre-line;
+            position: relative;
+        }
+
+        /* --- EVIDENZIAZIONE PAROLE --- */
+        .interactive-word {
+            display: inline-block;
+            transition: all 0.15s ease-in-out;
+            cursor: pointer;
+            padding: 2px 5px;
+            border-radius: 6px;
+            position: relative;
+        }
+        
+        .interactive-word:hover {
+            color: var(--highlight-text);
+            background-color: var(--highlight-bg);
+            transform: scale(1.1);
+        }
+
+        /* --- IMMAGINE FLUTTUANTE (NUOVA) --- */
+        .word-icon {
+            position: absolute;
+            top: -40px;
+            left: 50%;
+            transform: translateX(-50%);
+            font-size: 2.5rem;
+            animation: popUp 0.8s ease-out forwards;
+            pointer-events: none;
+            z-index: 10;
+        }
+
+        @keyframes popUp {
+            0% { transform: translateX(-50%) translateY(10px) scale(0); opacity: 0; }
+            50% { transform: translateX(-50%) translateY(-20px) scale(1.2); opacity: 1; }
+            100% { transform: translateX(-50%) translateY(-30px) scale(1); opacity: 0; }
+        }
+
+        /* --- SCENA DELLA BARCA --- */
+        #river-scene {
+            height: 180px;
+            background: white;
+            border-radius: 20px;
+            margin: 20px 0;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            font-size: 5rem;
+            position: relative;
+            border: 2px solid #b3e5fc;
+            overflow: hidden;
+        }
+
+        .passenger {
+            position: absolute;
+            animation: bounceIn 0.6s ease-out;
+        }
+
+        @keyframes bounceIn {
+            0% { transform: scale(0); opacity: 0; }
+            100% { transform: scale(1); opacity: 1; }
+        }
+
+        .stars-container {
+            display: flex;
+            gap: 15px;
+            font-size: 3.5rem;
+            color: #e1f5fe;
+            justify-content: center;
+            margin: 15px 0;
+        }
+
+        .star { cursor: pointer; transition: 0.3s; }
+        .star.active { color: #fbc02d; transform: scale(1.2); text-shadow: 0 0 15px rgba(251, 192, 45, 0.6); }
+
+        #msg { font-size: 1.4rem; color: #0277bd; font-weight: bold; min-height: 1.5em; }
+    </style>
+</head>
+<body>
+
+    <div class="container">
+        <h1>🚣 LA CONTADINELLA LUCIA 🥬</h1>
+        
+        <div class="story-box">
+            <div id="textDisplay"></div>
+        </div>
+
+        <div id="river-scene">
+            <span id="boat">🚣</span>
+        </div>
+
+        <div class="controls">
+            <div id="msg">Tocca le parole per vedere i disegni! Poi usa le stelle! ⭐</div>
+            <div class="stars-container">
+                <div class="star" onclick="registerRead(1)" id="s1">★</div>
+                <div class="star" onclick="registerRead(2)" id="s2">★</div>
+                <div class="star" onclick="registerRead(3)" id="s3">★</div>
+                <div class="star" onclick="registerRead(4)" id="s4">★</div>
+                <div class="star" onclick="registerRead(5)" id="s5">★</div>
+            </div>
+        </div>
+    </div>
+
+    <script>
+        const storyText = `LA CONTADINELLA LUCIA
+PRENDE LA BARCA PER PORTARE
+A CASA DI COMPARE CARLETTO
+UNA CAPRA, UN CAVOLO E UN LUPO.
+MA COME FARÀ LUCIA
+SE LA CAPRA MANGIA IL CAVOLO
+E IL LUPO SI PAPPA LA CAPRA?
+SCOPRI COME UN SASSO
+A FORMA DI CUORE LA SALVERÀ!`;
+
+        // Dizionario Immagini-Parole
+        const wordImages = {
+            "LUCIA": "👩‍🌾",
+            "BARCA": "🚣",
+            "CASA": "🏠",
+            "CAPRA": "🐐",
+            "CAVOLO": "🥬",
+            "LUPO": "🐺",
+            "MANGIA": "😋",
+            "PAPPA": "😋",
+            "SASSO": "🪨",
+            "CUORE": "❤️",
+            "SALVERÀ": "✨",
+            "CONTADINELLA": "👩‍🌾",
+            "CARLETTO": "👨‍🦳"
+        };
+
+        function buildText() {
+            const display = document.getElementById('textDisplay');
+            display.innerHTML = storyText.split('\n').map(line => {
+                return line.split(' ').map(word => {
+                    const cleanWord = word.replace(/[,.!?]/g, "").toUpperCase();
+                    return `<span class="interactive-word" onclick="showIcon(this, '${cleanWord}')">${word}</span>`;
+                }).join(' ');
+            }).join('<br>');
+        }
+
+        function showIcon(element, word) {
+            // Crea l'icona fluttuante
+            const icon = document.createElement('span');
+            icon.className = 'word-icon';
+            
+            // Cerca l'emoji nel dizionario o usa una stella come default
+            icon.innerText = wordImages[word] || "⭐";
+            
+            element.appendChild(icon);
+            
+            // Rimuove l'icona dopo l'animazione
+            setTimeout(() => icon.remove(), 800);
+        }
+
+        buildText();
+
+        let count = 0;
+        const messages = [
+            "Brava Julie! Lucia è salita sulla barca! 🚣",
+            "Ecco la capra! Ma non farle mangiare il cavolo! 🐐",
+            "Abbiamo caricato anche il cavolo! 🥬",
+            "Attenzione! Arriva il lupo affamato! 🐺",
+            "IL SASSO A CUORE! TUTTI SALVI! ❤️🎉"
+        ];
+
+        function addPassenger(emoji, top, left) {
+            const scene = document.getElementById('river-scene');
+            const span = document.createElement('span');
+            span.innerText = emoji;
+            span.className = 'passenger';
+            span.style.top = top + '%';
+            span.style.left = left + '%';
+            scene.appendChild(span);
+        }
+
+        function registerRead(num) {
+            if (num !== count + 1) return;
+            count = num;
+
+            document.getElementById(`s${count}`).classList.add('active');
+            const msgEl = document.getElementById('msg');
+            msgEl.innerText = messages[count-1];
+
+            if(count === 1) addPassenger("👩‍🌾", 30, 45); 
+            if(count === 2) addPassenger("🐐", 45, 30);
+            if(count === 3) addPassenger("🥬", 55, 50);
+            if(count === 4) addPassenger("🐺", 40, 65);
+            if(count === 5) {
+                addPassenger("🪨", 20, 20);
+                addPassenger("❤️", 15, 20);
+                confetti({
+                    particleCount: 150,
+                    spread: 70,
+                    origin: { y: 0.6 },
+                    colors: ['#039be5', '#fbc02d', '#ffffff']
+                });
+                msgEl.style.color = "#2e7d32";
+                msgEl.style.fontSize = "1.8rem";
+            }
+            
+            const audioCtx = new (window.AudioContext || window.webkitAudioContext)();
+            const osc = audioCtx.createOscillator();
+            const gain = audioCtx.createGain();
+            osc.connect(gain);
+            gain.connect(audioCtx.destination);
+            osc.frequency.value = 523.25 + (count * 100);
+            gain.gain.exponentialRampToValueAtTime(0.01, audioCtx.currentTime + 0.3);
+            osc.start(); osc.stop(audioCtx.currentTime + 0.3);
+        }
+    </script>
+</body>
+</html>

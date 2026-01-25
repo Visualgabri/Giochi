@@ -1,5 +1,11 @@
 const GIOCHI_DATA = [
   {
+    "name": "julie-contadinella-icone.html",
+    "path": "Julie/julie-contadinella-icone.html",
+    "category": "Julie",
+    "updatedAt": 1769375220669.2747
+  },
+  {
     "name": "julie-lucia-contadinella.html",
     "path": "Julie/julie-lucia-contadinella.html",
     "category": "Julie",
