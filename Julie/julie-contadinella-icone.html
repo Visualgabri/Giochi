@@ -36,7 +36,6 @@
             margin-top: 20px;
             text-align: center;
             border: 6px solid #ffffff;
-            position: relative;
         }
 
         h1 { font-family: 'Fredoka One', cursive; color: #01579b; font-size: 2rem; margin-bottom: 5px; }
@@ -52,10 +51,9 @@
             border: 3px dashed #039be5;
             margin: 15px 0;
             white-space: pre-line;
-            position: relative;
         }
 
-        /* --- EVIDENZIAZIONE PAROLE --- */
+        /* --- EVIDENZIAZIONE E IMMAGINI --- */
         .interactive-word {
             display: inline-block;
             transition: all 0.15s ease-in-out;
@@ -68,28 +66,26 @@
         .interactive-word:hover {
             color: var(--highlight-text);
             background-color: var(--highlight-bg);
-            transform: scale(1.1);
+            transform: scale(1.15);
         }
 
-        /* --- IMMAGINE FLUTTUANTE (NUOVA) --- */
-        .word-icon {
+        /* Tooltip con l'immagine (emoji) */
+        .interactive-word::after {
+            content: attr(data-img);
             position: absolute;
             top: -40px;
             left: 50%;
-            transform: translateX(-50%);
+            transform: translateX(-50%) scale(0);
             font-size: 2.5rem;
-            animation: popUp 0.8s ease-out forwards;
+            transition: transform 0.2s cubic-bezier(0.175, 0.885, 0.32, 1.275);
             pointer-events: none;
             z-index: 10;
         }
 
-        @keyframes popUp {
-            0% { transform: translateX(-50%) translateY(10px) scale(0); opacity: 0; }
-            50% { transform: translateX(-50%) translateY(-20px) scale(1.2); opacity: 1; }
-            100% { transform: translateX(-50%) translateY(-30px) scale(1); opacity: 0; }
+        .interactive-word:hover::after {
+            transform: translateX(-50%) scale(1);
         }
 
-        /* --- SCENA DELLA BARCA --- */
         #river-scene {
             height: 180px;
             background: white;
@@ -155,6 +151,21 @@
     </div>
 
     <script>
+        // Dizionario delle immagini associate alle parole
+        const dictionary = {
+            "LUCIA": "👩‍🌾",
+            "BARCA": "🚣",
+            "CASA": "🏠",
+            "CAPRA": "🐐",
+            "CAVOLO": "🥬",
+            "LUPO": "🐺",
+            "SASSO": "🪨",
+            "CUORE": "❤️",
+            "MANGIA": "😋",
+            "PAPPA": "🍽️",
+            "CARLETTO": "👨‍🦳"
+        };
+
         const storyText = `LA CONTADINELLA LUCIA
 PRENDE LA BARCA PER PORTARE
 A CASA DI COMPARE CARLETTO
@@ -165,45 +176,16 @@ E IL LUPO SI PAPPA LA CAPRA?
 SCOPRI COME UN SASSO
 A FORMA DI CUORE LA SALVERÀ!`;
 
-        // Dizionario Immagini-Parole
-        const wordImages = {
-            "LUCIA": "👩‍🌾",
-            "BARCA": "🚣",
-            "CASA": "🏠",
-            "CAPRA": "🐐",
-            "CAVOLO": "🥬",
-            "LUPO": "🐺",
-            "MANGIA": "😋",
-            "PAPPA": "😋",
-            "SASSO": "🪨",
-            "CUORE": "❤️",
-            "SALVERÀ": "✨",
-            "CONTADINELLA": "👩‍🌾",
-            "CARLETTO": "👨‍🦳"
-        };
-
         function buildText() {
             const display = document.getElementById('textDisplay');
             display.innerHTML = storyText.split('\n').map(line => {
                 return line.split(' ').map(word => {
-                    const cleanWord = word.replace(/[,.!?]/g, "").toUpperCase();
-                    return `<span class="interactive-word" onclick="showIcon(this, '${cleanWord}')">${word}</span>`;
+                    // Puliamo la parola da punteggiatura per il confronto col dizionario
+                    const cleanWord = word.replace(/[.,\/#!$%\^&\*;:{}=\-_`~()]/g,"");
+                    const emoji = dictionary[cleanWord] || "";
+                    return `<span class="interactive-word" data-img="${emoji}">${word}</span>`;
                 }).join(' ');
             }).join('<br>');
-        }
-
-        function showIcon(element, word) {
-            // Crea l'icona fluttuante
-            const icon = document.createElement('span');
-            icon.className = 'word-icon';
-            
-            // Cerca l'emoji nel dizionario o usa una stella come default
-            icon.innerText = wordImages[word] || "⭐";
-            
-            element.appendChild(icon);
-            
-            // Rimuove l'icona dopo l'animazione
-            setTimeout(() => icon.remove(), 800);
         }
 
         buildText();
@@ -257,7 +239,7 @@ A FORMA DI CUORE LA SALVERÀ!`;
             const gain = audioCtx.createGain();
             osc.connect(gain);
             gain.connect(audioCtx.destination);
-            osc.frequency.value = 523.25 + (count * 100);
+            osc.frequency.value = 523.25 + (count * 100); 
             gain.gain.exponentialRampToValueAtTime(0.01, audioCtx.currentTime + 0.3);
             osc.start(); osc.stop(audioCtx.currentTime + 0.3);
         }
