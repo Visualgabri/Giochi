@@ -1,0 +1,291 @@
+<!DOCTYPE html>
+<html lang="it">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+    <title>Julie Fluency Coach - Il coraggio del Colibrì</title>
+    <link href="https://fonts.googleapis.com/css2?family=Patrick+Hand&family=Fredoka+One&display=swap" rel="stylesheet">
+    <script src="https://cdn.jsdelivr.net/npm/canvas-confetti@1.6.0/dist/confetti.browser.min.js"></script>
+    <style>
+        :root {
+            --bg-forest: #e8f5e9;
+            --correct: #2e7d32;
+            --waiting: #546e7a;
+            --accent: #d84315;
+            --coach-purple: #9575cd;
+            --sky-blue: #e3f2fd;
+        }
+
+        body {
+            font-family: 'Patrick Hand', cursive;
+            background: linear-gradient(to bottom, #a5d6a7, #e8f5e9);
+            margin: 0;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            min-height: 100vh;
+            padding: 15px;
+            touch-action: manipulation;
+            box-sizing: border-box;
+        }
+
+        .container {
+            max-width: 900px;
+            width: 100%;
+            background: white;
+            padding: 2rem;
+            border-radius: 40px;
+            box-shadow: 0 15px 35px rgba(0,0,0,0.15);
+            text-align: center;
+            box-sizing: border-box;
+            border: 8px solid #ffffff;
+        }
+
+        h1 { 
+            font-family: 'Fredoka One', cursive; 
+            color: #1b5e20; 
+            font-size: 2.5rem;
+            margin: 0 0 15px 0;
+            text-shadow: 2px 2px 0px #fff;
+        }
+
+        .coach-panel {
+            display: grid;
+            grid-template-columns: 1fr 1fr;
+            gap: 15px;
+            background: #f1f8e9;
+            padding: 20px;
+            border-radius: 30px;
+            margin-bottom: 20px;
+        }
+
+        .progress-section {
+            grid-column: span 2;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            gap: 8px;
+            background: white;
+            padding: 12px;
+            border-radius: 20px;
+        }
+
+        .meter-container { 
+            width: 100%;
+            height: 25px; 
+            background: #e0e0e0; 
+            border-radius: 15px; 
+            overflow: hidden; 
+        }
+
+        #fluency-bar { 
+            width: 0%; 
+            height: 100%; 
+            background: linear-gradient(90deg, #4caf50, #81c784); 
+            transition: width 0.4s ease; 
+        }
+
+        button { 
+            font-family: 'Fredoka One', cursive; 
+            padding: 20px 10px; 
+            border: none; 
+            border-radius: 25px; 
+            cursor: pointer; 
+            font-size: 1.2rem;
+            color: white;
+            box-shadow: 0 5px 0 rgba(0,0,0,0.1);
+        }
+
+        button:active { transform: translateY(4px); box-shadow: none; }
+        #btn-listen { background: var(--coach-purple); }
+        #btn-mic { background: #ff5252; }
+        #btn-mic.recording { background: #4caf50; animation: pulse 1.5s infinite; }
+
+        @keyframes pulse {
+            0% { box-shadow: 0 0 0 0 rgba(76, 175, 80, 0.7); }
+            70% { box-shadow: 0 0 0 15px rgba(76, 175, 80, 0); }
+            100% { box-shadow: 0 0 0 0 rgba(76, 175, 80, 0); }
+        }
+
+        .story-box {
+            font-size: 2.2rem; 
+            line-height: 1.7;
+            text-align: left;
+            padding: 30px;
+            background: #f9fbe7;
+            border-radius: 30px;
+            border: 4px dashed #c5e1a5;
+            margin: 20px 0;
+            max-height: 45vh;
+            overflow-y: auto;
+            -webkit-overflow-scrolling: touch;
+        }
+
+        .word {
+            display: inline-block;
+            color: var(--waiting);
+            transition: all 0.2s;
+            margin-right: 8px;
+            position: relative;
+            padding: 4px 8px; /* Spazio per il tocco */
+            border-radius: 10px;
+            cursor: pointer;
+        }
+
+        .word.active { 
+            color: var(--correct); 
+            background: #c8e6c9; 
+            font-weight: bold; 
+        }
+        
+        /* --- CORREZIONE ICONE --- */
+        .word-tooltip {
+            position: absolute;
+            bottom: 110%; /* Posizionato sopra la parola */
+            left: 50%;
+            transform: translateX(-50%) translateY(10px);
+            font-size: 3.5rem;
+            background: white;
+            padding: 5px 15px;
+            border-radius: 15px;
+            box-shadow: 0 5px 15px rgba(0,0,0,0.2);
+            opacity: 0;
+            visibility: hidden;
+            transition: all 0.2s ease-out;
+            z-index: 100;
+            border: 2px solid #81c784;
+            pointer-events: none; /* L'icona non deve bloccare il tocco */
+        }
+
+        /* Mostra su Hover (Mouse) e su Active (Dito/Click) */
+        .word:hover .word-tooltip, 
+        .word:active .word-tooltip { 
+            opacity: 1; 
+            visibility: visible; 
+            transform: translateX(-50%) translateY(0);
+        }
+
+        #scene-container {
+            height: 120px;
+            background: var(--sky-blue);
+            border-radius: 25px;
+            margin-top: 15px;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            font-size: 4rem;
+        }
+
+        .star { font-size: 3rem; color: #ddd; margin: 0 5px; }
+        .star.active { color: #fbc02d; }
+
+        #status-msg { font-size: 1.2rem; font-weight: bold; color: #2e7d32; margin-top: 10px; }
+
+        @media (max-width: 600px) {
+            .story-box { font-size: 1.6rem; }
+            .coach-panel { grid-template-columns: 1fr; }
+        }
+    </style>
+</head>
+<body>
+
+<div class="container">
+    <h1>🌲 IL COLIBRÌ DI JULIE 🐦</h1>
+
+    <div class="coach-panel">
+        <div class="progress-section">
+            <div class="meter-container"><div id="fluency-bar"></div></div>
+        </div>
+        <button id="btn-listen" onclick="teachJulie()">👂 ASCOLTA</button>
+        <button id="btn-mic" onclick="startReading()">🎤 LEGGI TU</button>
+    </div>
+
+    <div class="story-box" id="story-container"></div>
+    <div id="scene-container">🌳🐦🌳</div>
+    <div id="stars"><span class="star">★</span><span class="star">★</span><span class="star">★</span><span class="star">★</span><span class="star">★</span></div>
+    <div id="status-msg">Tocca una parola magica o premi LEGGI TU!</div>
+</div>
+
+<script>
+    const dictionary = {
+        "FORESTA": "🌳", "UCCELLI": "🐦", "BENE": "❤️", "AIUTAVANO": "🤝",
+        "AQUILE": "🦅", "PREPOTENTI": "😠", "COMANDARE": "👑", "CATTURARE": "🕸️",
+        "PICCOLI": "🐥", "GROTTA": "🕳️", "IMPAURITI": "😰", "TRISTI": "😢",
+        "AMICI": "👥", "COLIBRÌ": "🐦", "LAMENTO": "😢", "AIUTO": "🤝",
+        "CORAGGIO": "💪", "CACCIARE": "💨", "VOLARE": "🕊️", "LIBERTÀ": "✨"
+    };
+
+    const text = "In una foresta vivevano dei bellissimi uccelli. Erano di razze diverse, ma si volevano bene e si aiutavano. Un giorno delle aquile prepotenti giunsero nella foresta per comandare su tutti e ordinarono di catturare gli uccellini più piccoli perché pensavano che fossero inutili. Gli uccellini furono rinchiusi in una grotta. Erano impauriti e tristi perché erano lontani dal loro nido e dai loro amici. Un giorno un colibrì sentì il loro lamento. Allora decise di chiedere aiuto agli uccelli della foresta per liberarli e insieme trovarono il coraggio di cacciare via le aquile cattive. Grazie all'aiuto di tutti, gli uccelli dalle piccole ali tornarono a volare. Finalmente avevano ritrovato la loro libertà.";
+    
+    const words = text.split(/\s+/);
+    const container = document.getElementById('story-container');
+    let currentWordIndex = 0;
+
+    words.forEach((w, i) => {
+        const clean = w.replace(/[.,'’!?…]/g, '').toUpperCase();
+        const span = document.createElement('span');
+        span.className = 'word';
+        span.id = `word-${i}`;
+        span.innerText = w + " ";
+        
+        if(dictionary[clean]) {
+            const tooltip = document.createElement('div');
+            tooltip.className = 'word-tooltip';
+            tooltip.innerText = dictionary[clean];
+            span.appendChild(tooltip);
+            span.style.color = "var(--accent)"; // Colora le parole che hanno un'icona
+        }
+        container.appendChild(span);
+    });
+
+    function teachJulie() {
+        window.speechSynthesis.cancel();
+        const utterance = new SpeechSynthesisUtterance(text);
+        utterance.lang = 'it-IT';
+        utterance.rate = 0.8;
+        utterance.onboundary = (event) => {
+            if (event.name === 'word') {
+                const index = text.substring(0, event.charIndex).split(/\s+/).length - 1;
+                document.querySelectorAll('.word').forEach(w => w.style.background = '');
+                const target = document.getElementById(`word-${index}`);
+                if(target) {
+                    target.style.background = '#e1bee7';
+                    target.scrollIntoView({ behavior: 'smooth', block: 'center' });
+                }
+            }
+        };
+        window.speechSynthesis.speak(utterance);
+    }
+
+    const SpeechRecognition = window.SpeechRecognition || window.webkitSpeechRecognition;
+    let recognition = SpeechRecognition ? new SpeechRecognition() : null;
+
+    if (recognition) {
+        recognition.lang = 'it-IT';
+        recognition.continuous = true;
+        recognition.interimResults = true;
+        recognition.onresult = (event) => {
+            const result = event.results[event.results.length - 1][0].transcript.toLowerCase();
+            const targetWord = words[currentWordIndex].replace(/[.,'’!?…]/g, "").toLowerCase();
+            if (result.includes(targetWord)) {
+                document.getElementById(`word-${currentWordIndex}`).classList.add('active');
+                currentWordIndex++;
+                document.getElementById('fluency-bar').style.width = (currentWordIndex / words.length * 100) + '%';
+                if (currentWordIndex === words.length) {
+                    recognition.stop();
+                    confetti({ particleCount: 150, spread: 70 });
+                }
+            }
+        };
+    }
+
+    function startReading() {
+        if (!recognition) return alert("Usa Chrome o Safari per la voce!");
+        currentWordIndex = 0;
+        document.querySelectorAll('.word').forEach(w => w.classList.remove('active'));
+        document.getElementById('btn-mic').classList.add('recording');
+        recognition.start();
+    }
+</script>
+</body>
+</html>
