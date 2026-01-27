@@ -1,0 +1,251 @@
+<!DOCTYPE html>
+<html lang="it">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Julie Fluency Coach - L'Avventura del Colibrì</title>
+    <link href="https://fonts.googleapis.com/css2?family=Patrick+Hand&family=Fredoka+One&display=swap" rel="stylesheet">
+    <script src="https://cdn.jsdelivr.net/npm/canvas-confetti@1.6.0/dist/confetti.browser.min.js"></script>
+    <style>
+        :root {
+            --bg-forest: #e8f5e9;
+            --correct: #2e7d32;
+            --waiting: #546e7a;
+            --accent: #d84315;
+        }
+
+        body {
+            font-family: 'Patrick Hand', cursive;
+            background: linear-gradient(to bottom, #a5d6a7, #e8f5e9);
+            margin: 0;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            min-height: 100vh;
+            user-select: none;
+            padding: 20px;
+        }
+
+        .container {
+            max-width: 850px;
+            width: 95%;
+            background: white;
+            padding: 2rem;
+            border-radius: 30px;
+            box-shadow: 0 15px 35px rgba(0,0,0,0.2);
+            text-align: center;
+            border: 6px solid #ffffff;
+        }
+
+        h1 { font-family: 'Fredoka One', cursive; color: #1b5e20; margin-top: 0; }
+
+        /* --- TESTO INTERATTIVO --- */
+        .story-box {
+            font-size: 1.8rem;
+            line-height: 1.6;
+            text-align: left;
+            padding: 25px;
+            background: #f9fbe7;
+            border-radius: 20px;
+            border: 3px dashed #c5e1a5;
+            margin: 20px 0;
+            max-height: 400px;
+            overflow-y: auto;
+        }
+
+        .word {
+            display: inline-block;
+            color: var(--waiting);
+            transition: all 0.2s;
+            margin-right: 6px;
+            position: relative;
+            cursor: help;
+        }
+
+        .word.active { color: var(--correct); transform: scale(1.1); font-weight: bold; }
+        
+        .word:hover { color: #d84315; transform: translateY(-3px); }
+
+        /* Tooltip con Icona */
+        .word-tooltip {
+            position: absolute;
+            bottom: 130%;
+            left: 50%;
+            transform: translateX(-50%);
+            font-size: 3rem;
+            background: white;
+            padding: 5px 12px;
+            border-radius: 15px;
+            box-shadow: 0 5px 15px rgba(0,0,0,0.1);
+            opacity: 0;
+            visibility: hidden;
+            transition: 0.3s;
+            z-index: 100;
+            border: 2px solid #81c784;
+        }
+
+        .word:hover .word-tooltip { opacity: 1; visibility: visible; }
+
+        /* --- COACH UI --- */
+        .coach-panel {
+            display: flex;
+            justify-content: space-around;
+            align-items: center;
+            background: #f1f8e9;
+            padding: 15px;
+            border-radius: 50px;
+            margin-bottom: 10px;
+            flex-wrap: wrap;
+            gap: 10px;
+        }
+
+        .meter-container { width: 150px; height: 15px; background: #e0e0e0; border-radius: 10px; overflow: hidden; }
+        #fluency-bar { width: 0%; height: 100%; background: #4caf50; transition: width 0.3s; }
+
+        button { font-family: 'Fredoka One', cursive; padding: 10px 20px; border: none; border-radius: 50px; cursor: pointer; }
+        #btn-listen { background: #9575cd; color: white; }
+        #btn-mic { background: #ff5252; color: white; }
+        #btn-mic.recording { animation: pulse 1.5s infinite; background: #4caf50; }
+
+        @keyframes pulse {
+            0% { box-shadow: 0 0 0 0 rgba(76, 175, 80, 0.7); }
+            70% { box-shadow: 0 0 0 10px rgba(76, 175, 80, 0); }
+            100% { box-shadow: 0 0 0 0 rgba(76, 175, 80, 0); }
+        }
+
+        #scene-container {
+            height: 120px;
+            background: #fff;
+            border-radius: 20px;
+            margin-top: 10px;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            font-size: 4rem;
+            border: 2px solid #c8e6c9;
+        }
+
+        .star { font-size: 2.5rem; color: #ddd; transition: 0.3s; }
+        .star.active { color: #fbc02d; transform: scale(1.2); }
+    </style>
+</head>
+<body>
+
+<div class="container">
+    <h1>🌲 L'AVVENTURA DEL COLIBRÌ 🐦</h1>
+
+    <div class="coach-panel">
+        <div>
+            <span style="font-size: 0.9rem;">Progresso:</span>
+            <div class="meter-container"><div id="fluency-bar"></div></div>
+        </div>
+        <button id="btn-listen" onclick="teachJulie()">👂 ASCOLTA IL COACH</button>
+        <button id="btn-mic" onclick="startReading()">🎤 LEGGI TU</button>
+    </div>
+
+    <div class="story-box" id="story-container"></div>
+
+    <div id="scene-container">🌳🐦🌳</div>
+
+    <div class="stars-container" id="stars">
+        <span class="star">★</span><span class="star">★</span><span class="star">★</span><span class="star">★</span><span class="star">★</span>
+    </div>
+    
+    <div id="status-msg" style="font-weight: bold; color: #2e7d32; margin-top: 5px;">Tocca "LEGGI TU" per iniziare la sfida!</div>
+</div>
+
+<script>
+    const dictionary = {
+        "FORESTA": "🌳", "UCCELLI": "🐦", "BENE": "❤️", "AIUTAVANO": "🤝",
+        "AQUILE": "🦅", "PREPOTENTI": "😠", "COMANDARE": "👑", "CATTURARE": "🕸️",
+        "PICCOLI": "🐥", "GROTTA": "🕳️", "IMPAURITI": "😰", "TRISTI": "😢",
+        "AMICI": "👥", "COLIBRÌ": "🐦", "LAMENTO": "😢", "AIUTO": "🤝",
+        "CORAGGIO": "💪", "CACCIARE": "💨", "VOLARE": "🕊️", "LIBERTÀ": "✨"
+    };
+
+    const textPart1 = "In una foresta vivevano dei bellissimi uccelli. Erano di razze diverse, ma si volevano bene e si aiutavano. Un giorno delle aquile prepotenti giunsero nella foresta per comandare su tutti e ordinarono di catturare gli uccellini più piccoli perché pensavano che fossero inutili. Gli uccellini furono rinchiusi in una grotta. Erano impauriti e tristi perché erano lontani dal loro nido e dai loro amici.";
+    const textPart2 = "Un giorno un colibrì sentì il loro lamento. Allora decise di chiedere aiuto agli uccelli della foresta per liberarli e insieme trovarono il coraggio di cacciare via le aquile cattive. Grazie all'aiuto di tutti, gli uccelli dalle piccole ali tornarono a volare. Finalmente avevano ritrovato la loro libertà.";
+    
+    const fullText = textPart1 + " " + textPart2;
+    const words = fullText.split(/\s+/);
+    let currentWordIndex = 0;
+    let readingCount = 0;
+
+    const container = document.getElementById('story-container');
+    words.forEach((w, i) => {
+        const clean = w.replace(/[.,'’!?…]/g, '').toUpperCase();
+        const span = document.createElement('span');
+        span.className = 'word';
+        span.id = `word-${i}`;
+        span.innerText = w;
+        
+        if(dictionary[clean]) {
+            const tooltip = document.createElement('div');
+            tooltip.className = 'word-tooltip';
+            tooltip.innerText = dictionary[clean];
+            span.appendChild(tooltip);
+        }
+        container.appendChild(span);
+    });
+
+    function teachJulie() {
+        window.speechSynthesis.cancel();
+        const utterance = new SpeechSynthesisUtterance(fullText);
+        utterance.lang = 'it-IT';
+        utterance.rate = 0.85;
+        utterance.onboundary = (event) => {
+            if (event.name === 'word') {
+                const wordsList = document.querySelectorAll('.word');
+                wordsList.forEach(w => w.style.color = '');
+                const index = fullText.substring(0, event.charIndex).split(/\s+/).length - 1;
+                if(wordsList[index]) wordsList[index].style.color = '#9575cd';
+            }
+        };
+        utterance.onend = () => { document.querySelectorAll('.word').forEach(w => w.style.color = ''); };
+        window.speechSynthesis.speak(utterance);
+    }
+
+    const recognition = new (window.SpeechRecognition || window.webkitSpeechRecognition)();
+    recognition.lang = 'it-IT';
+    recognition.continuous = true;
+    recognition.interimResults = true;
+
+    function startReading() {
+        currentWordIndex = 0;
+        document.querySelectorAll('.word').forEach(w => w.classList.remove('active'));
+        document.getElementById('btn-mic').classList.add('recording');
+        document.getElementById('status-msg').innerText = "Ti ascolto, Julie! Leggi piano e bene.";
+        recognition.start();
+    }
+
+    recognition.onresult = (event) => {
+        const result = event.results[event.results.length - 1][0].transcript.toLowerCase();
+        const targetWord = words[currentWordIndex].replace(/[.,'’!?…]/g, "").toLowerCase();
+
+        if (result.includes(targetWord)) {
+            const wordEl = document.getElementById(`word-${currentWordIndex}`);
+            wordEl.classList.add('active');
+            wordEl.scrollIntoView({ behavior: 'smooth', block: 'center' });
+            currentWordIndex++;
+            
+            document.getElementById('fluency-bar').style.width = (currentWordIndex / words.length * 100) + '%';
+            
+            if(currentWordIndex < words.length / 2) document.getElementById('scene-container').innerText = "🦅🕸️🐥";
+            else document.getElementById('scene-container').innerText = "🐦✨🕊️";
+
+            if (currentWordIndex === words.length) finishReading();
+        }
+    };
+
+    function finishReading() {
+        recognition.stop();
+        document.getElementById('btn-mic').classList.remove('recording');
+        readingCount++;
+        const stars = document.getElementById('stars').children;
+        if(readingCount <= 5) stars[readingCount-1].classList.add('active');
+        document.getElementById('status-msg').innerText = "ECCEZIONALE JULIE! Hai completato la storia!";
+        confetti({ particleCount: 150, spread: 70, origin: { y: 0.6 } });
+    }
+</script>
+</body>
+</html>

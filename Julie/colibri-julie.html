@@ -1,0 +1,286 @@
+<!DOCTYPE html>
+<html lang="it">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Julie - Il Colibrì e la Libertà 🐦</title>
+    <link href="https://fonts.googleapis.com/css2?family=Patrick+Hand&family=Fredoka+One&display=swap" rel="stylesheet">
+    <script src="https://cdn.jsdelivr.net/npm/canvas-confetti@1.6.0/dist/confetti.browser.min.js"></script>
+    <style>
+        :root {
+            --bg-forest: #c8e6c9;
+            --highlight-text: #2e7d32;
+            --highlight-bg: #e8f5e9;
+            --tooltip-border: #4caf50;
+        }
+
+        body {
+            font-family: 'Patrick Hand', cursive;
+            margin: 0;
+            min-height: 100vh;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            background: linear-gradient(to bottom, #81c784, #f1f8e9);
+            user-select: none;
+            padding-bottom: 50px;
+        }
+
+        .container {
+            max-width: 800px;
+            width: 90%;
+            background: rgba(255, 255, 255, 0.96);
+            padding: 2rem;
+            border-radius: 25px;
+            box-shadow: 0 15px 35px rgba(0,0,0,0.1);
+            margin-top: 20px;
+            text-align: center;
+            border: 6px solid #ffffff;
+        }
+
+        h1 { font-family: 'Fredoka One', cursive; color: #1b5e20; font-size: 2rem; margin-bottom: 5px; }
+
+        .story-box {
+            font-size: 1.8rem;
+            line-height: 1.7;
+            color: #1b5e20;
+            text-align: left;
+            padding: 25px;
+            background: #f1f8e9;
+            border-radius: 20px;
+            border: 3px dashed #4caf50;
+            margin: 15px 0;
+            white-space: pre-line;
+        }
+
+        /* --- EVIDENZIAZIONE E ICONE --- */
+        .interactive-word {
+            display: inline-block;
+            transition: all 0.15s ease-in-out;
+            position: relative; /* Necessario per il tooltip */
+            cursor: pointer;
+            padding: 2px 4px;
+            border-radius: 6px;
+        }
+        
+        .interactive-word:hover {
+            color: var(--highlight-text);
+            background-color: var(--highlight-bg);
+            transform: scale(1.15);
+            box-shadow: 0 2px 8px rgba(0,0,0,0.05);
+            z-index: 10;
+        }
+
+        /* Stile del fumetto con l'icona */
+        .word-tooltip {
+            position: absolute;
+            bottom: 120%; /* Appare sopra la parola */
+            left: 50%;
+            transform: translateX(-50%);
+            font-size: 3.5rem;
+            background: white;
+            padding: 5px 15px;
+            border-radius: 20px;
+            box-shadow: 0 8px 20px rgba(0,0,0,0.15);
+            opacity: 0;
+            visibility: hidden;
+            transition: 0.3s cubic-bezier(0.175, 0.885, 0.32, 1.275);
+            z-index: 100;
+            border: 2px solid var(--tooltip-border);
+            pointer-events: none; /* Evita che il mouse interagisca col tooltip */
+        }
+
+        /* Mostra il tooltip all'hover */
+        .interactive-word:hover .word-tooltip {
+            opacity: 1;
+            visibility: visible;
+            bottom: 130%;
+        }
+
+        /* --- SCENA DELLA FORESTA --- */
+        #forest-scene {
+            height: 180px;
+            background: white;
+            border-radius: 20px;
+            margin: 20px 0;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            font-size: 4.5rem;
+            position: relative;
+            border: 2px solid #a5d6a7;
+            overflow: hidden;
+        }
+
+        .bird {
+            position: absolute;
+            animation: flyIn 0.8s ease-out;
+            transition: all 1s ease-in-out;
+        }
+
+        @keyframes flyIn {
+            0% { transform: translate(-100px, 50px) scale(0); opacity: 0; }
+            100% { transform: translate(0, 0) scale(1); opacity: 1; }
+        }
+
+        /* --- STELLE E MESSAGGI --- */
+        .stars-container {
+            display: flex;
+            gap: 15px;
+            font-size: 3.5rem;
+            color: #c8e6c9;
+            justify-content: center;
+            margin: 15px 0;
+        }
+
+        .star { cursor: pointer; transition: 0.3s; }
+        .star.active { color: #fbc02d; transform: scale(1.2); text-shadow: 0 0 15px rgba(251, 192, 45, 0.6); }
+
+        #msg { font-size: 1.4rem; color: #2e7d32; font-weight: bold; min-height: 1.5em; }
+    </style>
+</head>
+<body>
+
+    <div class="container">
+        <h1>🌳 IL COLIBRÌ E LA LIBERTÀ 🕊️</h1>
+        
+        <div class="story-box">
+            <div id="textDisplay"></div>
+        </div>
+
+        <div id="forest-scene">
+            <span id="base-scene">🌲</span>
+        </div>
+
+        <div class="controls">
+            <div id="msg">Aiuta gli uccellini! Leggi e tocca una stella!</div>
+            <div class="stars-container">
+                <div class="star" onclick="registerRead(1)" id="s1">★</div>
+                <div class="star" onclick="registerRead(2)" id="s2">★</div>
+                <div class="star" onclick="registerRead(3)" id="s3">★</div>
+                <div class="star" onclick="registerRead(4)" id="s4">★</div>
+                <div class="star" onclick="registerRead(5)" id="s5">★</div>
+            </div>
+        </div>
+    </div>
+
+    <script>
+        // Mappa delle parole e le relative icone (Emoji)
+        const dictionary = {
+            "COLIBRÌ": "🐦",
+            "LAMENTO": "😢",
+            "AIUTO": "🤝",
+            "UCCELLI": "🐤",
+            "FORESTA": "🌳",
+            "INSIEME": "🤲",
+            "CORAGGIO": "💪",
+            "CACCIARE": "💨",
+            "AQUILE": "🦅",
+            "CATTIVE": "😠",
+            "GRAZIE": "🙏",
+            "ALI": "🪽",
+            "VOLARE": "🕊️",
+            "LIBERTÀ": "✨"
+        };
+
+        const storyText = `IN UNA FORESTA VIVEVANO DEI BELLISSIMI UCCELLI. ERANO DI RAZZE DIVERSE, MA SI VOLEVANO BENE E SI AIUTAVANO. UN GIORNO DELLE AQUILE PREPOTENTI GIUNSERO NELLA FORESTA PER COMANDARE SU TUTTI E ORDINARONO DI CATTURARE GLI UCCELLINI PIÙ PICCOLI PERCHÉ PENSAVANO CHE FOSSERO INUTILI. GLI UCCELLINI FURONO RINCHIUSI IN UNA GROTTA. ERANO IMPAURITI E TRISTI PERCHÉ ERANO LONTANI DAL LORO NIDO E DAI LORO AMICI.
+		
+		UN GIORNO UN COLIBRÌ SENTÌ IL LORO LAMENTO.
+ALLORA DECISE DI CHIEDERE AIUTO AGLI UCCELLI
+DELLA FORESTA PER LIBERARLI E INSIEME
+TROVARONO IL CORAGGIO DI CACCIARE VIA
+LE AQUILE CATTIVE.
+GRAZIE ALL'AIUTO DI TUTTI, GLI UCCELLI
+DALLE PICCOLE ALI TORNARONO A VOLARE.
+FINALMENTE AVEVANO RITROVATO LA LORO LIBERTÀ.`;
+
+        function buildText() {
+            const display = document.getElementById('textDisplay');
+            display.innerHTML = storyText.split('\n').map(line => {
+                return line.split(' ').map(word => {
+                    // Pulizia della parola per cercare nel dizionario
+                    const clean = word.replace(/[.,'’!?…]/g, '').toUpperCase();
+                    const emoji = dictionary[clean];
+                    
+                    // Se c'è un'icona nel dizionario, aggiungi il tooltip
+                    if (emoji) {
+                        return `<span class="interactive-word">${word}<div class="word-tooltip">${emoji}</div></span>`;
+                    }
+                    // Altrimenti solo l'evidenziazione standard
+                    return `<span class="interactive-word">${word}</span>`;
+                }).join(' ');
+            }).join('<br>');
+        }
+
+        buildText();
+
+        let count = 0;
+        const messages = [
+            "Brava Julie! Il colibrì sta chiamando aiuto! 🐦",
+            "Ecco gli amici della foresta! 🐤🐣",
+            "Attenzione! Arrivano le aquile cattive... 🦅",
+            "Tutti insieme! Stiamo cacciando via le aquile! 💨",
+            "VOLANO TUTTI LIBERI! MERAVIGLIOSO! ✨🎉"
+        ];
+
+        function addBird(emoji, top, left, id = "") {
+            const scene = document.getElementById('forest-scene');
+            const span = document.createElement('span');
+            span.innerText = emoji;
+            span.className = 'bird';
+            if(id) span.id = id;
+            span.style.top = top + '%';
+            span.style.left = left + '%';
+            scene.appendChild(span);
+        }
+
+        function registerRead(num) {
+            if (num !== count + 1) return;
+            count = num;
+
+            document.getElementById(`s${count}`).classList.add('active');
+            const msgEl = document.getElementById('msg');
+            msgEl.innerText = messages[count-1];
+
+            if(count === 1) addBird("🐦", 40, 20); 
+            if(count === 2) {
+                addBird("🐤", 50, 40);
+                addBird("🐣", 60, 30);
+            }
+            if(count === 3) {
+                addBird("🦅", 10, 70, "eagle1");
+                addBird("🦅", 20, 80, "eagle2");
+            }
+            if(count === 4) {
+                // Le aquile scappano via
+                const e1 = document.getElementById('eagle1');
+                const e2 = document.getElementById('eagle2');
+                if(e1) { e1.style.left = '120%'; e1.style.top = '-20%'; }
+                if(e2) { e2.style.left = '120%'; e2.style.top = '-10%'; }
+                addBird("💨", 30, 60); // Effetto vento/via
+            }
+            if(count === 5) {
+                addBird("✨", 10, 10);
+                addBird("🕊️", 15, 50); // Uccello che vola libero
+                confetti({
+                    particleCount: 150,
+                    spread: 80,
+                    origin: { y: 0.6 },
+                    colors: ['#4caf50', '#81c784', '#ffffff', '#ffeb3b']
+                });
+                msgEl.style.color = "#1b5e20";
+                msgEl.style.fontSize = "1.8rem";
+            }
+            
+            const audioCtx = new (window.AudioContext || window.webkitAudioContext)();
+            const osc = audioCtx.createOscillator();
+            const gain = audioCtx.createGain();
+            osc.connect(gain);
+            gain.connect(audioCtx.destination);
+            osc.frequency.value = 587.33 + (count * 120); 
+            gain.gain.exponentialRampToValueAtTime(0.01, audioCtx.currentTime + 0.4);
+            osc.start(); osc.stop(audioCtx.currentTime + 0.4);
+        }
+    </script>
+</body>
+</html>
