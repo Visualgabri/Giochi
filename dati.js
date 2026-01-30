@@ -1,5 +1,11 @@
 const GIOCHI_DATA = [
   {
+    "name": "julie-gufo.html",
+    "path": "Julie/julie-gufo.html",
+    "category": "Julie",
+    "updatedAt": 1769767083476.7278
+  },
+  {
     "name": "julie-colibri-coach-tablet.html",
     "path": "Julie/julie-colibri-coach-tablet.html",
     "category": "Julie",

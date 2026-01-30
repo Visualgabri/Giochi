@@ -1,0 +1,251 @@
+<!DOCTYPE html>
+<html lang="it">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Julie - Gufo Tombolo e il Gatto Orione 🦉</title>
+    <link href="https://fonts.googleapis.com/css2?family=Patrick+Hand&family=Fredoka+One&display=swap" rel="stylesheet">
+    <script src="https://cdn.jsdelivr.net/npm/canvas-confetti@1.6.0/dist/confetti.browser.min.js"></script>
+    <style>
+        :root {
+            --bg-night: #1a237e;
+            --highlight-text: #ffd600;
+            --highlight-bg: #303f9f;
+        }
+
+        body {
+            font-family: 'Patrick Hand', cursive;
+            margin: 0;
+            min-height: 100vh;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            background: linear-gradient(to bottom, #0d47a1, #1a237e);
+            user-select: none;
+            padding-bottom: 50px;
+            color: white;
+        }
+
+        .container {
+            max-width: 800px;
+            width: 90%;
+            background: rgba(255, 255, 255, 0.96);
+            padding: 2rem;
+            border-radius: 25px;
+            box-shadow: 0 15px 35px rgba(0,0,0,0.3);
+            margin-top: 20px;
+            text-align: center;
+            border: 6px solid #ffffff;
+            color: #1a237e;
+        }
+
+        h1 { font-family: 'Fredoka One', cursive; color: #1a237e; font-size: 2.2rem; margin-bottom: 5px; }
+
+        .story-box {
+            font-size: 1.9rem;
+            line-height: 1.7;
+            text-align: left;
+            padding: 25px;
+            background: #f5f5f5;
+            border-radius: 20px;
+            border: 3px dashed #3f51b5;
+            margin: 15px 0;
+            white-space: pre-line;
+        }
+
+        /* --- PAROLE INTERATTIVE E ICONE --- */
+        .interactive-word {
+            display: inline-block;
+            transition: all 0.2s;
+            position: relative;
+            cursor: pointer;
+            padding: 2px 4px;
+            border-radius: 6px;
+        }
+        
+        .interactive-word:hover {
+            color: var(--highlight-text);
+            background-color: var(--highlight-bg);
+            transform: scale(1.15);
+            z-index: 10;
+        }
+
+        .word-tooltip {
+            position: absolute;
+            bottom: 120%;
+            left: 50%;
+            transform: translateX(-50%);
+            font-size: 3.5rem;
+            background: white;
+            padding: 5px 15px;
+            border-radius: 20px;
+            box-shadow: 0 8px 20px rgba(0,0,0,0.2);
+            opacity: 0;
+            visibility: hidden;
+            transition: 0.3s cubic-bezier(0.175, 0.885, 0.32, 1.275);
+            z-index: 100;
+            border: 2px solid #ffd600;
+        }
+
+        .interactive-word:hover .word-tooltip {
+            opacity: 1;
+            visibility: visible;
+        }
+
+        /* --- SCENA NOTTURNA --- */
+        #night-scene {
+            height: 180px;
+            background: #000033;
+            border-radius: 20px;
+            margin: 20px 0;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            font-size: 5rem;
+            position: relative;
+            border: 3px solid #3f51b5;
+            overflow: hidden;
+        }
+
+        .character {
+            position: absolute;
+            animation: popIn 0.6s ease-out;
+            transition: all 0.5s;
+        }
+
+        @keyframes popIn {
+            0% { transform: scale(0); }
+            100% { transform: scale(1); }
+        }
+
+        /* --- STELLE E CONTROLLI --- */
+        .stars-container {
+            display: flex;
+            gap: 15px;
+            font-size: 3.5rem;
+            color: #c5cae9;
+            justify-content: center;
+            margin: 15px 0;
+        }
+
+        .star { cursor: pointer; transition: 0.3s; }
+        .star.active { color: #ffd600; transform: scale(1.2); text-shadow: 0 0 15px rgba(255, 214, 0, 0.8); }
+
+        #msg { font-size: 1.4rem; color: #1a237e; font-weight: bold; min-height: 1.5em; }
+    </style>
+</head>
+<body>
+
+    <div class="container">
+        <h1>🦉 IL GUFO E IL GATTO 🐱</h1>
+        
+        <div class="story-box">
+            <div id="textDisplay"></div>
+        </div>
+
+        <div id="night-scene">
+            <span id="base">🏠</span>
+        </div>
+
+        <div class="controls">
+            <div id="msg">Tocca le stelle per far scendere la notte!</div>
+            <div class="stars-container">
+                <div class="star" onclick="registerRead(1)" id="s1">★</div>
+                <div class="star" onclick="registerRead(2)" id="s2">★</div>
+                <div class="star" onclick="registerRead(3)" id="s3">★</div>
+                <div class="star" onclick="registerRead(4)" id="s4">★</div>
+                <div class="star" onclick="registerRead(5)" id="s5">★</div>
+            </div>
+        </div>
+    </div>
+
+    <script>
+        const dictionary = {
+            "NOTTE": "🌙", "GUFO": "🦉", "TOMBOLO": "🦉",
+            "CASA": "🏠", "LUCI": "✨", "PIUME": "🪶",
+            "PAURA": "😨", "GATTO": "🐈‍⬛", "ORIONE": "🐈‍⬛",
+            "AMICIZIA": "🤝", "TETTO": "🏠", "CITTÀ": "🏙️"
+        };
+
+        const storyText = `È NOTTE. GUFO TOMBOLO SI GUARDA INTORNO.
+SULLE TEGOLE DI UNA CASA VEDE DUE LUCI SGARGIANTI.
+LE LUCI SI AVVICINANO A TOMBOLO E LUI GONFIA LE PIUME DALLA PAURA.
+MA È SOLO UN GATTO NERO DI NOME ORIONE.
+IL GUFO E IL GATTO FANNO AMICIZIA E SI GODONO DAL TETTO LA CITTÀ ADDORMENTATA.`;
+
+        function buildText() {
+            const display = document.getElementById('textDisplay');
+            display.innerHTML = storyText.split('\n').map(line => {
+                return line.split(' ').map(word => {
+                    const clean = word.replace(/[.,!?…]/g, '').toUpperCase();
+                    const emoji = dictionary[clean];
+                    if (emoji) {
+                        return `<span class="interactive-word">${word}<div class="word-tooltip">${emoji}</div></span>`;
+                    }
+                    return `<span class="interactive-word">${word}</span>`;
+                }).join(' ');
+            }).join('<br>');
+        }
+
+        buildText();
+
+        let count = 0;
+        const messages = [
+            "Brava Julie! Gufo Tombolo è sul tetto! 🦉",
+            "Cosa sono quelle luci nel buio? ✨",
+            "Tombolo ha paura! Gonfia le sue piume! 🪶",
+            "Ma è il gatto Orione! Niente paura! 🐈‍⬛",
+            "CHE BELLA AMICIZIA SOTTO LE STELLE! 🦉🐱✨"
+        ];
+
+        function addIcon(emoji, top, left, id = "") {
+            const scene = document.getElementById('night-scene');
+            const span = document.createElement('span');
+            span.innerText = emoji;
+            span.className = 'character';
+            if(id) span.id = id;
+            span.style.top = top + '%';
+            span.style.left = left + '%';
+            scene.appendChild(span);
+        }
+
+        function registerRead(num) {
+            if (num !== count + 1) return;
+            count = num;
+
+            document.getElementById(`s${count}`).classList.add('active');
+            const msgEl = document.getElementById('msg');
+            msgEl.innerText = messages[count-1];
+
+            if(count === 1) addIcon("🦉", 30, 30, "tombolo"); 
+            if(count === 2) addIcon("✨", 40, 60, "lights");
+            if(count === 3) {
+                const t = document.getElementById('tombolo');
+                if(t) t.style.fontSize = "6rem"; // Gonfia le piume!
+            }
+            if(count === 4) addIcon("🐈‍⬛", 45, 65, "orione");
+            if(count === 5) {
+                addIcon("🌙", 10, 80);
+                addIcon("🏙️", 60, 45);
+                confetti({
+                    particleCount: 150,
+                    spread: 70,
+                    origin: { y: 0.6 },
+                    colors: ['#ffd600', '#ffffff', '#3f51b5']
+                });
+                msgEl.style.color = "#d84315";
+                msgEl.style.fontSize = "1.6rem";
+            }
+            
+            const audioCtx = new (window.AudioContext || window.webkitAudioContext)();
+            const osc = audioCtx.createOscillator();
+            const gain = audioCtx.createGain();
+            osc.connect(gain);
+            gain.connect(audioCtx.destination);
+            osc.frequency.value = 440 + (count * 80);
+            gain.gain.exponentialRampToValueAtTime(0.01, audioCtx.currentTime + 0.4);
+            osc.start(); osc.stop(audioCtx.currentTime + 0.4);
+        }
+    </script>
+</body>
+</html>
