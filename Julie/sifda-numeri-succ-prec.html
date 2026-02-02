@@ -1,0 +1,192 @@
+<!DOCTYPE html>
+<html lang="it">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+    <title>La Sfida dei Numeri di Julie</title>
+    <style>
+        :root {
+            --primary: #ff6b6b;
+            --secondary: #4ecdc4;
+            --bg: #f7f7f7;
+        }
+
+        body {
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+            background-color: var(--bg);
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            justify-content: center;
+            height: 100vh;
+            margin: 0;
+            overflow: hidden;
+            touch-action: manipulation;
+        }
+
+        #game-container {
+            background: white;
+            padding: 2rem;
+            border-radius: 30px;
+            box-shadow: 0 10px 30px rgba(0,0,0,0.1);
+            text-align: center;
+            width: 90%;
+            max-width: 600px;
+        }
+
+        .stats {
+            display: flex;
+            justify-content: space-between;
+            margin-bottom: 20px;
+            font-size: 1.2rem;
+            font-weight: bold;
+        }
+
+        #question {
+            font-size: 2.5rem;
+            color: #333;
+            margin: 20px 0;
+        }
+
+        .number-display {
+            font-size: 5rem;
+            font-weight: 900;
+            color: var(--primary);
+            text-shadow: 4px 4px 0px #eee;
+            margin: 10px 0;
+        }
+
+        .options-grid {
+            display: grid;
+            grid-template-columns: repeat(3, 1fr);
+            gap: 15px;
+            margin-top: 30px;
+        }
+
+        button {
+            padding: 20px;
+            font-size: 2rem;
+            border: none;
+            border-radius: 15px;
+            background: var(--secondary);
+            color: white;
+            box-shadow: 0 6px 0 #3dbbb3;
+            transition: all 0.1s;
+            cursor: pointer;
+        }
+
+        button:active {
+            transform: translateY(4px);
+            box-shadow: 0 2px 0 #3dbbb3;
+        }
+
+        .correct { background-color: #4cd137 !important; box-shadow: 0 6px 0 #44bd32 !important; }
+        .wrong { background-color: #e84118 !important; box-shadow: 0 6px 0 #c23616 !important; }
+
+        #message {
+            height: 30px;
+            margin-top: 20px;
+            font-weight: bold;
+            font-size: 1.5rem;
+        }
+    </style>
+</head>
+<body>
+
+    <div id="game-container">
+        <div class="stats">
+            <span>Punti: <span id="score">0</span></span>
+            <span>Record: <span id="highscore">0</span></span>
+        </div>
+        
+        <div id="question">Cosa viene PRIMA di...</div>
+        <div class="number-display" id="main-number">5</div>
+        
+        <div class="options-grid" id="options">
+            </div>
+
+        <div id="message"></div>
+    </div>
+
+    <script>
+        let score = 0;
+        let highscore = 0;
+        let currentAnswer = 0;
+        let maxNumber = 10;
+
+        function initGame() {
+            const isNext = Math.random() > 0.5;
+            const baseNum = Math.floor(Math.random() * (maxNumber - 2)) + 2;
+            
+            if (isNext) {
+                document.getElementById('question').innerText = "Chi viene DOPO?";
+                currentAnswer = baseNum + 1;
+            } else {
+                document.getElementById('question').innerText = "Chi viene PRIMA?";
+                currentAnswer = baseNum - 1;
+            }
+
+            document.getElementById('main-number').innerText = baseNum;
+            generateOptions(currentAnswer);
+        }
+
+        function generateOptions(correct) {
+            const container = document.getElementById('options');
+            container.innerHTML = '';
+            
+            let choices = [correct];
+            while(choices.length < 3) {
+                let r = Math.floor(Math.random() * (maxNumber + 5)) + 1;
+                if(!choices.includes(r)) choices.push(r);
+            }
+            
+            choices.sort((a, b) => a - b);
+
+            choices.forEach(num => {
+                const btn = document.createElement('button');
+                btn.innerText = num;
+                btn.onclick = () => checkAnswer(num, btn);
+                container.appendChild(btn);
+            });
+        }
+
+        function checkAnswer(selected, btn) {
+            const msg = document.getElementById('message');
+            if(selected === currentAnswer) {
+                score++;
+                if(score > highscore) highscore = score;
+                btn.classList.add('correct');
+                msg.innerText = "Bravissima Julie! 🌟";
+                msg.style.color = "#4cd137";
+                
+                // Difficoltà aumenta ogni 5 punti
+                if(score % 5 === 0) maxNumber += 5;
+
+                setTimeout(() => {
+                    updateStats();
+                    btn.classList.remove('correct');
+                    msg.innerText = "";
+                    initGame();
+                }, 1000);
+            } else {
+                score = 0;
+                btn.classList.add('wrong');
+                msg.innerText = "Riprova! Puoi farcela! 💪";
+                msg.style.color = "#e84118";
+                setTimeout(() => {
+                    btn.classList.remove('wrong');
+                    updateStats();
+                    initGame();
+                }, 1000);
+            }
+        }
+
+        function updateStats() {
+            document.getElementById('score').innerText = score;
+            document.getElementById('highscore').innerText = highscore;
+        }
+
+        initGame();
+    </script>
+</body>
+</html>

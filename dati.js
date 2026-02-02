@@ -1,5 +1,11 @@
 const GIOCHI_DATA = [
   {
+    "name": "sifda-numeri-succ-prec.html",
+    "path": "Julie/sifda-numeri-succ-prec.html",
+    "category": "Julie",
+    "updatedAt": 1770019346882.4277
+  },
+  {
     "name": "julie-gufo.html",
     "path": "Julie/julie-gufo.html",
     "category": "Julie",
