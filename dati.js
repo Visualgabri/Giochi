@@ -1,7 +1,7 @@
 const GIOCHI_DATA = [
   {
     "name": "prova.html",
-    "path": "Palestra 2026/prova.html",
+    "path": "Chris/Palestra 2026/prova.html",
     "category": "Palestra 2026",
     "updatedAt": 1770202877992.074
   },
