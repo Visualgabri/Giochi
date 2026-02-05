@@ -3,9 +3,9 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Gemini Gym Coach - Analisi Macchinari</title>
+    <title>Gemini Coach - Analisi Biomeccanica</title>
     <style>
-        body, html { margin: 0; padding: 0; background-color: #000; overflow-x: hidden; font-family: 'Segoe UI', sans-serif; }
+        body, html { margin: 0; padding: 0; background-color: #000; overflow-x: hidden; font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif; }
         
         .gallery {
             display: grid;
@@ -21,7 +21,6 @@
 
         .gallery img:hover { filter: brightness(1.2); }
 
-        /* Overlay Fullscreen */
         #overlay {
             display: none; position: fixed;
             top: 0; left: 0; width: 100%; height: 100%;
@@ -53,21 +52,20 @@
         #analysis-result {
             position: absolute; top: 80px; left: 50%;
             transform: translateX(-50%); width: 85%; max-width: 600px;
-            color: #e0e0e0; background: rgba(30, 30, 30, 0.9);
-            backdrop-filter: blur(10px); padding: 20px;
-            display: none; z-index: 1002; border-radius: 15px;
-            border: 1px solid rgba(255,255,255,0.1);
-            line-height: 1.6; max-height: 50vh; overflow-y: auto;
+            color: #f0f0f0; background: rgba(25, 25, 25, 0.9);
+            backdrop-filter: blur(12px); padding: 25px;
+            display: none; z-index: 1002; border-radius: 20px;
+            border: 1px solid rgba(255,255,255,0.15);
+            line-height: 1.6; max-height: 60vh; overflow-y: auto;
+            text-align: left;
         }
 
-        .loading-spinner {
-            border: 3px solid rgba(255,255,255,0.3);
-            border-top: 3px solid #fff;
-            border-radius: 50%; width: 20px; height: 20px;
-            animation: spin 1s linear infinite;
-            display: inline-block; vertical-align: middle; margin-right: 10px;
+        .spinner {
+            border: 3px solid rgba(255,255,255,0.2);
+            border-top: 3px solid #fff; border-radius: 50%;
+            width: 18px; height: 18px; animation: spin 0.8s linear infinite;
+            display: inline-block; margin-right: 10px; vertical-align: middle;
         }
-
         @keyframes spin { 0% { transform: rotate(0deg); } 100% { transform: rotate(360deg); } }
     </style>
 </head>
@@ -78,12 +76,12 @@
     <div id="overlay">
         <span id="close-btn" onclick="closeImage()">&times;</span>
         <div id="analysis-result"></div>
-        <img id="fullImage" src="" alt="Zoomable Image">
+        <img id="fullImage" src="" alt="Dettaglio Macchinario">
         <button id="analyze-btn" onclick="analyzeImage()">Analizza Macchinario</button>
     </div>
 
     <script>
-        const API_KEY = "AIzaSyCQ_ClxoU0lBnEP_YoqUmFJZzNglEmr89w"; // La tua chiave
+        const API_KEY = "AIzaSyCQ_ClxoU0lBnEP_YoqUmFJZzNglEmr89w";
         const API_URL = `https://generativelanguage.googleapis.com/v1beta/models/gemini-1.5-flash:generateContent?key=${API_KEY}`;
 
         const container = document.getElementById('imageContainer');
@@ -94,9 +92,11 @@
         
         let scale = 1, panning = false, pointX = 0, pointY = 0, startX = 0, startY = 0;
 
+        // Inizializzazione Galleria
         for (let i = 1; i <= 54; i++) {
             const el = document.createElement('img');
             el.src = `${i}.jpg`;
+            el.crossOrigin = "anonymous"; // Necessario per GitHub Pages
             el.onclick = () => openImage(el.src);
             el.onerror = () => el.style.display = 'none';
             container.appendChild(el);
@@ -110,11 +110,12 @@
             btn.innerHTML = "Analizza Macchinario";
             overlay.style.display = 'block';
             document.body.style.overflow = 'hidden';
-            setTimeout(() => {
+            
+            img.onload = () => {
                 pointX = (window.innerWidth - img.offsetWidth) / 2;
                 pointY = (window.innerHeight - img.offsetHeight) / 2;
                 setTransform();
-            }, 50);
+            };
         }
 
         function closeImage() {
@@ -122,27 +123,25 @@
             document.body.style.overflow = 'auto';
         }
 
-        // Funzione per convertire l'immagine locale in Base64 (necessario per Gemini)
-        async function getBase64Image(url) {
-            const response = await fetch(url);
-            const blob = await response.blob();
-            return new Promise((resolve, reject) => {
-                const reader = new FileReader();
-                reader.onloadend = () => resolve(reader.result.split(',')[1]);
-                reader.onerror = reject;
-                reader.readAsDataURL(blob);
-            });
+        // Funzione Canvas per bypassare CORS ed estrarre i dati immagine
+        function getBase64FromImage(imgElement) {
+            const canvas = document.createElement("canvas");
+            canvas.width = imgElement.naturalWidth;
+            canvas.height = imgElement.naturalHeight;
+            const ctx = canvas.getContext("2d");
+            ctx.drawImage(imgElement, 0, 0);
+            return canvas.toDataURL("image/jpeg").split(',')[1];
         }
 
         async function analyzeImage() {
-            btn.innerHTML = `<span class="loading-spinner"></span>Analisi in corso...`;
+            btn.innerHTML = `<span class="spinner"></span>Analisi in corso...`;
             resultDiv.style.display = "block";
-            resultDiv.innerHTML = "<em>Interrogando Gemini sui dettagli biomeccanici...</em>";
+            resultDiv.innerHTML = "<em>L'IA sta analizzando la biomeccanica del macchinario...</em>";
 
             try {
-                const base64Data = await getBase64Image(img.src);
+                const base64Data = getBase64FromImage(img);
                 
-                const prompt = "Sei un esperto di bodybuilding e biomeccanica. Identifica il macchinario da palestra in questa foto e spiegami brevemente la sua funzione, i muscoli target e un consiglio tecnico per l'esecuzione corretta.";
+                const prompt = "Sei un esperto mondiale di Natural Bodybuilding e biomeccanica. Analizza questa foto: identifica il macchinario, spiega quali muscoli target stimola e dai un consiglio da top coach per massimizzare l'ipertrofia o la sicurezza.";
 
                 const response = await fetch(API_URL, {
                     method: 'POST',
@@ -158,18 +157,22 @@
                 });
 
                 const data = await response.json();
-                const aiResponse = data.candidates[0].content.parts[0].text;
-                
-                resultDiv.innerHTML = `<strong>Risultato Analisi:</strong><br><br>${aiResponse.replace(/\n/g, '<br>')}`;
-                btn.style.display = "none";
+                if (data.candidates && data.candidates[0]) {
+                    const aiText = data.candidates[0].content.parts[0].text;
+                    resultDiv.innerHTML = `<strong>ANALISI COACH:</strong><br><br>${aiText.replace(/\n/g, '<br>')}`;
+                    btn.style.display = "none";
+                } else {
+                    throw new Error("Risposta non valida");
+                }
 
             } catch (error) {
                 console.error(error);
-                resultDiv.innerText = "Errore: Assicurati che le immagini siano accessibili e che la chiave API sia attiva.";
+                resultDiv.innerHTML = "<strong>Errore:</strong> Impossibile completare l'analisi. Verifica che l'immagine sia caricata correttamente.";
                 btn.innerHTML = "Riprova";
             }
         }
 
+        // Gestione Zoom e Pan
         function setTransform() { img.style.transform = `translate(${pointX}px, ${pointY}px) scale(${scale})`; }
 
         overlay.onwheel = (e) => {
