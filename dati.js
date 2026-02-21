@@ -1,5 +1,11 @@
 const GIOCHI_DATA = [
   {
+    "name": "julie-in-classe.html",
+    "path": "Julie/julie-in-classe.html",
+    "category": "Julie",
+    "updatedAt": 1771695083791.682
+  },
+  {
     "name": "julie-gelato.html",
     "path": "Julie/julie-gelato.html",
     "category": "Julie",
