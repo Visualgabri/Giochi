@@ -1,9 +1,9 @@
 const GIOCHI_DATA = [
   {
-    "name": "julie-corsivo.html",
-    "path": "Julie/julie-corsivo.html",
+    "name": "julie-lettere-minuscole.html",
+    "path": "Julie/julie-lettere-minuscole.html",
     "category": "Julie",
-    "updatedAt": 1772442651041.5396
+    "updatedAt": 1772443940707.8433
   },
   {
     "name": "juie-ombra-sofia.html",
