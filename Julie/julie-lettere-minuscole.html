@@ -3,22 +3,22 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
-    <title>Julie: Missione Minuscolo 💎</title>
-    <link href="https://fonts.googleapis.com/css2?family=Fredoka:wght@400;600&display=swap" rel="stylesheet">
+    <title>Julie: Lettura Notturna 🌙</title>
+    <link href="https://fonts.googleapis.com/css2?family=Montserrat:wght@400;900&display=swap" rel="stylesheet">
     <style>
         :root {
-            --sfondo: #1a1a2e;
-            --pannello: #16213e;
-            --accento: #e94560;
-            --testo: #ffffff;
-            --maiuscolo: #4ecc71;
-            --minuscolo: #3498db;
+            --sfondo: #0a0e14;
+            --scheda: #1a1f26;
+            --testo-principale: #e0e6ed;
+            --primario: #7289da;
+            --successo: #43b581;
+            --aiuto: #faa61a;
         }
 
         body {
-            font-family: 'Fredoka', sans-serif;
+            font-family: 'Montserrat', sans-serif;
             background-color: var(--sfondo);
-            color: var(--testo);
+            color: var(--testo-principale);
             display: flex;
             flex-direction: column;
             align-items: center;
@@ -29,235 +29,236 @@
             touch-action: manipulation;
         }
 
-        #game-container {
-            background: var(--pannello);
-            padding: 30px;
+        #game-card {
+            background: var(--scheda);
+            padding: 40px;
             border-radius: 30px;
-            box-shadow: 0 0 50px rgba(233, 69, 96, 0.3);
+            box-shadow: 0 20px 50px rgba(0,0,0,0.5);
             text-align: center;
             width: 85%;
-            max-width: 500px;
-            border: 3px solid var(--accento);
-            position: relative;
+            max-width: 550px;
+            border: 2px solid #2f353d;
         }
 
-        .stats-bar {
-            display: flex;
-            justify-content: space-between;
-            margin-bottom: 20px;
-            font-size: 20px;
-            font-weight: 600;
+        .score-board {
+            font-size: 22px;
+            color: var(--primario);
+            font-weight: bold;
+            margin-bottom: 10px;
+            text-transform: uppercase;
+            letter-spacing: 1px;
         }
 
-        #timer-bar-container {
-            width: 100%;
-            height: 15px;
-            background: #0f3460;
-            border-radius: 10px;
-            margin-bottom: 30px;
-            overflow: hidden;
+        /* Testo in STAMPATELLO MINUSCOLO */
+        #word-display {
+            font-size: 75px;
+            font-weight: 400; /* Peso regolare per il minuscolo */
+            color: #ffffff;
+            margin: 40px 0;
+            min-height: 110px;
+            cursor: pointer;
+            transition: all 0.2s ease;
+            user-select: none;
+            text-transform: lowercase; /* Forza il minuscolo */
         }
 
-        #timer-bar {
-            width: 100%;
-            height: 100%;
-            background: var(--accento);
-            transition: width 0.1s linear;
-        }
-
-        /* Area di Visualizzazione */
-        .word-box {
-            background: #0f3460;
-            padding: 20px;
-            border-radius: 20px;
-            margin-bottom: 20px;
-        }
-
-        #word-maiuscolo {
-            font-size: 55px;
-            color: var(--maiuscolo);
+        /* Trasformazione in STAMPATELLO MAIUSCOLO */
+        #word-display.hint-mode {
+            font-weight: 900; /* Molto più marcato */
+            font-size: 65px;
+            color: var(--aiuto);
+            text-transform: uppercase; /* Forza il maiuscolo */
             letter-spacing: 4px;
-            margin: 0;
+        }
+
+        .instruction {
+            font-size: 16px;
+            color: #8e9297;
+            margin-bottom: 25px;
+        }
+
+        .btn-container {
+            display: flex;
+            gap: 20px;
+            justify-content: center;
+            margin-top: 20px;
+        }
+
+        button {
+            padding: 18px 35px;
+            font-size: 18px;
+            border: none;
+            border-radius: 15px;
+            cursor: pointer;
+            font-weight: bold;
+            transition: all 0.1s;
             text-transform: uppercase;
         }
 
-        #arrow {
-            font-size: 30px;
-            margin: 10px 0;
-            color: var(--accento);
-        }
-
-        #word-minuscolo {
-            font-size: 65px;
-            color: var(--minuscolo);
-            margin: 0;
-            min-height: 80px;
-            opacity: 0;
-            transition: opacity 0.3s;
-        }
-
-        .show { opacity: 1 !important; }
-
-        /* Bottoni */
-        .action-btn {
-            background: var(--accento);
+        #correct-btn { 
+            background-color: var(--successo); 
             color: white;
-            border: none;
-            padding: 20px 40px;
-            font-size: 24px;
-            border-radius: 50px;
-            cursor: pointer;
-            font-weight: bold;
-            box-shadow: 0 6px 0 #950740;
-            width: 100%;
-            margin-top: 10px;
+            box-shadow: 0 4px 0 #2d7d5a;
         }
 
-        .action-btn:active {
+        #next-btn { 
+            background-color: #4f545c; 
+            color: white;
+            box-shadow: 0 4px 0 #32353b;
+        }
+
+        button:active {
             transform: translateY(4px);
-            box-shadow: 0 2px 0 #950740;
+            box-shadow: none;
         }
 
-        #feedback {
-            font-size: 22px;
-            margin-top: 20px;
+        #confetti-canvas {
+            position: fixed;
+            top: 0;
+            left: 0;
+            pointer-events: none;
+            z-index: 100;
+        }
+
+        .feedback-text {
             height: 30px;
-            font-weight: 600;
+            font-weight: bold;
+            color: var(--successo);
+            margin-top: 20px;
+            font-size: 1.2rem;
         }
 
-        /* Animazioni */
-        @keyframes shake {
-            0% { transform: translateX(0); }
-            25% { transform: translateX(-5px); }
-            50% { transform: translateX(5px); }
-            75% { transform: translateX(-5px); }
-            100% { transform: translateX(0); }
+        /* Piccole stelle decorative per il tema notte */
+        .star-bg {
+            position: absolute;
+            background: white;
+            border-radius: 50%;
+            opacity: 0.3;
+            z-index: -1;
         }
-
-        .shake { animation: shake 0.3s; }
     </style>
 </head>
 <body>
 
-    <div id="game-container">
-        <div class="stats-bar">
-            <span>💎 Gemme: <span id="gems">0</span></span>
-            <span>Livello: <span id="lvl">1</span></span>
-        </div>
+    <canvas id="confetti-canvas"></canvas>
 
-        <div id="timer-bar-container">
-            <div id="timer-bar"></div>
-        </div>
-
-        <div class="word-box">
-            <p id="word-maiuscolo">---</p>
-            <div id="arrow">🔽 TRASFORMA 🔽</div>
-            <p id="word-minuscolo">---</p>
-        </div>
-
-        <button class="action-btn" id="check-btn" onclick="checkRead()">LETTA! ✅</button>
+    <div id="game-card">
+        <div class="score-board">Progresso Julie: <span id="stars">0</span> ⭐</div>
         
-        <div id="feedback"></div>
+        <div class="instruction">Leggi la parola minuscola... 🌙</div>
+        
+        <div id="word-display" onclick="toggleHint()">---</div>
+        
+        <div class="instruction" style="font-size: 13px; font-style: italic;">
+            (Tocca la parola per vederla GRANDE)
+        </div>
+
+        <div class="btn-container">
+            <button id="correct-btn" onclick="celebrate()">L'ho letta! ✅</button>
+            <button id="next-btn" onclick="newWord()">Prossima ➡️</button>
+        </div>
+
+        <div id="feedback" class="feedback-text"></div>
     </div>
 
     <script>
         const words = [
-            "GATTO", "MELA", "CASA", "LIBRO", "SOLE", "PANE", "LUNA", "MARE",
-            "FIUME", "PRATO", "BIMBO", "PALLA", "NONNO", "UOVO", "SCUOLA"
+            "mela", "gatto", "luna", "palla", "libro", 
+            "fiore", "casa", "sole", "nido", "topo",
+            "rana", "cane", "torta", "mare", "pane"
         ];
 
         let currentWord = "";
-        let gems = 0;
-        let level = 1;
-        let timeLeft = 100;
-        let timerInterval;
+        let score = 0;
+        const wordDisplay = document.getElementById('word-display');
+        const starsDisplay = document.getElementById('stars');
+        const feedback = document.getElementById('feedback');
 
-        const maiuscoloEl = document.getElementById('word-maiuscolo');
-        const minuscoloEl = document.getElementById('word-minuscolo');
-        const gemsEl = document.getElementById('gems');
-        const lvlEl = document.getElementById('lvl');
-        const barEl = document.getElementById('timer-bar');
-        const feedbackEl = document.getElementById('feedback');
-
-        function startLevel() {
-            // Reset visuale
-            minuscoloEl.classList.remove('show');
-            feedbackEl.innerText = "";
-            
-            // Nuova parola
-            currentWord = words[Math.floor(Math.random() * words.length)];
-            maiuscoloEl.innerText = currentWord;
-            minuscoloEl.innerText = currentWord.toLowerCase();
-            
-            // Timer più veloce man mano che sale di livello
-            timeLeft = 100;
-            clearInterval(timerInterval);
-            const speed = Math.max(20, 100 - (level * 5)); 
-            
-            timerInterval = setInterval(() => {
-                timeLeft -= 1;
-                barEl.style.width = timeLeft + "%";
-                
-                if(timeLeft <= 0) {
-                    gameOver();
-                }
-            }, speed);
+        function newWord() {
+            const index = Math.floor(Math.random() * words.length);
+            currentWord = words[index];
+            wordDisplay.innerText = currentWord;
+            wordDisplay.classList.remove('hint-mode');
+            feedback.innerText = "";
         }
 
-        function checkRead() {
-            if (minuscoloEl.classList.contains('show')) {
-                // Se ha già visualizzato la soluzione e preme ancora
-                nextLevel();
-            } else {
-                // Al primo click mostra la parola in minuscolo
-                minuscoloEl.classList.add('show');
-                clearInterval(timerInterval);
-                feedbackEl.innerText = "Ottimo! Leggi ora quella blu!";
-                feedbackEl.style.color = "#3498db";
-                document.getElementById('check-btn').innerText = "PROSSIMA! ➡️";
-                playSynth(440, 660);
-            }
+        function toggleHint() {
+            wordDisplay.classList.toggle('hint-mode');
         }
 
-        function nextLevel() {
-            gems += 10;
-            level += 1;
-            gemsEl.innerText = gems;
-            lvlEl.innerText = level;
-            document.getElementById('check-btn').innerText = "LETTA! ✅";
-            startLevel();
+        function celebrate() {
+            score++;
+            starsDisplay.innerText = score;
+            feedback.innerText = "BRAVISSIMA JULIE! 🌟";
+            playWinSound();
+            startConfetti();
+            setTimeout(newWord, 1800);
         }
 
-        function gameOver() {
-            clearInterval(timerInterval);
-            document.getElementById('game-container').classList.add('shake');
-            feedbackEl.innerText = "Tempo scaduto! Riprova!";
-            feedbackEl.style.color = "#e94560";
-            setTimeout(() => {
-                document.getElementById('game-container').classList.remove('shake');
-                level = Math.max(1, level - 1);
-                lvlEl.innerText = level;
-                startLevel();
-            }, 1500);
-        }
-
-        // Feedback sonoro da "Pro"
+        // Suono delicato per la notte
         const audioCtx = new (window.AudioContext || window.webkitAudioContext)();
-        function playSynth(f1, f2) {
+        function playWinSound() {
             const osc = audioCtx.createOscillator();
             const gain = audioCtx.createGain();
             osc.connect(gain);
             gain.connect(audioCtx.destination);
-            osc.frequency.setValueAtTime(f1, audioCtx.currentTime);
-            osc.frequency.exponentialRampToValueAtTime(f2, audioCtx.currentTime + 0.1);
-            gain.gain.setValueAtTime(0.1, audioCtx.currentTime);
-            gain.gain.exponentialRampToValueAtTime(0.01, audioCtx.currentTime + 0.2);
+            osc.type = 'triangle'; // Suono più dolce del sine
+            osc.frequency.setValueAtTime(523.25, audioCtx.currentTime); // DO
+            osc.frequency.exponentialRampToValueAtTime(659.25, audioCtx.currentTime + 0.3); // MI
+            gain.gain.setValueAtTime(0.05, audioCtx.currentTime);
+            gain.gain.exponentialRampToValueAtTime(0.001, audioCtx.currentTime + 0.6);
             osc.start();
-            osc.stop(audioCtx.currentTime + 0.2);
+            osc.stop(audioCtx.currentTime + 0.6);
         }
 
-        // Avvio
-        startLevel();
+        // Effetto coriandoli "polvere di stelle"
+        const canvas = document.getElementById('confetti-canvas');
+        const ctx = canvas.getContext('2d');
+        let particles = [];
+
+        function startConfetti() {
+            canvas.width = window.innerWidth;
+            canvas.height = window.innerHeight;
+            particles = [];
+            for(let i=0; i<40; i++) {
+                particles.push({
+                    x: Math.random() * canvas.width,
+                    y: canvas.height + 10,
+                    color: i % 2 === 0 ? '#faa61a' : '#ffffff',
+                    velX: (Math.random() - 0.5) * 8,
+                    velY: -Math.random() * 12 - 8
+                });
+            }
+            animate();
+        }
+
+        function animate() {
+            ctx.clearRect(0, 0, canvas.width, canvas.height);
+            particles.forEach((p, i) => {
+                p.x += p.velX;
+                p.y += p.velY;
+                p.velY += 0.4;
+                ctx.fillStyle = p.color;
+                ctx.beginPath();
+                ctx.arc(p.x, p.y, 3, 0, Math.PI * 2);
+                ctx.fill();
+                if(p.y > canvas.height) particles.splice(i, 1);
+            });
+            if(particles.length > 0) requestAnimationFrame(animate);
+        }
+
+        // Crea stelline di sfondo
+        for(let i=0; i<30; i++) {
+            const s = document.createElement('div');
+            s.className = 'star-bg';
+            const size = Math.random() * 3 + 'px';
+            s.style.width = size; s.style.height = size;
+            s.style.left = Math.random() * 100 + 'vw';
+            s.style.top = Math.random() * 100 + 'vh';
+            document.body.appendChild(s);
+        }
+
+        newWord();
     </script>
 </body>
 </html>
