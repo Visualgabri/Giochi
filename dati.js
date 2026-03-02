@@ -3,7 +3,7 @@ const GIOCHI_DATA = [
     "name": "julie-corsivo.html",
     "path": "Julie/julie-corsivo.html",
     "category": "Julie",
-    "updatedAt": 1772440501440.756
+    "updatedAt": 1772442651041.5396
   },
   {
     "name": "juie-ombra-sofia.html",
