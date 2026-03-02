@@ -1,0 +1,228 @@
+<!DOCTYPE html>
+<html lang="it">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+    <title>Julie Legge in Corsivo ✨</title>
+    <link href="https://fonts.googleapis.com/css2?family=Caveat:wght@700&family=Dancing+Script:wght@700&display=swap" rel="stylesheet">
+    <style>
+        :root {
+            --sfondo: #f0f4f8;
+            --primario: #4a90e2;
+            --successo: #4caf50;
+            --aiuto: #ff9800;
+        }
+
+        body {
+            font-family: 'Segoe UI', sans-serif;
+            background-color: var(--sfondo);
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            justify-content: center;
+            height: 100vh;
+            margin: 0;
+            overflow: hidden;
+            touch-action: manipulation;
+        }
+
+        #game-card {
+            background: white;
+            padding: 30px;
+            border-radius: 25px;
+            box-shadow: 0 15px 35px rgba(0,0,0,0.1);
+            text-align: center;
+            width: 90%;
+            max-width: 600px;
+            border: 4px solid var(--primario);
+        }
+
+        .score-board {
+            font-size: 24px;
+            color: var(--primario);
+            font-weight: bold;
+            margin-bottom: 20px;
+        }
+
+        /* Il cuore dell'app: il testo in corsivo */
+        #word-display {
+            font-family: 'Dancing Script', cursive; /* Molto simile al corsivo scolastico */
+            font-size: 80px;
+            color: #2c3e50;
+            margin: 40px 0;
+            min-height: 120px;
+            cursor: pointer;
+            transition: all 0.3s;
+            user-select: none;
+        }
+
+        /* Classe per l'aiuto in stampatello */
+        .hint-mode {
+            font-family: 'Segoe UI', sans-serif !important;
+            font-size: 50px !important;
+            color: var(--aiuto) !important;
+            letter-spacing: 5px;
+        }
+
+        .instruction {
+            font-size: 18px;
+            color: #666;
+            margin-bottom: 20px;
+        }
+
+        .btn-container {
+            display: flex;
+            gap: 15px;
+            justify-content: center;
+        }
+
+        button {
+            padding: 15px 30px;
+            font-size: 20px;
+            border: none;
+            border-radius: 50px;
+            cursor: pointer;
+            font-weight: bold;
+            transition: transform 0.1s, box-shadow 0.1s;
+            box-shadow: 0 5px 0 #999;
+        }
+
+        button:active {
+            transform: translateY(3px);
+            box-shadow: 0 2px 0 #666;
+        }
+
+        #correct-btn { background-color: var(--successo); color: white; }
+        #next-btn { background-color: var(--primario); color: white; }
+        
+        #confetti-canvas {
+            position: fixed;
+            top: 0;
+            left: 0;
+            pointer-events: none;
+            z-index: 100;
+        }
+
+        .feedback-text {
+            height: 30px;
+            font-weight: bold;
+            color: var(--successo);
+            margin-top: 15px;
+        }
+    </style>
+</head>
+<body>
+
+    <canvas id="confetti-canvas"></canvas>
+
+    <div id="game-card">
+        <div class="score-board">Stelle per Julie: <span id="stars">0</span> ⭐</div>
+        
+        <div class="instruction">Julie, leggi la parola ad alta voce! 🗣️</div>
+        
+        <div id="word-display" onclick="toggleHint()">---</div>
+        
+        <div class="instruction" style="font-size: 14px;">(Se è difficile, tocca la parola per vederla in stampatello)</div>
+
+        <div class="btn-container">
+            <button id="correct-btn" onclick="celebrate()">L'ho letta! ✅</button>
+            <button id="next-btn" onclick="newWord()">Cambia parola ➡️</button>
+        </div>
+
+        <div id="feedback" class="feedback-text"></div>
+    </div>
+
+    <script>
+        const words = [
+            "mamma", "papà", "casa", "sole", "julie", 
+            "scuola", "libro", "pane", "latte", "gioco", 
+            "matita", "nonna", "fiore", "palla", "mare"
+        ];
+
+        let currentWord = "";
+        let score = 0;
+        const wordDisplay = document.getElementById('word-display');
+        const starsDisplay = document.getElementById('stars');
+        const feedback = document.getElementById('feedback');
+
+        function newWord() {
+            const index = Math.floor(Math.random() * words.length);
+            currentWord = words[index];
+            wordDisplay.innerText = currentWord;
+            wordDisplay.classList.remove('hint-mode');
+            feedback.innerText = "";
+        }
+
+        function toggleHint() {
+            wordDisplay.classList.toggle('hint-mode');
+            if(wordDisplay.classList.contains('hint-mode')) {
+                wordDisplay.innerText = currentWord.toUpperCase();
+            } else {
+                wordDisplay.innerText = currentWord;
+            }
+        }
+
+        function celebrate() {
+            score++;
+            starsDisplay.innerText = score;
+            feedback.innerText = "BRAVISSIMA JULIE! 🎉";
+            playWinSound();
+            startConfetti();
+            setTimeout(newWord, 2000);
+        }
+
+        // Audio sintetico per feedback positivo
+        const audioCtx = new (window.AudioContext || window.webkitAudioContext)();
+        function playWinSound() {
+            const osc = audioCtx.createOscillator();
+            const gain = audioCtx.createGain();
+            osc.connect(gain);
+            gain.connect(audioCtx.destination);
+            osc.type = 'sine';
+            osc.frequency.setValueAtTime(440, audioCtx.currentTime);
+            osc.frequency.exponentialRampToValueAtTime(880, audioCtx.currentTime + 0.2);
+            gain.gain.setValueAtTime(0.1, audioCtx.currentTime);
+            gain.gain.exponentialRampToValueAtTime(0.01, audioCtx.currentTime + 0.5);
+            osc.start();
+            osc.stop(audioCtx.currentTime + 0.5);
+        }
+
+        // Effetto coriandoli semplice
+        const canvas = document.getElementById('confetti-canvas');
+        const ctx = canvas.getContext('2d');
+        let particles = [];
+
+        function startConfetti() {
+            canvas.width = window.innerWidth;
+            canvas.height = window.innerHeight;
+            particles = [];
+            for(let i=0; i<50; i++) {
+                particles.push({
+                    x: Math.random() * canvas.width,
+                    y: canvas.height + 10,
+                    color: `hsl(${Math.random()*360}, 70%, 50%)`,
+                    velX: (Math.random() - 0.5) * 10,
+                    velY: -Math.random() * 15 - 10
+                });
+            }
+            animate();
+        }
+
+        function animate() {
+            ctx.clearRect(0, 0, canvas.width, canvas.height);
+            particles.forEach((p, i) => {
+                p.x += p.velX;
+                p.y += p.velY;
+                p.velY += 0.5; // Gravità
+                ctx.fillStyle = p.color;
+                ctx.fillRect(p.x, p.y, 8, 8);
+                if(p.y > canvas.height) particles.splice(i, 1);
+            });
+            if(particles.length > 0) requestAnimationFrame(animate);
+        }
+
+        // Avvio
+        newWord();
+    </script>
+</body>
+</html>
