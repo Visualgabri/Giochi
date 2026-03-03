@@ -1,5 +1,17 @@
 const GIOCHI_DATA = [
   {
+    "name": "julie-lettura-minuscolo.html",
+    "path": "Julie/julie-lettura-minuscolo.html",
+    "category": "Julie",
+    "updatedAt": 1772570667815.5112
+  },
+  {
+    "name": "julie-frecce.html",
+    "path": "Julie/julie-frecce.html",
+    "category": "Julie",
+    "updatedAt": 1772570489099.5957
+  },
+  {
     "name": "julie-lettere-minuscole.html",
     "path": "Julie/julie-lettere-minuscole.html",
     "category": "Julie",
