@@ -18,8 +18,8 @@ const GIOCHI_DATA = [
     "updatedAt": 1772740990384.6506
   },
   {
-    "name": "julie-sottrazioni.html",
-    "path": "Julie/julie-sottrazioni.html",
+    "name": "julie-sottrazioni1.html",
+    "path": "Julie/julie-sottrazioni1.html",
     "category": "Julie",
     "updatedAt": 1772740803110.5247
   },
