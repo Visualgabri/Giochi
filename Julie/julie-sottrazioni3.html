@@ -1,0 +1,357 @@
+<!DOCTYPE html>
+<html lang="it">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Julie Space Math Academy</title>
+    <link href="https://fonts.googleapis.com/css2?family=Bungee&family=Roboto:wght@400;700&display=swap" rel="stylesheet">
+    <style>
+        :root {
+            --space-dark: #0b0e14;
+            --neon-blue: #00d4ff;
+            --neon-pink: #ff007f;
+            --neon-green: #39ff14;
+            --gold: #ffcc00;
+        }
+
+        body {
+            background-color: var(--space-dark);
+            color: white;
+            font-family: 'Roboto', sans-serif;
+            margin: 0;
+            overflow-x: hidden;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            min-height: 100vh;
+        }
+
+        .header {
+            text-align: center;
+            padding: 20px;
+            width: 100%;
+            background: rgba(255, 255, 255, 0.05);
+            border-bottom: 2px solid var(--neon-blue);
+        }
+
+        h1 { font-family: 'Bungee', cursive; color: var(--neon-blue); margin: 0; font-size: 2.5rem; text-shadow: 0 0 10px var(--neon-blue); }
+
+        .stats-container {
+            display: flex;
+            gap: 20px;
+            margin: 20px;
+            font-family: 'Bungee', cursive;
+        }
+
+        .stat-box {
+            background: #1a1f29;
+            padding: 10px 20px;
+            border-radius: 10px;
+            border: 1px solid var(--neon-blue);
+            min-width: 120px;
+        }
+
+        .stat-label { font-size: 0.8rem; color: #aaa; display: block; }
+        .stat-value { font-size: 1.5rem; color: var(--gold); }
+
+        .game-area {
+            background: rgba(255, 255, 255, 0.02);
+            width: 90%;
+            max-width: 1000px;
+            border-radius: 20px;
+            padding: 40px;
+            position: relative;
+            margin-top: 20px;
+            box-shadow: 0 0 50px rgba(0, 212, 255, 0.1);
+        }
+
+        .mission-text {
+            font-size: 1.5rem;
+            margin-bottom: 40px;
+            height: 60px;
+            font-weight: bold;
+        }
+
+        .equation-display {
+            font-family: 'Bungee', cursive;
+            font-size: 4rem;
+            margin-bottom: 50px;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            gap: 20px;
+        }
+
+        .passi-box {
+            width: 100px;
+            height: 100px;
+            border: 4px solid var(--neon-pink);
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            border-radius: 15px;
+            background: rgba(255, 0, 127, 0.1);
+            color: var(--neon-pink);
+            animation: pulse 1.5s infinite;
+        }
+
+        @keyframes pulse {
+            0% { transform: scale(1); box-shadow: 0 0 0px var(--neon-pink); }
+            50% { transform: scale(1.05); box-shadow: 0 0 20px var(--neon-pink); }
+            100% { transform: scale(1); box-shadow: 0 0 0px var(--neon-pink); }
+        }
+
+        /* Linea dei Numeri */
+        .number-line-wrapper {
+            position: relative;
+            margin: 120px 0 60px 0;
+            height: 40px;
+        }
+
+        .line-base {
+            height: 6px;
+            background: linear-gradient(90deg, transparent, var(--neon-blue), transparent);
+            width: 100%;
+            position: absolute;
+            top: 50%;
+            transform: translateY(-50%);
+        }
+
+        .ticks-container {
+            display: flex;
+            justify-content: space-between;
+            position: relative;
+            z-index: 2;
+        }
+
+        .tick {
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            cursor: pointer;
+            width: 50px;
+            transition: 0.3s;
+        }
+
+        .tick:hover { transform: translateY(-10px); }
+
+        .planet-dot {
+            width: 18px;
+            height: 18px;
+            background: white;
+            border-radius: 50%;
+            box-shadow: 0 0 10px white;
+            margin-bottom: 15px;
+        }
+
+        .tick-num { font-family: 'Bungee', cursive; font-size: 1.2rem; }
+
+        .p-marker, .a-marker {
+            position: absolute;
+            top: -60px;
+            font-family: 'Bungee', cursive;
+            font-size: 1.8rem;
+            animation: float 2s infinite ease-in-out;
+        }
+        .p-marker { color: var(--neon-blue); }
+        .a-marker { color: var(--neon-green); }
+
+        @keyframes float {
+            0%, 100% { transform: translateY(0); }
+            50% { transform: translateY(-10px); }
+        }
+
+        #jumps-svg {
+            position: absolute;
+            top: -100px;
+            left: 0;
+            width: 100%;
+            height: 150px;
+            pointer-events: none;
+        }
+
+        .btn-confirm {
+            background: var(--neon-green);
+            color: black;
+            border: none;
+            padding: 20px 50px;
+            font-family: 'Bungee', cursive;
+            font-size: 1.5rem;
+            border-radius: 50px;
+            cursor: pointer;
+            transition: 0.3s;
+            display: none;
+        }
+
+        .btn-confirm:hover { transform: scale(1.1); box-shadow: 0 0 30px var(--neon-green); }
+
+        .celebration {
+            position: fixed;
+            top: 50%;
+            left: 50%;
+            transform: translate(-50%, -50%);
+            font-size: 5rem;
+            font-family: 'Bungee', cursive;
+            color: var(--gold);
+            z-index: 100;
+            display: none;
+            text-shadow: 0 0 20px var(--gold);
+        }
+    </style>
+</head>
+<body>
+
+    <div class="header">
+        <h1>Julie Space Academy</h1>
+    </div>
+
+    <div class="stats-container">
+        <div class="stat-box">
+            <span class="stat-label">PUNTI</span>
+            <span class="stat-value" id="score">0</span>
+        </div>
+        <div class="stat-box">
+            <span class="stat-label">LIVELLO</span>
+            <span class="stat-value" id="level">TERRA</span>
+        </div>
+        <div class="stat-box">
+            <span class="stat-label">COMBO</span>
+            <span class="stat-value" id="combo">x1</span>
+        </div>
+    </div>
+
+    <div class="game-area">
+        <div class="mission-text" id="mission-log">Inizializzazione missione...</div>
+
+        <div class="equation-display">
+            <span id="eq-p" style="color:var(--neon-blue)">?</span>
+            <span>-</span>
+            <div class="passi-box" id="eq-steps">?</div>
+            <span>=</span>
+            <span id="eq-a" style="color:var(--neon-green)">?</span>
+        </div>
+
+        <div class="number-line-wrapper">
+            <svg id="jumps-svg"></svg>
+            <div class="line-base"></div>
+            <div class="ticks-container" id="ticks-container"></div>
+        </div>
+
+        <center>
+            <button class="btn-confirm" id="btn-next" onclick="newMission()">PROSSIMA MISSIONE</button>
+        </center>
+    </div>
+
+    <div class="celebration" id="victory-text">MISSIONE COMPIUTA!</div>
+
+    <script>
+        let score = 0;
+        let combo = 1;
+        let level = 1;
+        let p, a, correctPassi;
+        let currentJumps = 0;
+        let currentPos = 0;
+        let maxRange = 10;
+
+        function updateStats() {
+            document.getElementById('score').innerText = score;
+            document.getElementById('combo').innerText = 'x' + combo;
+            const levels = ["TERRA", "MARTE", "GIOVE", "NEBULA", "SUPERNOVA"];
+            document.getElementById('level').innerText = levels[Math.min(level-1, 4)];
+        }
+
+        function newMission() {
+            // Aumento difficoltà
+            if (score > 50) { maxRange = 20; level = 2; }
+            if (score > 150) { maxRange = 30; level = 3; }
+
+            p = Math.floor(Math.random() * (maxRange - 4)) + 4;
+            a = Math.floor(Math.random() * (p - 1));
+            correctPassi = p - a;
+            currentJumps = 0;
+            currentPos = p;
+
+            document.getElementById('eq-p').innerText = p;
+            document.getElementById('eq-a').innerText = a;
+            document.getElementById('eq-steps').innerText = "?";
+            document.getElementById('mission-log').innerHTML = `SISTEMA AGGANCIATO! Salta da <span style="color:var(--neon-blue)">${p}</span> a <span style="color:var(--neon-green)">${a}</span>. Quanti passi farai?`;
+            document.getElementById('btn-next').style.display = 'none';
+            document.getElementById('jumps-svg').innerHTML = '';
+            
+            generateTicks();
+        }
+
+        function generateTicks() {
+            const container = document.getElementById('ticks-container');
+            container.innerHTML = '';
+            for (let i = 0; i <= maxRange; i++) {
+                const t = document.createElement('div');
+                t.className = 'tick';
+                t.innerHTML = `
+                    ${i === p ? '<div class="p-marker">P</div>' : ''}
+                    ${i === a ? '<div class="a-marker">A</div>' : ''}
+                    <div class="planet-dot" style="background:${i===p?'var(--neon-blue)':(i===a?'var(--neon-green)':'white')}"></div>
+                    <div class="tick-num">${i}</div>
+                `;
+                t.onclick = () => handleJump(i);
+                container.appendChild(t);
+            }
+        }
+
+        function handleJump(target) {
+            if (target === currentPos - 1) {
+                const ticks = document.querySelectorAll('.tick');
+                const fromRect = ticks[currentPos].getBoundingClientRect();
+                const toRect = ticks[target].getBoundingClientRect();
+                const containerRect = document.querySelector('.number-line-wrapper').getBoundingClientRect();
+
+                drawArc(
+                    ticks[currentPos].offsetLeft + 25,
+                    ticks[target].offsetLeft + 25
+                );
+
+                currentPos = target;
+                currentJumps++;
+                document.getElementById('eq-steps').innerText = currentJumps;
+
+                if (currentPos === a) {
+                    checkVictory();
+                }
+            } else if (target < currentPos - 1) {
+                document.getElementById('mission-log').innerText = "ERRORE! Salta un numero alla volta per non perdere la rotta!";
+                combo = 1;
+                updateStats();
+            }
+        }
+
+        function drawArc(x1, x2) {
+            const svg = document.getElementById('jumps-svg');
+            const path = document.createElementNS("http://www.w3.org/2000/svg", "path");
+            const midX = (x1 + x2) / 2;
+            path.setAttribute("d", `M ${x1} 130 Q ${midX} 60 ${x2} 130`);
+            path.setAttribute("stroke", "var(--neon-pink)");
+            path.setAttribute("stroke-width", "4");
+            path.setAttribute("fill", "none");
+            path.setAttribute("stroke-linecap", "round");
+            svg.appendChild(path);
+        }
+
+        function checkVictory() {
+            const victText = document.getElementById('victory-text');
+            victText.style.display = 'block';
+            
+            score += (10 * combo);
+            combo++;
+            updateStats();
+
+            setTimeout(() => {
+                victText.style.display = 'none';
+                document.getElementById('mission-log').innerText = "CALCOLO PERFETTO! Sei pronta per la prossima?";
+                document.getElementById('btn-next').style.display = 'inline-block';
+            }, 1500);
+        }
+
+        newMission();
+    </script>
+</body>
+</html>
