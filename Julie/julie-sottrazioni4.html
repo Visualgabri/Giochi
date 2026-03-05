@@ -1,0 +1,385 @@
+<!DOCTYPE html>
+<html lang="it">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+    <title>Julie Space Math Academy - Tablet Edition</title>
+    <link href="https://fonts.googleapis.com/css2?family=Bungee&family=Roboto:wght@400;700&display=swap" rel="stylesheet">
+    <style>
+        :root {
+            --space-dark: #0b0e14;
+            --neon-blue: #00d4ff;
+            --neon-pink: #ff007f;
+            --neon-green: #39ff14;
+            --gold: #ffcc00;
+            --tablet-padding: 30px;
+        }
+
+        body {
+            background-color: var(--space-dark);
+            color: white;
+            font-family: 'Roboto', sans-serif;
+            margin: 0;
+            padding: 0;
+            overflow-x: hidden;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            min-height: 100vh;
+            touch-action: manipulation; /* Ottimizza per il tocco */
+        }
+
+        /* Header più compatto per tablet */
+        .header {
+            text-align: center;
+            padding: 15px;
+            width: 100%;
+            background: rgba(255, 255, 255, 0.05);
+            border-bottom: 3px solid var(--neon-blue);
+        }
+
+        h1 { font-family: 'Bungee', cursive; color: var(--neon-blue); margin: 0; font-size: 2.2rem; text-shadow: 0 0 10px var(--neon-blue); }
+
+        /* Stats Grid */
+        .stats-container {
+            display: grid;
+            grid-template-columns: repeat(3, 1fr);
+            gap: 15px;
+            width: 90%;
+            max-width: 800px;
+            margin: 20px auto;
+        }
+
+        .stat-box {
+            background: #1a1f29;
+            padding: 15px;
+            border-radius: 15px;
+            border: 2px solid var(--neon-blue);
+            text-align: center;
+        }
+
+        .stat-label { font-size: 0.9rem; color: #aaa; display: block; font-family: 'Bungee'; }
+        .stat-value { font-size: 1.8rem; color: var(--gold); font-family: 'Bungee'; }
+
+        /* Area di Gioco */
+        .game-area {
+            background: rgba(255, 255, 255, 0.03);
+            width: 92%;
+            max-width: 1100px;
+            border-radius: 30px;
+            padding: var(--tablet-padding);
+            box-sizing: border-box;
+            margin-bottom: 40px;
+            box-shadow: 0 0 40px rgba(0, 212, 255, 0.1);
+        }
+
+        .mission-text {
+            font-size: 1.4rem;
+            text-align: center;
+            margin-bottom: 30px;
+            min-height: 50px;
+            line-height: 1.4;
+        }
+
+        /* Display Equazione */
+        .equation-display {
+            font-family: 'Bungee', cursive;
+            font-size: 4.5rem;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            gap: 25px;
+            margin: 30px 0;
+        }
+
+        .passi-box {
+            width: 120px;
+            height: 120px;
+            border: 5px solid var(--neon-pink);
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            border-radius: 20px;
+            background: rgba(255, 0, 127, 0.1);
+            color: var(--neon-pink);
+            animation: pulse 1.5s infinite;
+        }
+
+        @keyframes pulse {
+            0% { transform: scale(1); }
+            50% { transform: scale(1.05); box-shadow: 0 0 25px var(--neon-pink); }
+            100% { transform: scale(1); }
+        }
+
+        /* Linea dei Numeri - Ottimizzata per il tocco */
+        .number-line-wrapper {
+            position: relative;
+            margin: 100px 0 80px 0;
+            padding: 0 20px;
+            height: 60px;
+        }
+
+        .line-base {
+            height: 8px;
+            background: linear-gradient(90deg, transparent, var(--neon-blue), transparent);
+            width: 100%;
+            position: absolute;
+            top: 50%;
+            left: 0;
+            transform: translateY(-50%);
+            border-radius: 4px;
+        }
+
+        .ticks-container {
+            display: flex;
+            justify-content: space-between;
+            position: relative;
+            z-index: 2;
+        }
+
+        .tick {
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            cursor: pointer;
+            width: 60px; /* Più largo per facilitare il touch */
+            -webkit-tap-highlight-color: transparent;
+        }
+
+        .planet-dot {
+            width: 24px; /* Più grande */
+            height: 24px;
+            background: white;
+            border-radius: 50%;
+            box-shadow: 0 0 15px white;
+            margin-bottom: 20px;
+            transition: transform 0.2s;
+        }
+
+        .tick:active .planet-dot { transform: scale(1.4); }
+
+        .tick-num { font-family: 'Bungee', cursive; font-size: 1.5rem; }
+
+        .p-marker, .a-marker {
+            position: absolute;
+            top: -70px;
+            font-family: 'Bungee', cursive;
+            font-size: 2rem;
+            animation: float 2s infinite ease-in-out;
+        }
+        .p-marker { color: var(--neon-blue); }
+        .a-marker { color: var(--neon-green); }
+
+        #jumps-svg {
+            position: absolute;
+            top: -120px;
+            left: 0;
+            width: 100%;
+            height: 180px;
+            pointer-events: none;
+        }
+
+        /* Bottone Grande per Tablet */
+        .btn-confirm {
+            background: var(--neon-green);
+            color: black;
+            border: none;
+            padding: 25px 60px;
+            font-family: 'Bungee', cursive;
+            font-size: 1.8rem;
+            border-radius: 60px;
+            cursor: pointer;
+            box-shadow: 0 10px 0 #28b80d;
+            transition: all 0.2s;
+            display: none;
+            margin: 20px auto;
+        }
+
+        .btn-confirm:active {
+            transform: translateY(5px);
+            box-shadow: 0 5px 0 #28b80d;
+        }
+
+        .celebration {
+            position: fixed;
+            top: 50%;
+            left: 50%;
+            transform: translate(-50%, -50%);
+            font-size: 4rem;
+            text-align: center;
+            font-family: 'Bungee', cursive;
+            color: var(--gold);
+            z-index: 100;
+            display: none;
+            text-shadow: 0 0 30px var(--gold);
+            width: 80%;
+        }
+
+        @keyframes float {
+            0%, 100% { transform: translateY(0); }
+            50% { transform: translateY(-15px); }
+        }
+    </style>
+</head>
+<body>
+
+    <div class="header">
+        <h1>Julie Space Academy</h1>
+    </div>
+
+    <div class="stats-container">
+        <div class="stat-box">
+            <span class="stat-label">PUNTI</span>
+            <span class="stat-value" id="score">0</span>
+        </div>
+        <div class="stat-box">
+            <span class="stat-label">LIVELLO</span>
+            <span class="stat-value" id="level">TERRA</span>
+        </div>
+        <div class="stat-box">
+            <span class="stat-label">COMBO</span>
+            <span class="stat-value" id="combo">x1</span>
+        </div>
+    </div>
+
+    <div class="game-area">
+        <div class="mission-text" id="mission-log">Inizializzazione...</div>
+
+        <div class="equation-display">
+            <span id="eq-p" style="color:var(--neon-blue)">?</span>
+            <span>-</span>
+            <div class="passi-box" id="eq-steps">?</div>
+            <span>=</span>
+            <span id="eq-a" style="color:var(--neon-green)">?</span>
+        </div>
+
+        <div class="number-line-wrapper">
+            <svg id="jumps-svg"></svg>
+            <div class="line-base"></div>
+            <div class="ticks-container" id="ticks-container"></div>
+        </div>
+
+        <div style="text-align: center;">
+            <button class="btn-confirm" id="btn-next" onclick="newMission()">PROSSIMA MISSIONE</button>
+        </div>
+    </div>
+
+    <div class="celebration" id="victory-text">MISSIONE COMPIUTA!</div>
+
+    <script>
+        let score = 0;
+        let combo = 1;
+        let level = 1;
+        let p, a, correctPassi;
+        let currentJumps = 0;
+        let currentPos = 0;
+        let maxRange = 10;
+
+        function updateStats() {
+            document.getElementById('score').innerText = score;
+            document.getElementById('combo').innerText = 'x' + combo;
+            const levels = ["TERRA", "MARTE", "GIOVE", "NEBULA", "SUPERNOVA"];
+            document.getElementById('level').innerText = levels[Math.min(level-1, 4)];
+        }
+
+        function newMission() {
+            if (score >= 100) { maxRange = 15; level = 2; }
+            if (score >= 250) { maxRange = 20; level = 3; }
+
+            p = Math.floor(Math.random() * (maxRange - 4)) + 4;
+            a = Math.floor(Math.random() * (p - 1));
+            correctPassi = p - a;
+            currentJumps = 0;
+            currentPos = p;
+
+            document.getElementById('eq-p').innerText = p;
+            document.getElementById('eq-a').innerText = a;
+            document.getElementById('eq-steps').innerText = "?";
+            document.getElementById('mission-log').innerHTML = `SISTEMA AGGANCIATO!<br>Salta da <span style="color:var(--neon-blue)">${p}</span> a <span style="color:var(--neon-green)">${a}</span>. Quanti passi farai?`;
+            document.getElementById('btn-next').style.display = 'none';
+            document.getElementById('jumps-svg').innerHTML = '';
+            
+            generateTicks();
+        }
+
+        function generateTicks() {
+            const container = document.getElementById('ticks-container');
+            container.innerHTML = '';
+            for (let i = 0; i <= maxRange; i++) {
+                const t = document.createElement('div');
+                t.className = 'tick';
+                t.innerHTML = `
+                    ${i === p ? '<div class="p-marker">P</div>' : ''}
+                    ${i === a ? '<div class="a-marker">A</div>' : ''}
+                    <div class="planet-dot" style="background:${i===p?'var(--neon-blue)':(i===a?'var(--neon-green)':'white')}"></div>
+                    <div class="tick-num">${i}</div>
+                `;
+                // Gestione touch e click
+                t.addEventListener('touchstart', (e) => { e.preventDefault(); handleJump(i); });
+                t.addEventListener('mousedown', () => handleJump(i));
+                container.appendChild(t);
+            }
+        }
+
+        function handleJump(target) {
+            if (target === currentPos - 1) {
+                const ticks = document.querySelectorAll('.tick');
+                
+                drawArc(
+                    ticks[currentPos].offsetLeft + (ticks[currentPos].offsetWidth / 2),
+                    ticks[target].offsetLeft + (ticks[target].offsetWidth / 2)
+                );
+
+                currentPos = target;
+                currentJumps++;
+                document.getElementById('eq-steps').innerText = currentJumps;
+
+                if (currentPos === a) {
+                    checkVictory();
+                }
+            } else if (target < currentPos - 1 || target > currentPos) {
+                // Feedback errore per salto sbagliato
+                document.getElementById('mission-log').innerHTML = "<span style='color:var(--neon-pink)'>ATTENZIONE! Un solo salto alla volta verso sinistra!</span>";
+                combo = 1;
+                updateStats();
+            }
+        }
+
+        function drawArc(x1, x2) {
+            const svg = document.getElementById('jumps-svg');
+            const path = document.createElementNS("http://www.w3.org/2000/svg", "path");
+            const midX = (x1 + x2) / 2;
+            // Calcolo altezza arco proporzionale
+            const height = 150 - Math.abs(x1 - x2) * 0.2; 
+            path.setAttribute("d", `M ${x1} 160 Q ${midX} ${height} ${x2} 160`);
+            path.setAttribute("stroke", "var(--neon-pink)");
+            path.setAttribute("stroke-width", "5");
+            path.setAttribute("fill", "none");
+            path.setAttribute("stroke-linecap", "round");
+            svg.appendChild(path);
+        }
+
+        function checkVictory() {
+            const victText = document.getElementById('victory-text');
+            victText.style.display = 'block';
+            
+            score += (10 * combo);
+            combo++;
+            updateStats();
+
+            setTimeout(() => {
+                victText.style.display = 'none';
+                document.getElementById('mission-log').innerHTML = "CALCOLO PERFETTO!<br>Hai tracciato la rotta corretta.";
+                document.getElementById('btn-next').style.display = 'inline-block';
+            }, 1500);
+        }
+
+        // Prevenzione zoom involontario su tablet
+        document.addEventListener('gesturestart', function(e) {
+            e.preventDefault();
+        });
+
+        newMission();
+    </script>
+</body>
+</html>
