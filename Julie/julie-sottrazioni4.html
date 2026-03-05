@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
-    <title>Julie Space Math Academy - Tablet Edition</title>
+    <title>Julie Space Math Academy - Challenge Mode</title>
     <link href="https://fonts.googleapis.com/css2?family=Bungee&family=Roboto:wght@400;700&display=swap" rel="stylesheet">
     <style>
         :root {
@@ -12,7 +12,6 @@
             --neon-pink: #ff007f;
             --neon-green: #39ff14;
             --gold: #ffcc00;
-            --tablet-padding: 30px;
         }
 
         body {
@@ -20,16 +19,13 @@
             color: white;
             font-family: 'Roboto', sans-serif;
             margin: 0;
-            padding: 0;
-            overflow-x: hidden;
+            overflow: hidden;
             display: flex;
             flex-direction: column;
             align-items: center;
-            min-height: 100vh;
-            touch-action: manipulation; /* Ottimizza per il tocco */
+            height: 100vh;
         }
 
-        /* Header più compatto per tablet */
         .header {
             text-align: center;
             padding: 15px;
@@ -38,63 +34,61 @@
             border-bottom: 3px solid var(--neon-blue);
         }
 
-        h1 { font-family: 'Bungee', cursive; color: var(--neon-blue); margin: 0; font-size: 2.2rem; text-shadow: 0 0 10px var(--neon-blue); }
+        h1 { font-family: 'Bungee', cursive; color: var(--neon-blue); margin: 0; font-size: 2rem; }
 
-        /* Stats Grid */
         .stats-container {
-            display: grid;
-            grid-template-columns: repeat(3, 1fr);
+            display: flex;
+            justify-content: center;
             gap: 15px;
-            width: 90%;
-            max-width: 800px;
-            margin: 20px auto;
+            margin: 15px 0;
+            width: 95%;
         }
 
         .stat-box {
             background: #1a1f29;
-            padding: 15px;
-            border-radius: 15px;
+            padding: 10px;
+            border-radius: 12px;
             border: 2px solid var(--neon-blue);
+            flex: 1;
+            max-width: 180px;
             text-align: center;
         }
 
-        .stat-label { font-size: 0.9rem; color: #aaa; display: block; font-family: 'Bungee'; }
-        .stat-value { font-size: 1.8rem; color: var(--gold); font-family: 'Bungee'; }
+        .stat-label { font-size: 0.7rem; color: #aaa; font-family: 'Bungee'; }
+        .stat-value { font-size: 1.4rem; color: var(--gold); font-family: 'Bungee'; }
 
-        /* Area di Gioco */
         .game-area {
-            background: rgba(255, 255, 255, 0.03);
-            width: 92%;
-            max-width: 1100px;
-            border-radius: 30px;
-            padding: var(--tablet-padding);
-            box-sizing: border-box;
-            margin-bottom: 40px;
+            background: rgba(255, 255, 255, 0.02);
+            width: 95%;
+            height: 70%;
+            border-radius: 25px;
+            padding: 20px;
+            display: flex;
+            flex-direction: column;
+            justify-content: space-around;
             box-shadow: 0 0 40px rgba(0, 212, 255, 0.1);
+            position: relative;
         }
 
         .mission-text {
-            font-size: 1.4rem;
+            font-size: 1.6rem;
             text-align: center;
-            margin-bottom: 30px;
-            min-height: 50px;
-            line-height: 1.4;
+            min-height: 3.5rem;
+            font-weight: bold;
         }
 
-        /* Display Equazione */
         .equation-display {
             font-family: 'Bungee', cursive;
-            font-size: 4.5rem;
+            font-size: 5rem;
             display: flex;
             justify-content: center;
             align-items: center;
             gap: 25px;
-            margin: 30px 0;
         }
 
         .passi-box {
-            width: 120px;
-            height: 120px;
+            width: 110px;
+            height: 110px;
             border: 5px solid var(--neon-pink);
             display: flex;
             justify-content: center;
@@ -106,28 +100,23 @@
         }
 
         @keyframes pulse {
-            0% { transform: scale(1); }
+            0% { transform: scale(1); box-shadow: 0 0 0px var(--neon-pink); }
             50% { transform: scale(1.05); box-shadow: 0 0 25px var(--neon-pink); }
-            100% { transform: scale(1); }
+            100% { transform: scale(1); box-shadow: 0 0 0px var(--neon-pink); }
         }
 
-        /* Linea dei Numeri - Ottimizzata per il tocco */
         .number-line-wrapper {
             position: relative;
-            margin: 100px 0 80px 0;
-            padding: 0 20px;
-            height: 60px;
+            margin: 20px 10px 120px 10px;
+            height: 40px;
         }
 
         .line-base {
             height: 8px;
-            background: linear-gradient(90deg, transparent, var(--neon-blue), transparent);
+            background: linear-gradient(90deg, transparent, #444, transparent);
             width: 100%;
             position: absolute;
-            top: 50%;
-            left: 0;
-            transform: translateY(-50%);
-            border-radius: 4px;
+            top: 10px;
         }
 
         .ticks-container {
@@ -141,45 +130,30 @@
             display: flex;
             flex-direction: column;
             align-items: center;
+            width: 60px;
             cursor: pointer;
-            width: 60px; /* Più largo per facilitare il touch */
-            -webkit-tap-highlight-color: transparent;
         }
 
         .planet-dot {
-            width: 24px; /* Più grande */
+            width: 24px;
             height: 24px;
             background: white;
             border-radius: 50%;
-            box-shadow: 0 0 15px white;
-            margin-bottom: 20px;
-            transition: transform 0.2s;
+            box-shadow: 0 0 10px white;
+            margin-bottom: 10px;
         }
 
-        .tick:active .planet-dot { transform: scale(1.4); }
-
-        .tick-num { font-family: 'Bungee', cursive; font-size: 1.5rem; }
-
-        .p-marker, .a-marker {
-            position: absolute;
-            top: -70px;
-            font-family: 'Bungee', cursive;
-            font-size: 2rem;
-            animation: float 2s infinite ease-in-out;
-        }
-        .p-marker { color: var(--neon-blue); }
-        .a-marker { color: var(--neon-green); }
+        .tick-num { font-family: 'Bungee', cursive; font-size: 1.6rem; color: #fff; }
 
         #jumps-svg {
             position: absolute;
-            top: -120px;
+            top: 25px;
             left: 0;
             width: 100%;
-            height: 180px;
+            height: 150px;
             pointer-events: none;
         }
 
-        /* Bottone Grande per Tablet */
         .btn-confirm {
             background: var(--neon-green);
             color: black;
@@ -189,35 +163,53 @@
             font-size: 1.8rem;
             border-radius: 60px;
             cursor: pointer;
-            box-shadow: 0 10px 0 #28b80d;
-            transition: all 0.2s;
             display: none;
-            margin: 20px auto;
-        }
-
-        .btn-confirm:active {
-            transform: translateY(5px);
-            box-shadow: 0 5px 0 #28b80d;
+            box-shadow: 0 8px 0 #28b80e;
         }
 
         .celebration {
             position: fixed;
-            top: 50%;
+            top: 40%;
             left: 50%;
             transform: translate(-50%, -50%);
-            font-size: 4rem;
-            text-align: center;
+            font-size: 4.5rem;
             font-family: 'Bungee', cursive;
             color: var(--gold);
             z-index: 100;
             display: none;
+            text-align: center;
             text-shadow: 0 0 30px var(--gold);
-            width: 80%;
         }
 
-        @keyframes float {
-            0%, 100% { transform: translateY(0); }
-            50% { transform: translateY(-15px); }
+        /* Stile per il Premio Speciale (Foto di Julie) */
+        #special-reward {
+            position: fixed;
+            top: 50%;
+            left: 50%;
+            transform: translate(-50%, -50%);
+            z-index: 200;
+            display: none;
+            text-align: center;
+            background: rgba(0, 0, 0, 0.95);
+            padding: 30px;
+            border: 8px solid var(--gold);
+            border-radius: 40px;
+            box-shadow: 0 0 100px var(--gold);
+        }
+
+        #special-reward img {
+            max-width: 80vw;
+            max-height: 55vh;
+            border-radius: 20px;
+            border: 4px solid white;
+        }
+
+        #special-reward p {
+            font-family: 'Bungee', cursive;
+            color: var(--gold);
+            font-size: 2rem;
+            margin-top: 20px;
+            text-shadow: 2px 2px 0px #000;
         }
     </style>
 </head>
@@ -243,7 +235,7 @@
     </div>
 
     <div class="game-area">
-        <div class="mission-text" id="mission-log">Inizializzazione...</div>
+        <div class="mission-text" id="mission-log">Caricamento coordinate...</div>
 
         <div class="equation-display">
             <span id="eq-p" style="color:var(--neon-blue)">?</span>
@@ -259,17 +251,23 @@
             <div class="ticks-container" id="ticks-container"></div>
         </div>
 
-        <div style="text-align: center;">
+        <center>
             <button class="btn-confirm" id="btn-next" onclick="newMission()">PROSSIMA MISSIONE</button>
-        </div>
+        </center>
     </div>
 
-    <div class="celebration" id="victory-text">MISSIONE COMPIUTA!</div>
+    <div class="celebration" id="victory-text">MISSIONE<br>COMPIUTA!!</div>
+
+    <div id="special-reward">
+        <img src="JulieAstronauta.jpg" alt="Julie Astronauta">
+        <p>SUPER JULIE!<br>5 MISSIONI COMPLETATE!</p>
+    </div>
 
     <script>
         let score = 0;
         let combo = 1;
         let level = 1;
+        let missionsCompleted = 0; // Contatore per la foto premio
         let p, a, correctPassi;
         let currentJumps = 0;
         let currentPos = 0;
@@ -283,11 +281,12 @@
         }
 
         function newMission() {
-            if (score >= 100) { maxRange = 15; level = 2; }
-            if (score >= 250) { maxRange = 20; level = 3; }
+            if (score >= 50 && score < 150) { maxRange = 15; level = 2; }
+            else if (score >= 150) { maxRange = 20; level = 3; }
 
             p = Math.floor(Math.random() * (maxRange - 4)) + 4;
             a = Math.floor(Math.random() * (p - 1));
+            
             correctPassi = p - a;
             currentJumps = 0;
             currentPos = p;
@@ -295,28 +294,27 @@
             document.getElementById('eq-p').innerText = p;
             document.getElementById('eq-a').innerText = a;
             document.getElementById('eq-steps').innerText = "?";
-            document.getElementById('mission-log').innerHTML = `SISTEMA AGGANCIATO!<br>Salta da <span style="color:var(--neon-blue)">${p}</span> a <span style="color:var(--neon-green)">${a}</span>. Quanti passi farai?`;
+            document.getElementById('mission-log').innerHTML = `Trova la rotta da <span style="color:var(--neon-blue)">${p}</span> a <span style="color:var(--neon-green)">${a}</span>`;
+            
             document.getElementById('btn-next').style.display = 'none';
             document.getElementById('jumps-svg').innerHTML = '';
             
             generateTicks();
+            updateStats();
         }
 
         function generateTicks() {
             const container = document.getElementById('ticks-container');
             container.innerHTML = '';
+            
             for (let i = 0; i <= maxRange; i++) {
                 const t = document.createElement('div');
                 t.className = 'tick';
                 t.innerHTML = `
-                    ${i === p ? '<div class="p-marker">P</div>' : ''}
-                    ${i === a ? '<div class="a-marker">A</div>' : ''}
-                    <div class="planet-dot" style="background:${i===p?'var(--neon-blue)':(i===a?'var(--neon-green)':'white')}"></div>
+                    <div class="planet-dot"></div>
                     <div class="tick-num">${i}</div>
                 `;
-                // Gestione touch e click
-                t.addEventListener('touchstart', (e) => { e.preventDefault(); handleJump(i); });
-                t.addEventListener('mousedown', () => handleJump(i));
+                t.onclick = () => handleJump(i);
                 container.appendChild(t);
             }
         }
@@ -325,7 +323,7 @@
             if (target === currentPos - 1) {
                 const ticks = document.querySelectorAll('.tick');
                 
-                drawArc(
+                drawLowerArc(
                     ticks[currentPos].offsetLeft + (ticks[currentPos].offsetWidth / 2),
                     ticks[target].offsetLeft + (ticks[target].offsetWidth / 2)
                 );
@@ -337,21 +335,18 @@
                 if (currentPos === a) {
                     checkVictory();
                 }
-            } else if (target < currentPos - 1 || target > currentPos) {
-                // Feedback errore per salto sbagliato
-                document.getElementById('mission-log').innerHTML = "<span style='color:var(--neon-pink)'>ATTENZIONE! Un solo salto alla volta verso sinistra!</span>";
+            } else if (target < currentPos - 1) {
+                document.getElementById('mission-log').innerText = "Errore di rotta! Un pianeta alla volta!";
                 combo = 1;
                 updateStats();
             }
         }
 
-        function drawArc(x1, x2) {
+        function drawLowerArc(x1, x2) {
             const svg = document.getElementById('jumps-svg');
             const path = document.createElementNS("http://www.w3.org/2000/svg", "path");
             const midX = (x1 + x2) / 2;
-            // Calcolo altezza arco proporzionale
-            const height = 150 - Math.abs(x1 - x2) * 0.2; 
-            path.setAttribute("d", `M ${x1} 160 Q ${midX} ${height} ${x2} 160`);
+            path.setAttribute("d", `M ${x1} 10 Q ${midX} 90 ${x2} 10`);
             path.setAttribute("stroke", "var(--neon-pink)");
             path.setAttribute("stroke-width", "5");
             path.setAttribute("fill", "none");
@@ -361,25 +356,37 @@
 
         function checkVictory() {
             const victText = document.getElementById('victory-text');
+            const reward = document.getElementById('special-reward');
+            
             victText.style.display = 'block';
             
             score += (10 * combo);
             combo++;
-            updateStats();
+            missionsCompleted++;
 
             setTimeout(() => {
                 victText.style.display = 'none';
-                document.getElementById('mission-log').innerHTML = "CALCOLO PERFETTO!<br>Hai tracciato la rotta corretta.";
-                document.getElementById('btn-next').style.display = 'inline-block';
+                
+                // Se siamo alla quinta missione, mostriamo Julie!
+                if (missionsCompleted === 5) {
+                    reward.style.display = 'block';
+                    
+                    // Mostra la foto per 5 secondi prima di permettere la prossima missione
+                    setTimeout(() => {
+                        reward.style.display = 'none';
+                        document.getElementById('mission-log').innerText = "ECCELLENTE! Continuiamo l'esplorazione?";
+                        document.getElementById('btn-next').style.display = 'inline-block';
+                        // Resettiamo il contatore se vuoi che la foto riappaia ogni 5 missioni
+                        // missionsCompleted = 0; 
+                    }, 5000);
+                } else {
+                    document.getElementById('mission-log').innerText = "SISTEMA AGGIORNATO! Prossimo salto?";
+                    document.getElementById('btn-next').style.display = 'inline-block';
+                }
             }, 1500);
         }
 
-        // Prevenzione zoom involontario su tablet
-        document.addEventListener('gesturestart', function(e) {
-            e.preventDefault();
-        });
-
-        newMission();
+        window.onload = newMission;
     </script>
 </body>
 </html>
