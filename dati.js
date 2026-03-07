@@ -1,5 +1,11 @@
 const GIOCHI_DATA = [
   {
+    "name": "Chris-Simulatore-Macchina.html",
+    "path": "Chris/Chris-Simulatore-Macchina.html",
+    "category": "Chris",
+    "updatedAt": 1772905443349
+  },
+  {
     "name": "julie-sottrazioni4.html",
     "path": "Julie/julie-sottrazioni4.html",
     "category": "Julie",

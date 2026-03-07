@@ -1,0 +1,320 @@
+<!DOCTYPE html>
+<html lang="it">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+    <title>Corsa di Chris</title>
+    <style>
+        body {
+            margin: 0;
+            overflow: hidden;
+            background-color: #2c3e50;
+            font-family: 'Arial', sans-serif;
+            touch-action: none; /* Previene lo scroll su tablet */
+            user-select: none;
+        }
+
+        /* Schermo di gioco */
+        #gameCanvas {
+            display: block;
+            width: 100vw;
+            height: 70vh;
+            background: #7f8c8d;
+            border-bottom: 5px solid #ecf0f1;
+        }
+
+        /* Cruscotto e Volante */
+        #dashboard {
+            height: 30vh;
+            background: #1a252f;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            position: relative;
+            box-shadow: inset 0 10px 20px rgba(0,0,0,0.5);
+        }
+
+        #steering-wheel {
+            width: 180px;
+            height: 180px;
+            background: radial-gradient(#34495e, #2c3e50);
+            border-radius: 50%;
+            border: 20px solid #e74c3c;
+            position: absolute;
+            bottom: 2vh;
+            box-shadow: 0 10px 25px rgba(0,0,0,0.8);
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            transition: transform 0.1s ease-out;
+        }
+
+        /* Clacson */
+        #horn {
+            width: 70px;
+            height: 70px;
+            background: #2c3e50;
+            border-radius: 50%;
+            border: 4px solid #7f8c8d;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            color: #ecf0f1;
+            font-weight: bold;
+            font-size: 14px;
+            cursor: pointer;
+        }
+
+        #horn:active {
+            background: #e74c3c;
+            transform: scale(0.95);
+        }
+
+        /* Interfaccia utente */
+        #ui {
+            position: absolute;
+            top: 15px;
+            left: 20px;
+            color: #fff;
+            font-size: 28px;
+            font-weight: bold;
+            text-shadow: 2px 2px 4px rgba(0,0,0,0.8);
+            z-index: 10;
+        }
+
+        /* Animazione Spider-Man */
+        #spiderman {
+            position: absolute;
+            top: -200px;
+            left: 50%;
+            transform: translateX(-50%);
+            font-size: 100px;
+            z-index: 20;
+            transition: top 0.5s cubic-bezier(0.175, 0.885, 0.32, 1.275);
+            text-align: center;
+        }
+        
+        #spiderman-text {
+            font-size: 30px;
+            color: #e74c3c;
+            text-shadow: -2px -2px 0 #fff, 2px -2px 0 #fff, -2px 2px 0 #fff, 2px 2px 0 #fff;
+            font-weight: 900;
+            display: block;
+        }
+
+        .show-spidey {
+            top: 50px !important;
+        }
+    </style>
+</head>
+<body>
+
+    <div id="ui">Punti: <span id="score">0</span></div>
+    
+    <div id="spiderman">
+        🕷️🦸‍♂️
+        <span id="spiderman-text">VAI CHRIS!</span>
+    </div>
+
+    <canvas id="gameCanvas"></canvas>
+    
+    <div id="dashboard">
+        <div id="steering-wheel">
+            <div id="horn">BEEP!</div>
+        </div>
+    </div>
+
+    <script>
+        const canvas = document.getElementById('gameCanvas');
+        const ctx = canvas.getContext('2d');
+        const wheel = document.getElementById('steering-wheel');
+        const horn = document.getElementById('horn');
+        const scoreElement = document.getElementById('score');
+        const spiderman = document.getElementById('spiderman');
+
+        // Adatta il canvas allo schermo
+        function resizeCanvas() {
+            canvas.width = window.innerWidth;
+            canvas.height = window.innerHeight * 0.7;
+        }
+        window.addEventListener('resize', resizeCanvas);
+        resizeCanvas();
+
+        // Variabili di gioco
+        let score = 0;
+        let speed = 4;
+        let linesOffset = 0;
+        let obstacles = [];
+        let gameActive = true;
+        let spideyCooldown = false;
+
+        // Auto di Chris
+        const car = {
+            x: canvas.width / 2,
+            y: canvas.height - 100,
+            width: 60,
+            height: 100,
+            vx: 0
+        };
+
+        // Controlli Touch per il Volante
+        let startTouchX = 0;
+        let currentRotation = 0;
+
+        wheel.addEventListener('touchstart', (e) => {
+            startTouchX = e.touches[0].clientX;
+        });
+
+        wheel.addEventListener('touchmove', (e) => {
+            e.preventDefault(); // Evita scroll accidentali
+            let deltaX = e.touches[0].clientX - startTouchX;
+            // Limita la rotazione a 90 gradi a destra e sinistra
+            currentRotation = Math.max(-90, Math.min(90, deltaX)); 
+            wheel.style.transform = `rotate(${currentRotation}deg)`;
+            
+            // La velocità orizzontale dell'auto dipende dalla rotazione del volante
+            car.vx = currentRotation * 0.15; 
+        }, {passive: false});
+
+        wheel.addEventListener('touchend', () => {
+            // Torna al centro quando si lascia il volante
+            currentRotation = 0;
+            wheel.style.transform = `rotate(0deg)`;
+            car.vx = 0;
+        });
+
+        // Effetto Clacson
+        horn.addEventListener('touchstart', (e) => {
+            e.preventDefault();
+            // Aggiungere un suono qui se lo si desidera
+            console.log("BEEP!");
+        });
+
+        // Generazione Ostacoli
+        function spawnObstacle() {
+            if (!gameActive) return;
+            const size = 50;
+            const x = Math.random() * (canvas.width - size * 2) + size;
+            obstacles.push({ x: x, y: -size, width: size, height: size });
+            
+            // Difficoltà progressiva: ostacoli più frequenti
+            let spawnRate = Math.max(800, 2000 - (score * 50));
+            setTimeout(spawnObstacle, spawnRate);
+        }
+
+        // Trigger Spider-Man
+        function checkSpidermanEvent() {
+            if (score > 0 && score % 5 === 0 && !spideyCooldown) {
+                spideyCooldown = true;
+                spiderman.classList.add('show-spidey');
+                
+                // Nascondi Spider-Man dopo 2.5 secondi
+                setTimeout(() => {
+                    spiderman.classList.remove('show-spidey');
+                }, 2500);
+
+                // Evita che riappaia immediatamente
+                setTimeout(() => {
+                    spideyCooldown = false;
+                }, 5000);
+            }
+        }
+
+        // Loop principale del gioco
+        function update() {
+            if (!gameActive) return;
+
+            // Pulisci il canvas
+            ctx.clearRect(0, 0, canvas.width, canvas.height);
+
+            // Disegna l'asfalto e le linee stradali
+            ctx.fillStyle = '#95a5a6';
+            ctx.fillRect(0, 0, canvas.width, canvas.height);
+            
+            ctx.fillStyle = '#fff';
+            linesOffset += speed;
+            if (linesOffset > 60) linesOffset = 0;
+            
+            for (let i = -60; i < canvas.height; i += 60) {
+                ctx.fillRect(canvas.width / 2 - 5, i + linesOffset, 10, 30);
+                // Linee laterali
+                ctx.fillRect(20, i + linesOffset, 10, 40);
+                ctx.fillRect(canvas.width - 30, i + linesOffset, 10, 40);
+            }
+
+            // Aggiorna posizione auto
+            car.x += car.vx;
+            // Limiti del bordo strada
+            if (car.x < 30) car.x = 30;
+            if (car.x > canvas.width - car.width - 30) car.x = canvas.width - car.width - 30;
+
+            // Disegna l'auto di Chris (usiamo un'emoji per semplicità visiva)
+            ctx.font = '70px Arial';
+            ctx.fillText('🏎️', car.x, car.y + 50);
+
+            // Aggiorna e disegna ostacoli
+            for (let i = 0; i < obstacles.length; i++) {
+                let obs = obstacles[i];
+                obs.y += speed;
+
+                // Emoji per ostacoli
+                ctx.font = '50px Arial';
+                ctx.fillText('🚧', obs.x, obs.y + 40);
+
+                // Collision Detection semplificata
+                if (car.x < obs.x + obs.width - 10 &&
+                    car.x + car.width - 10 > obs.x &&
+                    car.y < obs.y + obs.height - 10 &&
+                    car.height + car.y - 10 > obs.y) {
+                    gameOver();
+                }
+
+                // Incrementa punteggio se superato
+                if (obs.y > canvas.height && !obs.passed) {
+                    obs.passed = true;
+                    score++;
+                    scoreElement.innerText = score;
+                    speed += 0.1; // Aumenta leggermente la velocità
+                    checkSpidermanEvent();
+                }
+            }
+
+            // Rimuovi ostacoli vecchi
+            obstacles = obstacles.filter(obs => obs.y < canvas.height + 100);
+
+            requestAnimationFrame(update);
+        }
+
+        function gameOver() {
+            gameActive = false;
+            ctx.fillStyle = 'rgba(0, 0, 0, 0.7)';
+            ctx.fillRect(0, 0, canvas.width, canvas.height);
+            ctx.fillStyle = '#fff';
+            ctx.font = 'bold 40px Arial';
+            ctx.textAlign = 'center';
+            ctx.fillText('BOM!', canvas.width / 2, canvas.height / 2 - 20);
+            ctx.font = '20px Arial';
+            ctx.fillText('Tocca il volante per riprovare', canvas.width / 2, canvas.height / 2 + 30);
+            
+            // Reset toccando il volante
+            wheel.addEventListener('touchstart', resetGame, {once: true});
+        }
+
+        function resetGame() {
+            score = 0;
+            speed = 4;
+            scoreElement.innerText = score;
+            obstacles = [];
+            car.x = canvas.width / 2;
+            gameActive = true;
+            ctx.textAlign = 'left';
+            update();
+            spawnObstacle();
+        }
+
+        // Avvia il gioco
+        update();
+        setTimeout(spawnObstacle, 1000);
+    </script>
+</body>
+</html>
