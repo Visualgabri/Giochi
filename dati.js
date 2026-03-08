@@ -1,5 +1,11 @@
 const GIOCHI_DATA = [
   {
+    "name": "Chris-Simulatore-Macchina.html",
+    "path": "Chris/Chris-Simulatore-Macchina.html",
+    "category": "Chris",
+    "updatedAt": 1772989887063.49
+  },
+  {
     "name": "Julie-Sottrazioni6.html",
     "path": "Julie/Julie-Sottrazioni6.html",
     "category": "Julie",
@@ -16,12 +22,6 @@ const GIOCHI_DATA = [
     "path": "Julie/julie-sottrazioni5.html",
     "category": "Julie",
     "updatedAt": 1772989389590.644
-  },
-  {
-    "name": "Chris-Simulatore-Macchina.html",
-    "path": "Chris/Chris-Simulatore-Macchina.html",
-    "category": "Chris",
-    "updatedAt": 1772907385685.811
   },
   {
     "name": "julie-sottrazioni4.html",

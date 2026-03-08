@@ -3,21 +3,19 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
-    <title>Super Corsa Prospettica per Chris</title>
+    <title>Corsa Infinita per Chris</title>
     <style>
         body { margin: 0; overflow: hidden; background-color: #2c3e50; font-family: 'Verdana', sans-serif; touch-action: none; user-select: none; }
 
-        /* Schermo di gioco con prospettiva */
         #gameCanvas {
             display: block;
             width: 100vw;
-            height: 60vh; /* Ridotto leggermente per far spazio al volante gigante */
-            background: linear-gradient(to bottom, #44afe3 0%, #44afe3 50%, #7f8c8d 50%, #7f8c8d 100%); /* Cielo e strada base */
+            height: 60vh;
+            background: linear-gradient(to bottom, #44afe3 0%, #44afe3 50%, #7f8c8d 50%, #7f8c8d 100%);
         }
 
-        /* Cruscotto GIGANTE */
         #dashboard {
-            height: 40vh; /* Più alto */
+            height: 40vh;
             background: linear-gradient(#2c3e50, #1a252f);
             display: flex;
             justify-content: center;
@@ -27,13 +25,12 @@
             border-top: 4px solid #34495e;
         }
 
-        /* Volante molto più grande */
         #steering-wheel {
-            width: 280px; /* Quasi raddoppiato */
+            width: 280px;
             height: 280px;
             background: radial-gradient(#34495e, #1a252f);
             border-radius: 50%;
-            border: 30px solid #c0392b; /* Bordo più spesso e scuro */
+            border: 30px solid #c0392b;
             position: absolute;
             bottom: 5vh;
             box-shadow: 0 15px 35px rgba(0,0,0,0.8);
@@ -61,34 +58,22 @@
         }
         #wheel-hub:active { background: #e74c3c; transform: scale(0.95); }
 
-        /* UI */
         #ui { position: absolute; top: 20px; left: 20px; color: #fff; font-size: 32px; font-weight: bold; text-shadow: 2px 2px 4px #000; z-index: 10; background: rgba(0,0,0,0.3); padding: 5px 15px; border-radius: 10px; }
         #speedo { position: absolute; top: 20px; right: 20px; color: #f1c40f; font-size: 24px; font-weight: bold; z-index: 10; text-align: right;}
 
-        /* Spider-Man */
         #spiderman { position: absolute; top: -250px; left: 50%; transform: translateX(-50%); font-size: 120px; z-index: 20; transition: top 0.5s cubic-bezier(0.175, 0.885, 0.32, 1.275); text-align: center; }
         #spiderman-text { font-size: 35px; color: #e74c3c; text-shadow: -2px -2px 0 #fff, 2px -2px 0 #fff, -2px 2px 0 #fff, 2px 2px 0 #fff; font-weight: 900; display: block; margin-top: -20px;}
         .show-spidey { top: 30px !important; }
-
-        /* Overlay Game Over */
-        #overlay { position: fixed; top: 0; left: 0; width: 100%; height: 60vh; background: rgba(0,0,0,0.8); display: none; justify-content: center; align-items: center; flex-direction: column; color: white; z-index: 30; }
-        #overlay h1 { font-size: 60px; color: #e74c3c; margin: 0; }
-        #overlay p { font-size: 24px; }
     </style>
 </head>
 <body>
 
     <div id="ui">Chris: <span id="score">0</span></div>
-    <div id="speedo">VELOCITÀ<br><span id="speed-val">0</span> km/h</div>
+    <div id="speedo">VELOCITÀ<br><span id="speed-val">100</span> km/h</div>
     
-    <div id="overlay">
-        <h1>BUM! 💥</h1>
-        <p>Tocca il volante gigante per riprovare</p>
-    </div>
-
     <div id="spiderman">
         🤟🦸‍♂️🤟
-        <span id="spiderman-text">GRANDE CHRIS!</span>
+        <span id="spiderman-text">VAI CHRIS!</span>
     </div>
 
     <canvas id="gameCanvas"></canvas>
@@ -100,7 +85,6 @@
     </div>
 
     <script>
-        // --- CONFIGURAZIONE AUDIO (WEB AUDIO API) ---
         const audioCtx = new (window.AudioContext || window.webkitAudioContext)();
         let engineOsc = null;
         let engineGain = null;
@@ -110,12 +94,11 @@
             if (audioStarted) return;
             audioStarted = true;
             
-            // Motore (Oscillatore continuo)
             engineOsc = audioCtx.createOscillator();
             engineGain = audioCtx.createGain();
-            engineOsc.type = 'sawtooth'; // Suono ruvido da motore
-            engineOsc.frequency.setValueAtTime(50, audioCtx.currentTime); // Frequenza base bassa
-            engineGain.gain.setValueAtTime(0.05, audioCtx.currentTime); // Volume basso
+            engineOsc.type = 'sawtooth';
+            engineOsc.frequency.setValueAtTime(50, audioCtx.currentTime);
+            engineGain.gain.setValueAtTime(0.05, audioCtx.currentTime);
             
             engineOsc.connect(engineGain);
             engineGain.connect(audioCtx.destination);
@@ -123,11 +106,9 @@
         }
 
         function updateEngineSound(currentSpeed) {
-            if (!audioStarted || !gameActive) return;
-            // Aumenta la frequenza del motore in base alla velocità
+            if (!audioStarted) return;
             let freq = 50 + (currentSpeed * 5);
             engineOsc.frequency.setTargetAtTime(freq, audioCtx.currentTime, 0.1);
-            // Aumenta leggermente il volume
             let vol = 0.05 + (currentSpeed * 0.005);
             engineGain.gain.setTargetAtTime(vol, audioCtx.currentTime, 0.1);
         }
@@ -139,8 +120,8 @@
             const gainNode = audioCtx.createGain();
             
             osc1.type = 'triangle'; osc2.type = 'triangle';
-            osc1.frequency.setValueAtTime(440, audioCtx.currentTime); // Nota La
-            osc2.frequency.setValueAtTime(660, audioCtx.currentTime); // Nota Mi (quinta)
+            osc1.frequency.setValueAtTime(440, audioCtx.currentTime);
+            osc2.frequency.setValueAtTime(660, audioCtx.currentTime);
             
             gainNode.gain.setValueAtTime(0.1, audioCtx.currentTime);
             gainNode.gain.exponentialRampToValueAtTime(0.001, audioCtx.currentTime + 0.5);
@@ -165,33 +146,20 @@
             osc.start(); osc.stop(audioCtx.currentTime + 0.2);
         }
 
-        function playCrashSound() {
+        function playBoingSound() {
             if (!audioStarted) return;
-            // Rumore bianco per esplosione
-            const bufferSize = audioCtx.sampleRate * 0.5;
-            const buffer = audioCtx.createBuffer(1, bufferSize, audioCtx.sampleRate);
-            const data = buffer.getChannelData(0);
-            for (let i = 0; i < bufferSize; i++) { data[i] = Math.random() * 2 - 1; }
-            
-            const noise = audioCtx.createBufferSource();
-            noise.buffer = buffer;
-            const noiseGain = audioCtx.createGain();
-            
-            // Filtro per rendere il suono più cupo
-            const filter = audioCtx.createBiquadFilter();
-            filter.type = 'lowpass';
-            filter.frequency.setValueAtTime(400, audioCtx.currentTime);
-
-            noiseGain.gain.setValueAtTime(0.3, audioCtx.currentTime);
-            noiseGain.gain.exponentialRampToValueAtTime(0.001, audioCtx.currentTime + 0.5);
-            
-            noise.connect(filter);
-            filter.connect(noiseGain);
-            noiseGain.connect(audioCtx.destination);
-            noise.start();
+            const osc = audioCtx.createOscillator();
+            const gainNode = audioCtx.createGain();
+            osc.type = 'sine';
+            // Suono che scende di frequenza rapidamente, tipico effetto "boing"
+            osc.frequency.setValueAtTime(400, audioCtx.currentTime);
+            osc.frequency.exponentialRampToValueAtTime(150, audioCtx.currentTime + 0.3);
+            gainNode.gain.setValueAtTime(0.15, audioCtx.currentTime);
+            gainNode.gain.exponentialRampToValueAtTime(0.001, audioCtx.currentTime + 0.3);
+            osc.connect(gainNode); gainNode.connect(audioCtx.destination);
+            osc.start(); osc.stop(audioCtx.currentTime + 0.3);
         }
 
-        // --- LOGICA DI GIOCO ---
         const canvas = document.getElementById('gameCanvas');
         const ctx = canvas.getContext('2d');
         const wheel = document.getElementById('steering-wheel');
@@ -199,7 +167,6 @@
         const scoreElement = document.getElementById('score');
         const speedElement = document.getElementById('speed-val');
         const spiderman = document.getElementById('spiderman');
-        const overlay = document.getElementById('overlay');
 
         function resizeCanvas() {
             canvas.width = window.innerWidth;
@@ -210,67 +177,58 @@
 
         let score = 0;
         let speed = 5;
-        let roadOffset = 0; // Per l'illusione ottica del movimento
+        let roadOffset = 0;
         let obstacles = [];
-        let gameActive = true;
         let spideyCooldown = false;
+        let carBounce = 0; // Controlla il salto della macchina
         
-        // La macchina di Chris è fissa in basso al centro
         const carProps = {
             width: 80,
             height: 110,
             y: canvas.height - 120
         }
 
-        // Prospettiva della strada
-        const horizonY = canvas.height * 0.5; // Linea dell'orizzonte al 50% del canvas
+        const horizonY = canvas.height * 0.5;
         const vanishingPointX = canvas.width / 2;
 
-        // Controlli sterzo
-        let playerXOffset = 0; // Quanto la macchina si discosta dal centro (-1 a 1)
+        let playerXOffset = 0;
         let currentRotation = 0;
 
         wheel.addEventListener('touchstart', (e) => {
-            if (!audioStarted) initAudio(); // Avvia l'audio al primo tocco
+            if (!audioStarted) initAudio();
             startTouchX = e.touches[0].clientX;
         });
 
         wheel.addEventListener('touchmove', (e) => {
             e.preventDefault();
             let deltaX = e.touches[0].clientX - startTouchX;
-            // Rotazione visiva del volante
             currentRotation = Math.max(-130, Math.min(130, deltaX)); 
             wheel.style.transform = `rotate(${currentRotation}deg)`;
-            
-            // Mappa la rotazione alla posizione orizzontale della strada (sterzo)
-            // Più giri il volante, più la strada scorre velocemente di lato
             playerXOffset = currentRotation / 130; 
         }, {passive: false});
 
         wheel.addEventListener('touchend', () => {
             currentRotation = 0;
             wheel.style.transform = `rotate(0deg)`;
-            playerXOffset = 0; // Torna dritto
+            playerXOffset = 0;
         });
 
-        // Clacson
         hornElement.addEventListener('touchstart', (e) => {
             e.preventDefault();
+            if (!audioStarted) initAudio();
             playHorn();
+            // Fai saltare leggermente la macchina quando suona
+            if (carBounce === 0) carBounce = 15; 
         });
 
-        // Generazione Ostacoli
         function spawnObstacle() {
-            if (!gameActive) return;
-            // L'ostacolo nasce piccolissimo all'orizzonte in una corsia casuale
-            const lane = Math.floor(Math.random() * 3) - 1; // -1, 0, 1
+            const lane = Math.floor(Math.random() * 3) - 1;
             obstacles.push({ 
                 lane: lane, 
-                z: 0, // Profondità: 0=orizzonte, 1=vicino al giocatore
-                passed: false 
+                z: 0,
+                passed: false,
+                hit: false // Nuovo stato per gli ostacoli colpiti
             });
-            
-            // Difficoltà cresce con la velocità
             let spawnRate = Math.max(700, 2500 - (speed * 100));
             setTimeout(spawnObstacle, spawnRate);
         }
@@ -284,64 +242,44 @@
             }
         }
 
-        // Funzione helper per disegnare in prospettiva 3D
         function get3DProjection(lane, z, yOffset, sizeBase) {
-            // z va da 0 (orizzonte) a 1 (bottom)
-            // y cresce esponenzialmente per dare senso di velocità vicina
             const pY = horizonY + (z * z) * (canvas.height - horizonY);
-            
-            // La scala aumenta man mano che z si avvicina a 1
-            const scale = 0.1 + (z * 0.9); // da 10% a 100% della grandezza
-            
+            const scale = 0.1 + (z * 0.9);
             const pSize = sizeBase * scale;
-            
-            // Proiezione orizzontale rispetto al punto di fuga e allo sterzo del giocatore
             const roadWidthAtZ = canvas.width * scale;
-            // playerXOffset simula lo spostamento della strada, non della macchina
             const pX = vanishingPointX + (lane * roadWidthAtZ / 3) - (playerXOffset * canvas.width * 0.5 * z);
-            
             return { x: pX, y: pY, size: pSize, scale: scale };
         }
 
-        // Loop principale
         function update() {
-            if (!gameActive) return;
-
-            // Pulisci Canvas (Cielo già disegnato nel CSS background)
             ctx.clearRect(0, canvas.height/2, canvas.width, canvas.height/2);
 
-            // 1. Disegna Strada in Prospettiva
-            ctx.fillStyle = '#7f8c8d'; // Asfalto
+            ctx.fillStyle = '#7f8c8d';
             ctx.beginPath();
-            ctx.moveTo(vanishingPointX - playerXOffset*10, horizonY); // Punto di fuga stretto
-            ctx.lineTo(0, canvas.height); // Bottom Sinistra largo
-            ctx.lineTo(canvas.width, canvas.height); // Bottom Destra largo
+            ctx.moveTo(vanishingPointX - playerXOffset*10, horizonY);
+            ctx.lineTo(0, canvas.height);
+            ctx.lineTo(canvas.width, canvas.height);
             ctx.lineTo(vanishingPointX - playerXOffset*10, horizonY);
             ctx.fill();
 
-            // 2. Linee stradali animate
-            roadOffset += speed * 0.005; // Velocità animazione linee
+            roadOffset += speed * 0.005;
             if (roadOffset > 1) roadOffset = 0;
 
             ctx.lineWidth = 2;
             for (let z = 0; z < 1; z += 0.1) {
                 let zWithOffset = (z + roadOffset) % 1;
-                // Linee tratteggiate centrali
-                let lineP = get3DProjection(0, zWithOffset, 0, 0); // lane=0 è il centro
+                let lineP = get3DProjection(0, zWithOffset, 0, 0);
                 
-                if (zWithOffset > 0.1) { // Non disegnare troppo vicino all'orizzonte
-                    ctx.fillStyle = `rgba(255, 255, 255, ${zWithOffset})`; // Più opaco vicino
-                    const lw = 15 * lineP.scale; // Larghezza linea aumenta
-                    const lh = 50 * lineP.scale; // Altezza linea aumenta
+                if (zWithOffset > 0.1) {
+                    ctx.fillStyle = `rgba(255, 255, 255, ${zWithOffset})`;
+                    const lw = 15 * lineP.scale;
+                    const lh = 50 * lineP.scale;
                     ctx.fillRect(lineP.x - lw/2, lineP.y, lw, lh);
                 }
                 
-                // Bordi strada (erba/terra)
                 ctx.strokeStyle = '#27ae60';
                 ctx.lineWidth = 20 * zWithOffset;
-                // Bordo sinistro
                 let bordeS = get3DProjection(-1.6, zWithOffset, 0, 0);
-                // Bordo destro
                 let bordeD = get3DProjection(1.6, zWithOffset, 0, 0);
                 
                 ctx.beginPath();
@@ -354,110 +292,85 @@
                 ctx.stroke();
             }
 
-            // 3. Disegna Macchina di Chris (Fissa in prospettiva, vista da dietro)
-            // Usiamo rettangoli per una prospettiva migliore dell'emoji
+            // Gestione animazione salto
+            if (carBounce > 0) {
+                carBounce -= 2;
+            } else if (carBounce < 0) {
+                carBounce = 0;
+            }
+
             const carX = canvas.width / 2 - carProps.width / 2;
-            const carY = carProps.y;
+            const currentCarY = carProps.y - carBounce; // Applica il salto
             
-            // Corpo auto
-            ctx.fillStyle = '#e74c3c'; // Rossa
-            ctx.fillRect(carX, carY, carProps.width, carProps.height - 20);
-            // Spoiler
+            ctx.fillStyle = '#e74c3c';
+            ctx.fillRect(carX, currentCarY, carProps.width, carProps.height - 20);
             ctx.fillStyle = '#c0392b';
-            ctx.fillRect(carX - 10, carY + 10, carProps.width + 20, 15);
-            // Lunotto posteriore
+            ctx.fillRect(carX - 10, currentCarY + 10, carProps.width + 20, 15);
             ctx.fillStyle = '#34495e';
-            ctx.fillRect(carX + 10, carY + 30, carProps.width - 20, 30);
-            // Ruote posteriori larghe
+            ctx.fillRect(carX + 10, currentCarY + 30, carProps.width - 20, 30);
             ctx.fillStyle = '#000';
-            ctx.fillRect(carX - 5, carY + carProps.height - 40, 15, 30);
-            ctx.fillRect(carX + carProps.width - 10, carY + carProps.height - 40, 15, 30);
-            // Targa
+            ctx.fillRect(carX - 5, currentCarY + carProps.height - 40, 15, 30);
+            ctx.fillRect(carX + carProps.width - 10, currentCarY + carProps.height - 40, 15, 30);
             ctx.fillStyle = '#f1c40f';
             ctx.font = 'bold 14px Arial'; ctx.textAlign='center';
-            ctx.fillText('CHRIS', canvas.width/2, carY + carProps.height - 15);
+            ctx.fillText('CHRIS', canvas.width/2, currentCarY + carProps.height - 15);
             ctx.textAlign='left';
 
+            obstacles.forEach((obs) => {
+                obs.z += speed * 0.0005;
 
-            // 4. Aggiorna e disegna Ostacoli (Coni stradali)
-            obstacles.forEach((obs, index) => {
-                obs.z += speed * 0.0005; // Avanzano verso il giocatore
-
-                let proj = get3DProjection(obs.lane, obs.z, 0, 60); // Base size 60
+                let proj = get3DProjection(obs.lane, obs.z, 0, 60);
 
                 if (obs.z > 0.1 && obs.z < 1.2) {
-                    // Disegna Cono 3D
-                    ctx.fillStyle = '#e67e22'; // Arancione
-                    ctx.beginPath();
-                    ctx.moveTo(proj.x, proj.y); // Punta
-                    ctx.lineTo(proj.x - proj.size/2, proj.y + proj.size); // Base SX
-                    ctx.lineTo(proj.x + proj.size/2, proj.y + proj.size); // Base DX
-                    ctx.fill();
-                    // Striscia bianca sul cono
-                    ctx.fillStyle = '#fff';
-                    ctx.beginPath();
-                    ctx.moveTo(proj.x - proj.size/4, proj.y + proj.size/2);
-                    ctx.lineTo(proj.x + proj.size/4, proj.y + proj.size/2);
-                    ctx.lineTo(proj.x + proj.size/3, proj.y + proj.size*0.7);
-                    ctx.lineTo(proj.x - proj.size/3, proj.y + proj.size*0.7);
-                    ctx.fill();
-                }
+                    // Se colpito, disegnalo schiacciato o rimpicciolito
+                    const renderSize = obs.hit ? proj.size * 0.2 : proj.size;
+                    const renderY = obs.hit ? proj.y + proj.size * 0.8 : proj.y;
 
-                // Collisione (quando z è vicino a 1, circa altezza auto)
-                if (obs.z > 0.85 && obs.z < 1.05) {
-                    // Controlla se la macchina è nella stessa "corsia apparentemente centrale"
-                    // A causa dello sterzo simulato, il centro auto è sempre width/2
-                    const carTargetLane = playerXOffset * 1.5; // Mappatura approssimativa
+                    ctx.fillStyle = '#e67e22';
+                    ctx.beginPath();
+                    ctx.moveTo(proj.x, renderY);
+                    ctx.lineTo(proj.x - renderSize/2, renderY + renderSize);
+                    ctx.lineTo(proj.x + renderSize/2, renderY + renderSize);
+                    ctx.fill();
                     
-                    if (Math.abs(obs.lane + carTargetLane) < 0.5) {
-                         gameOver();
+                    if (!obs.hit) {
+                        ctx.fillStyle = '#fff';
+                        ctx.beginPath();
+                        ctx.moveTo(proj.x - proj.size/4, proj.y + proj.size/2);
+                        ctx.lineTo(proj.x + proj.size/4, proj.y + proj.size/2);
+                        ctx.lineTo(proj.x + proj.size/3, proj.y + proj.size*0.7);
+                        ctx.lineTo(proj.x - proj.size/3, proj.y + proj.size*0.7);
+                        ctx.fill();
                     }
                 }
 
-                // Punteggio (superato)
-                if (obs.z > 1.05 && !obs.passed) {
+                // Logica collisione divertente
+                if (obs.z > 0.85 && obs.z < 1.05 && !obs.hit) {
+                    const carTargetLane = playerXOffset * 1.5;
+                    if (Math.abs(obs.lane + carTargetLane) < 0.5) {
+                        obs.hit = true;
+                        obs.passed = true; // Così non da punti
+                        playBoingSound();
+                        carBounce = 30; // Fai saltare la macchina in alto!
+                    }
+                }
+
+                if (obs.z > 1.05 && !obs.passed && !obs.hit) {
                     obs.passed = true;
                     score++;
                     scoreElement.innerText = score;
-                    speed = 5 + Math.floor(score / 5); // Aumenta velocità ogni 5 punti
-                    speedElement.innerText = speed * 20; // km/h finti
+                    speed = 5 + Math.floor(score / 5);
+                    speedElement.innerText = (speed * 20) + " km/h";
                     playScoreSound();
                     checkSpidermanEvent();
                 }
             });
 
-            // Rimuovi ostacoli lontani
             obstacles = obstacles.filter(obs => obs.z < 1.3);
-
-            // Audio motore
             updateEngineSound(speed);
-
             requestAnimationFrame(update);
         }
 
-        function gameOver() {
-            gameActive = false;
-            if (engineGain) engineGain.gain.setTargetAtTime(0, audioCtx.currentTime, 0.2); // Spegni motore
-            playCrashSound();
-            overlay.style.display = 'flex';
-            wheel.addEventListener('touchstart', resetGame, {once: true});
-        }
-
-        function resetGame() {
-            score = 0;
-            speed = 5;
-            scoreElement.innerText = score;
-            speedElement.innerText = '100';
-            obstacles = [];
-            playerXOffset = 0;
-            gameActive = true;
-            overlay.style.display = 'none';
-            initAudio(); // Assicura che l'audio sia attivo
-            update();
-            spawnObstacle();
-        }
-
-        // Avvio differito per tablet
         setTimeout(() => {
             update();
             spawnObstacle();
