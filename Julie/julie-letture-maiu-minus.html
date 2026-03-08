@@ -1,0 +1,330 @@
+<!DOCTYPE html>
+<html lang="it">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Il Parco dei Divertimenti di Julie</title>
+<style>
+    /* STILI GENERALI - COLORI E LAYOUT */
+    body {
+        font-family: 'Comic Sans MS', 'Chalkboard SE', 'Marker Felt', sans-serif; /* Font divertenti */
+        background-color: #e0f7fa; /* Celeste chiaro */
+        margin: 0;
+        padding: 20px;
+        color: #333;
+    }
+
+    .main-container {
+        max-width: 800px;
+        margin: auto;
+        background: #fff;
+        padding: 25px;
+        border-radius: 30px;
+        box-shadow: 0 8px 25px rgba(0,0,0,0.15);
+        border: 8px solid #ffeb3b; /* Bordo giallo sole */
+    }
+
+    /* INTESTAZIONE E TITOLO */
+    header {
+        text-align: center;
+        margin-bottom: 30px;
+        background-color: #ffccbc; /* Rosa pallido */
+        padding: 15px;
+        border-radius: 20px;
+    }
+
+    .label-top {
+        font-size: 0.9em;
+        color: #795548;
+        display: block;
+        margin-bottom: 5px;
+    }
+
+    h1 {
+        color: #d32f2f; /* Rosso divertente */
+        text-transform: uppercase;
+        margin: 0;
+        font-size: 2.2em;
+        letter-spacing: 1px;
+    }
+
+    /* BOX DELLE LETTURE */
+    .reading-box {
+        display: flex;
+        align-items: center;
+        margin-bottom: 30px;
+        padding: 20px;
+        background-color: white;
+        border-radius: 20px;
+        box-shadow: 0 4px 10px rgba(0,0,0,0.05);
+    }
+
+    .reading-text {
+        flex: 1;
+        padding-right: 20px;
+    }
+
+    .maiuscolo {
+        font-weight: bold;
+        font-size: 1.3em;
+        color: #1a237e; /* Blu scuro */
+        display: block;
+        margin-bottom: 8px;
+    }
+
+    .minuscolo {
+        font-size: 1.2em;
+        color: #555;
+        display: block;
+        font-style: italic;
+    }
+
+    /* DISEGNI - CREATI CON I MOJI PER MASSIMA COMPATIBILITÀ TABLET */
+    .drawing {
+        font-size: 80px; /* Grandezza disegno */
+        width: 120px;
+        height: 120px;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        background-color: #f1f8e9; /* Verde chiarissimo */
+        border-radius: 50%;
+        border: 4px solid #aed581;
+    }
+
+    /* SEZIONE CACCIA AL TESORO INTERATTIVA */
+    .caccia-sezione {
+        margin-top: 40px;
+        background-color: #fce4ec; /* Rosa chiaro */
+        padding: 25px;
+        border-radius: 25px;
+        border: 5px solid #ec407a;
+        text-align: center;
+    }
+
+    .caccia-title {
+        color: #c2185b;
+        font-size: 1.8em;
+        margin-top: 0;
+        margin-bottom: 10px;
+    }
+
+    .caccia-subtitle {
+        color: #880e4f;
+        margin-bottom: 20px;
+        display: block;
+    }
+
+    /* AREA MAPPA/SOLUZIONE */
+    .map-area {
+        background-color: white;
+        padding: 20px;
+        border-radius: 15px;
+        min-height: 120px;
+        display: flex;
+        flex-wrap: wrap;
+        justify-content: center;
+        gap: 15px;
+        margin-bottom: 25px;
+        border: 3px dashed #ec407a;
+    }
+
+    .letter-pair {
+        font-size: 1.6em;
+        background-color: #eee;
+        padding: 10px 15px;
+        border-radius: 10px;
+        transition: all 0.3s;
+    }
+
+    .letter-pair.found {
+        background-color: #c8e6c9; /* Verde quando trovata */
+        border: 2px solid #4caf50;
+    }
+
+    .found-minuscolo {
+        color: #ff9800; /* Arancione per la minuscola trovata */
+        font-weight: bold;
+        visibility: hidden; /* Nascosta all'inizio */
+    }
+
+    .letter-pair.found .found-minuscolo {
+        visibility: visible; /* Appare quando trovi */
+    }
+
+    /* AREA BOTTONI/LETTERE DA CLICCARE */
+    .options-area {
+        display: flex;
+        flex-wrap: wrap;
+        justify-content: center;
+        gap: 15px;
+    }
+
+    .option-button {
+        font-size: 1.5em;
+        padding: 15px 25px;
+        background-color: #4fc3f7; /* Blu tasti */
+        color: white;
+        border: none;
+        border-radius: 15px;
+        cursor: pointer;
+        box-shadow: 0 4px 0 #0277bd;
+        transition: all 0.1s;
+    }
+
+    .option-button:active {
+        box-shadow: 0 1px 0 #0277bd;
+        transform: translateY(3px);
+    }
+
+    .option-button.correct {
+        background-color: #81c784; /* Verde quando cliccata giusta */
+        box-shadow: 0 4px 0 #2e7d32;
+        cursor: default;
+    }
+
+    /* MESSAGGIO PREMIO */
+    #premio-messaggio {
+        display: none; /* Nascosto */
+        margin-top: 30px;
+        background: #fff9c4;
+        padding: 20px;
+        border-radius: 15px;
+        font-size: 1.5em;
+        color: #f57f17;
+        border: 4px solid #fbc02d;
+    }
+</style>
+</head>
+<body>
+
+<div class="main-container">
+
+    <header>
+        <span class="label-top">STORIE MAGICHE 🌟</span>
+        <h1>Al Parco dei Divertimenti</h1>
+    </header>
+
+    <div class="reading-box" style="border-left: 8px solid #4db6ac;">
+        <div class="reading-text">
+            <span class="maiuscolo">PEPPER SULLA GIOSTRA CHIAMA I BAMBINI.</span>
+            <span class="minuscolo">Pepper sulla giostra chiama i bambini.</span>
+        </div>
+        <div class="drawing" style="background-color: #e0f2f1; border-color: #4db6ac;">🦝🎠</div>
+    </div>
+
+    <div class="reading-box" style="border-left: 8px solid #ffd54f;">
+        <div class="reading-text">
+            <span class="maiuscolo">NINELLA ACCOMPAGNA I BAMBINI A FARE UNA PASSEGGIATA.</span>
+            <span class="minuscolo">Ninella accompagna i bambini a fare una passeggiata.</span>
+        </div>
+        <div class="drawing" style="background-color: #fffde7; border-color: #ffd54f;">🦒🧣</div>
+    </div>
+
+    <div class="reading-box" style="border-left: 8px solid #9575cd;">
+        <div class="reading-text">
+            <span class="maiuscolo">PERLA PREPARA UNA CACCIA AL TESORO MOLTO DIVERTENTE.</span>
+            <span class="minuscolo">Perla prepara una caccia al tesoro molto divertente.</span>
+        </div>
+        <div class="drawing" style="background-color: #f3e5f5; border-color: #9575cd;">🐰🗺️</div>
+    </div>
+
+
+    <div class="caccia-sezione">
+        <h2 class="caccia-title">🕵️‍♀️ Caccia alle Lettere Minuscole! 🕵️‍♀️</h2>
+        <span class="caccia-subtitle">Julie, tocca la lettera minuscola giusta per completare la mappa!</span>
+
+        <div class="map-area" id="map-area">
+            <div class="letter-pair" id="pair-A">A <span class="found-minuscolo">a</span></div>
+            <div class="letter-pair" id="pair-B">B <span class="found-minuscolo">b</span></div>
+            <div class="letter-pair" id="pair-P">P <span class="found-minuscolo">p</span></div>
+            <div class="letter-pair" id="pair-N">N <span class="found-minuscolo">n</span></div>
+            <div class="letter-pair" id="pair-L">L <span class="found-minuscolo">l</span></div>
+        </div>
+
+        <div class="options-area">
+            <button class="option-button" onclick="trovaLettera(this, 'n')">n</button>
+            <button class="option-button" onclick="trovaLettera(this, 'p')">p</button>
+            <button class="option-button" onclick="trovaLettera(this, 'l')">l</button>
+            <button class="option-button" onclick="trovaLettera(this, 'a')">a</button>
+            <button class="option-button" onclick="trovaLettera(this, 'z')">z</button> <button class="option-button" onclick="trovaLettera(this, 'b')">b</button>
+        </div>
+
+        <div id="premio-messaggio">
+            🎉 GRANDIOSO JULIE! 🎉<br>
+            Hai trovato tutte le lettere!<br>
+            Sei una super esploratrice! 💖🏆
+        </div>
+
+    </div>
+
+</div>
+
+<script>
+    // Logica semplice del gioco
+    let lettereTrovateCount = 0;
+    const totaleLettereDaTrovare = 5; // A, B, P, N, L
+
+    function trovaLettera(bottoneCliccato, letteraMinuscola) {
+        // Mappa delle corrispondenze
+        const mappaCoppie = {
+            'a': 'pair-A',
+            'b': 'pair-B',
+            'p': 'pair-P',
+            'n': 'pair-N',
+            'l': 'pair-L'
+        };
+
+        const idCoppia = mappaCoppie[letteraMinuscola];
+
+        // Se la lettera è giusta e non l'abbiamo già trovata
+        if (idCoppia && !bottoneCliccato.classList.contains('correct')) {
+            // 1. Evidenzia la coppia sulla mappa
+            const elementoCoppia = document.getElementById(idCoppia);
+            elementoCoppia.classList.add('found');
+
+            // 2. Rendi il bottone verde e disabilitalo
+            bottoneCliccato.classList.add('correct');
+            bottoneCliccato.style.transform = 'scale(0.9)'; // Piccolo effetto
+
+            // 3. Incrementa il conteggio
+            lettereTrovateCount++;
+
+            // 4. Controlla se ha vinto
+            if (lettereTrovateCount === totaleLettereDaTrovare) {
+                mostraPremio();
+            }
+        } else if (!idCoppia) {
+            // Se clicca la 'z' (intrusa), facciamo una piccola vibrazione visiva
+            bottoneCliccato.style.backgroundColor = '#ef5350'; // Rosso errore temporaneo
+            bottoneCliccato.style.animation = 'shake 0.3s';
+            setTimeout(() => {
+                bottoneCliccato.style.backgroundColor = '#4fc3f7';
+                bottoneCliccato.style.animation = '';
+            }, 500);
+        }
+    }
+
+    function mostraPremio() {
+        // Nascondi i bottoni e mostra il premio dopo un piccolo ritardo
+        setTimeout(() => {
+            document.querySelector('.options-area').style.display = 'none';
+            document.querySelector('.caccia-subtitle').style.display = 'none';
+            document.getElementById('premio-messaggio').style.display = 'block';
+            document.getElementById('map-area').style.borderColor = '#4caf50'; // Bordo mappa verde
+        }, 800);
+    }
+</script>
+
+<style>
+@keyframes shake {
+  0% { transform: translateX(0); }
+  25% { transform: translateX(-5px); }
+  50% { transform: translateX(5px); }
+  75% { transform: translateX(-5px); }
+  100% { transform: translateX(0); }
+}
+</style>
+
+</body>
+</html>
