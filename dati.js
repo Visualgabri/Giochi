@@ -1,5 +1,11 @@
 const GIOCHI_DATA = [
   {
+    "name": "index3.html",
+    "path": "index3.html",
+    "category": "Vari",
+    "updatedAt": 1773567515449.558
+  },
+  {
     "name": "julie-amici-numeri-avanzato.html",
     "path": "Julie/Matematica/julie-amici-numeri-avanzato.html",
     "category": "Matematica",
@@ -186,12 +192,6 @@ const GIOCHI_DATA = [
     "updatedAt": 1768576713664.9185
   },
   {
-    "name": "index3.html",
-    "path": "index3.html",
-    "category": "Vari",
-    "updatedAt": 1768249392192.3394
-  },
-  {
     "name": "julie-amici-del-10.html",
     "path": "Julie/Matematica/julie-amici-del-10.html",
     "category": "Matematica",
@@ -262,12 +262,6 @@ const GIOCHI_DATA = [
     "path": "Bolle Famiglia/bolle-famiglia.html",
     "category": "Bolle Famiglia",
     "updatedAt": 1765726892788.6091
-  },
-  {
-    "name": "index2 (old).html",
-    "path": "index2 (old).html",
-    "category": "Vari",
-    "updatedAt": 1765726572355.5244
   },
   {
     "name": "julie-lettura-notte-2.html",
