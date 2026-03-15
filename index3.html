@@ -2,14 +2,13 @@
 <html lang="it">
 <head>
   <meta charset="UTF-8">
-  <title>Stanza dei Giochi di Chris e Julie</title>
+  <title>Stanza dei Giochi e Area Famiglia</title>
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
   <link rel="icon" type="image/x-icon" href="favicon.ico">
   <script src="dati.js"></script>
   
   <style>
     * { box-sizing: border-box; margin: 0; padding: 0; }
-    
     body {
       font-family: system-ui, -apple-system, sans-serif;
       background: linear-gradient(135deg, #fce4ec, #e3f2fd);
@@ -19,110 +18,72 @@
       align-items: center; 
       min-height: 100vh;
     }
-
     .container { width: 100%; max-width: 1000px; }
-    
     header { text-align: center; margin-bottom: 30px; }
-    h1 { color: #283593; font-size: 2.2rem; margin-bottom: 10px; }
+    h1 { color: #283593; font-size: 2rem; margin-bottom: 10px; }
     
     .status { 
-      background: rgba(255,255,255,0.8); 
-      padding: 8px 15px; 
-      border-radius: 20px; 
-      font-size: 0.85rem; 
-      color: #455a64; 
-      display: inline-block;
-      margin-top: 10px;
+      background: rgba(255,255,255,0.8); padding: 6px 12px; border-radius: 20px; 
+      font-size: 0.8rem; color: #455a64; display: inline-block; margin-top: 5px;
     }
 
-    /* --- MENU INIZIALE --- */
-    #selection-menu {
-      display: flex;
-      gap: 20px;
-      justify-content: center;
-      align-items: center;
-      margin-top: 50px;
-      flex-wrap: wrap;
-    }
-
+    /* MENU PRINCIPALE */
+    #selection-menu { display: flex; gap: 15px; justify-content: center; align-items: center; margin-top: 40px; flex-wrap: wrap; }
     .selector-card {
-      background: white;
-      border-radius: 25px;
-      padding: 30px;
-      width: 250px;
-      text-align: center;
-      cursor: pointer;
-      box-shadow: 0 10px 20px rgba(0,0,0,0.1);
-      transition: all 0.3s ease;
-      border: 4px solid transparent;
+      background: white; border-radius: 20px; padding: 20px; width: 180px; text-align: center;
+      cursor: pointer; box-shadow: 0 8px 15px rgba(0,0,0,0.1); transition: all 0.3s ease; border: 3px solid transparent;
     }
-
-    .selector-card:hover { transform: scale(1.05); }
+    .selector-card:hover { transform: scale(1.03); }
     .selector-card.chris:hover { border-color: #1e88e5; }
     .selector-card.julie:hover { border-color: #ec407a; }
+    .selector-card.famiglia:hover { border-color: #4caf50; }
+    .selector-icon { font-size: 45px; margin-bottom: 10px; }
+    .selector-name { font-size: 1.2rem; font-weight: bold; color: #283593; }
 
-    .selector-icon { font-size: 80px; margin-bottom: 15px; }
-    .selector-name { font-size: 1.8rem; font-weight: bold; color: #283593; }
-
-    /* --- GRIGLIA GIOCHI --- */
-    .category-section { margin-bottom: 40px; width: 100%; display: none; }
-    
+    /* GRIGLIA E SOTTOCARTELLE */
+    .subdir-group { margin-bottom: 30px; background: rgba(255,255,255,0.4); padding: 15px; border-radius: 15px; }
+    .subdir-title { 
+      font-size: 1.1rem; color: #1565c0; margin-bottom: 15px; 
+      display: flex; align-items: center; gap: 8px; text-transform: capitalize; 
+      border-bottom: 2px solid rgba(25,118,210,0.1); padding-bottom: 8px;
+    }
     .back-button {
-      background: #cfd8dc;
-      border: none;
-      padding: 8px 15px;
-      border-radius: 10px;
-      cursor: pointer;
-      margin-bottom: 20px;
-      font-weight: bold;
+      background: white; border: 2px solid #283593; padding: 6px 15px; border-radius: 10px;
+      cursor: pointer; margin-bottom: 20px; font-weight: bold; color: #283593; transition: 0.2s; font-size: 0.85rem;
     }
-
-    .category-title { 
-      font-size: 1.6rem; 
-      color: #1565c0; 
-      margin-bottom: 15px; 
-      border-bottom: 3px solid rgba(25,118,210,0.1); 
-      padding-bottom: 5px; 
-      display: flex;
-      align-items: center;
-      gap: 10px;
-    }
-
-    .games-grid { 
-      display: grid; 
-      grid-template-columns: repeat(auto-fill, minmax(180px, 1fr)); 
-      gap: 20px; 
-    }
-
-    .game-card {
-      background: white; border-radius: 18px; padding: 15px; text-align: center;
-      box-shadow: 0 4px 10px rgba(0,0,0,0.05); transition: transform 0.2s;
-      border: 2px solid transparent; display: flex; flex-direction: column; gap: 8px; position: relative;
-    }
+    .back-button:hover { background: #283593; color: white; }
     
-    .game-card:hover { transform: translateY(-5px); border-color: #64b5f6; }
-
+    /* GRIGLIA GIOCHI - Dimensioni Ridotte */
+    .games-grid { display: grid; grid-template-columns: repeat(auto-fill, minmax(150px, 1fr)); gap: 15px; }
+    .game-card {
+      background: white; border-radius: 15px; padding: 12px; text-align: center;
+      box-shadow: 0 4px 8px rgba(0,0,0,0.05); transition: transform 0.2s;
+      display: flex; flex-direction: column; gap: 6px; position: relative;
+    }
+    .game-card:hover { transform: translateY(-3px); }
+    
     .badge-new {
-      position: absolute; top: -8px; left: -8px; background: #ff5252; color: white;
-      padding: 4px 8px; border-radius: 8px; font-size: 0.65rem; font-weight: bold;
+      position: absolute; top: -6px; left: -6px; background: #ff5252; color: white;
+      padding: 3px 6px; border-radius: 6px; font-size: 0.6rem; font-weight: bold;
       box-shadow: 0 2px 4px rgba(0,0,0,0.2); z-index: 10;
     }
 
-    .game-icon { font-size: 40px; margin-bottom: 5px; }
-    .game-title { font-weight: 700; color: #283593; font-size: 0.95rem; min-height: 2.4em; display: flex; align-items: center; justify-content: center; }
-    .game-date { font-size: 0.7rem; color: #90a4ae; }
+    .game-title { font-weight: 700; color: #283593; font-size: 0.85rem; min-height: 2.2em; display: flex; align-items: center; justify-content: center; line-height: 1.2; }
+    .game-date { font-size: 0.7rem; color: #90a4ae; margin-bottom: 2px; }
     
+    /* PULSANTE APRI - Più piccolo */
     .play-button {
       background: linear-gradient(135deg, #42a5f5, #1976d2); color: white;
-      text-decoration: none; padding: 10px; border-radius: 12px; font-weight: 600;
-      margin-top: auto; font-size: 0.9rem;
+      text-decoration: none; padding: 6px 10px; border-radius: 8px; font-weight: 600; font-size: 0.75rem;
+      transition: opacity 0.2s;
     }
+    .play-button:hover { opacity: 0.9; }
 
     @media (max-width: 600px) {
       .selector-card { width: 140px; padding: 15px; }
-      .selector-icon { font-size: 50px; }
-      .selector-name { font-size: 1.2rem; }
-      .games-grid { grid-template-columns: repeat(auto-fill, minmax(145px, 1fr)); gap: 12px; }
+      .games-grid { grid-template-columns: repeat(2, 1fr); gap: 10px; }
+      .subdir-group { padding: 10px; }
+      h1 { font-size: 1.6rem; }
     }
   </style>
 </head>
@@ -131,13 +92,17 @@
 <div class="container">
   <header>
     <h1>🧸 La Stanza dei Giochi</h1>
-    <div id="status" class="status">Scegli chi sei!</div>
+    <div id="status" class="status">Scegli una cartella!</div>
   </header>
 
   <div id="selection-menu">
     <div class="selector-card chris" onclick="filterGames('Chris')">
       <div class="selector-icon">🐯</div>
       <div class="selector-name">Chris</div>
+    </div>
+    <div class="selector-card famiglia" onclick="filterGames('Vari')">
+      <div class="selector-icon">👨‍👩‍👧‍👦</div>
+      <div class="selector-name">Famiglia</div>
     </div>
     <div class="selector-card julie" onclick="filterGames('Julie')">
       <div class="selector-icon">🦄</div>
@@ -146,20 +111,21 @@
   </div>
 
   <main id="main-content">
-    <button id="btn-back" class="back-button" style="display:none;" onclick="showMenu()">← Torna Indietro</button>
+    <button id="btn-back" class="back-button" style="display:none;" onclick="showMenu()">← Torna al Menu</button>
     <div id="games-display"></div>
   </main>
 </div>
 
 <script>
-  const emojis = ["🎮", "🚀", "🐼", "🐯", "🦄", "🎨", "🧩", "⭐", "🎈", "🐸"];
-  const blacklist = ['index.html', 'index2.html', 'index2 (old).html', 'index3.html', 'dati.js', 'generatore_dati.py', 'style.css', 'README.md'];
+  // ... rest of your script (emojis, blacklist, functions) remains the same ...
+  const emojis = ["🎮", "🚀", "🐼", "🎨", "🧩", "⭐", "🎈", "🐸", "💻", "🧬", "👾", "🤖"];
+  const blacklist = ['index.html', 'index2.html', 'index3.html', 'dati.js', 'style.css', 'generatore_dati.py', 'readme.md'];
 
   function showMenu() {
     document.getElementById('selection-menu').style.display = 'flex';
     document.getElementById('games-display').innerHTML = '';
     document.getElementById('btn-back').style.display = 'none';
-    document.getElementById('status').textContent = "Scegli chi sei!";
+    document.getElementById('status').textContent = "Scegli una cartella!";
   }
 
   function filterGames(category) {
@@ -167,55 +133,79 @@
     const menu = document.getElementById('selection-menu');
     const btnBack = document.getElementById('btn-back');
     const statusEl = document.getElementById('status');
-
+    
     if (typeof GIOCHI_DATA === 'undefined') {
       statusEl.textContent = "Errore: dati.js non trovato.";
       return;
     }
 
-    // Filtra per categoria e file validi
-    const filtered = GIOCHI_DATA.filter(game => {
-      const filename = game.path.split('/').pop().toLowerCase();
-      return game.category.toLowerCase() === category.toLowerCase() && 
-             !blacklist.includes(filename) && 
-             game.path.endsWith('.html');
+    let filtered = GIOCHI_DATA.filter(game => {
+      let pathLower = game.path.toLowerCase();
+      if(pathLower.startsWith('./')) pathLower = pathLower.substring(2);
+      const filename = pathLower.split('/').pop();
+      if (blacklist.includes(filename)) return false;
+      if (!pathLower.endsWith('.html')) return false;
+      if (category === 'Vari') {
+        return !pathLower.includes('chris/') && !pathLower.includes('julie/');
+      } else {
+        return pathLower.includes(`${category.toLowerCase()}/`);
+      }
     });
 
-    // Ordinamento per data
     filtered.sort((a, b) => (b.updatedAt || 0) - (a.updatedAt || 0));
 
-    // UI Updates
-    menu.style.display = 'none';
-    btnBack.style.display = 'block';
-    statusEl.textContent = `${category}: ${filtered.length} giochi trovati`;
+    const groups = {};
+    filtered.forEach(game => {
+      let cleanPath = game.path;
+      if(cleanPath.startsWith('./')) cleanPath = cleanPath.substring(2);
+      let dirPath = "";
+      const lastSlashIndex = cleanPath.lastIndexOf('/');
+      if (lastSlashIndex !== -1) dirPath = cleanPath.substring(0, lastSlashIndex);
 
-    let catIcon = category === "Chris" ? "🐯" : "🦄";
-    
-    let html = `
-      <section class="category-section" style="display:block;">
-        <h2 class="category-title">${catIcon} Giochi di ${category}</h2>
-        <div class="games-grid">
-    `;
-
-    filtered.forEach((game, index) => {
-      const isNew = index < 3; // I primi 3 sono "nuovi" visto l'ordinamento
-      const dateObj = new Date(game.updatedAt);
-      const dateStr = dateObj.toLocaleDateString('it-IT', { day: '2-digit', month: '2-digit' });
-      const displayTitle = game.name.replace('.html', '').replace(/[_-]/g, ' ').trim();
-
-      html += `
-        <div class="game-card">
-          ${isNew ? '<div class="badge-new">NUOVO!</div>' : ''}
-          <div class="game-icon">${emojis[game.name.length % emojis.length]}</div>
-          <div class="game-title">${displayTitle}</div>
-          <div class="game-date">Aggiornato: ${dateStr}</div>
-          <a href="${game.path}" class="play-button" target="_blank">GIOCA ORA</a>
-        </div>
-      `;
+      let groupName = "Principale";
+      if (category === 'Vari') {
+        if (dirPath !== "") groupName = dirPath;
+      } else {
+        const regex = new RegExp(`^.*?${category}/?`, 'i');
+        let subPath = dirPath.replace(regex, '');
+        if (subPath && subPath !== "") groupName = subPath;
+      }
+      if (!groups[groupName]) groups[groupName] = [];
+      groups[groupName].push(game);
     });
 
-    html += `</div></section>`;
-    display.innerHTML = html;
+    menu.style.display = 'none';
+    btnBack.style.display = 'block';
+    statusEl.textContent = `Trovati ${filtered.length} file`;
+    display.innerHTML = '';
+
+    const sortedGroups = Object.keys(groups).sort();
+    sortedGroups.forEach(folderName => {
+      const section = document.createElement('div');
+      section.className = 'subdir-group';
+      let displayFolder = folderName.replace(/\//g, ' / ').replace(/[_-]/g, ' ');
+      let html = `<h3 class="subdir-title">📁 ${displayFolder}</h3><div class="games-grid">`;
+
+      groups[folderName].forEach(game => {
+        const isNew = filtered.indexOf(game) < 3; 
+        const dateObj = new Date(game.updatedAt);
+        const dateStr = dateObj.toLocaleDateString('it-IT', { day: '2-digit', month: '2-digit', year: 'numeric' });
+        const title = game.name.replace('.html', '').replace(/[_-]/g, ' ');
+        
+        html += `
+          <div class="game-card">
+            ${isNew ? '<div class="badge-new">NUOVO!</div>' : ''}
+            <div style="font-size:28px; margin-bottom:3px;">${emojis[game.name.length % emojis.length]}</div>
+            <div class="game-title">${title}</div>
+            <div class="game-date">${dateStr}</div>
+            <a href="${game.path}" class="play-button" target="_blank">APRI</a>
+          </div>
+        `;
+      });
+      html += `</div>`;
+      section.innerHTML = html;
+      display.appendChild(section);
+    });
   }
 </script>
 </body>

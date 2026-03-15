@@ -3,7 +3,7 @@ const GIOCHI_DATA = [
     "name": "index3.html",
     "path": "index3.html",
     "category": "Vari",
-    "updatedAt": 1773567515449.558
+    "updatedAt": 1773568042479.6313
   },
   {
     "name": "julie-amici-numeri-avanzato.html",
@@ -235,13 +235,13 @@ const GIOCHI_DATA = [
   },
   {
     "name": "corsa-chris.html",
-    "path": "Bolle Famiglia/corsa-chris.html",
+    "path": "Chris/Bolle Famiglia/corsa-chris.html",
     "category": "Bolle Famiglia",
     "updatedAt": 1766012493724
   },
   {
     "name": "corsa-chris-computer.html",
-    "path": "Bolle Famiglia/corsa-chris-computer.html",
+    "path": "Chris/Bolle Famiglia/corsa-chris-computer.html",
     "category": "Bolle Famiglia",
     "updatedAt": 1765968318088.4814
   },
@@ -253,13 +253,13 @@ const GIOCHI_DATA = [
   },
   {
     "name": "famiglia-memory.html",
-    "path": "Bolle Famiglia/famiglia-memory.html",
+    "path": "Chris/Bolle Famiglia/famiglia-memory.html",
     "category": "Bolle Famiglia",
     "updatedAt": 1765727060536.3713
   },
   {
     "name": "bolle-famiglia.html",
-    "path": "Bolle Famiglia/bolle-famiglia.html",
+    "path": "Chris/Bolle Famiglia/bolle-famiglia.html",
     "category": "Bolle Famiglia",
     "updatedAt": 1765726892788.6091
   },
