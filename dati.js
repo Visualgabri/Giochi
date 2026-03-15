@@ -1,7 +1,7 @@
 const GIOCHI_DATA = [
   {
-    "name": "index3.html",
-    "path": "index3.html",
+    "name": "index2.html",
+    "path": "index2.html",
     "category": "Vari",
     "updatedAt": 1773568042479.6313
   },
@@ -162,8 +162,8 @@ const GIOCHI_DATA = [
     "updatedAt": 1768759161816.519
   },
   {
-    "name": "index2.html",
-    "path": "index2.html",
+    "name": "indexOld.html",
+    "path": "indexOld.html",
     "category": "Vari",
     "updatedAt": 1768758979817.324
   },
