@@ -1,5 +1,11 @@
 const GIOCHI_DATA = [
   {
+    "name": "julie-amici-numeri-avanzato.html",
+    "path": "Julie/julie-amici-numeri-avanzato.html",
+    "category": "Julie",
+    "updatedAt": 1773521936395
+  },
+  {
     "name": "julie-ascensore-magico.html",
     "path": "Julie/julie-ascensore-magico.html",
     "category": "Julie",
