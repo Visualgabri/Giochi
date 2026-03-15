@@ -1,0 +1,524 @@
+<!DOCTYPE html>
+<html lang="it">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, user-scalable=no">
+    <title>Scarabeo Super Julie 2.0</title>
+    <style>
+        :root {
+            --primary-red: #D32F2F;
+            --tile-white: #FFFFFF;
+            --text-blue: #1565C0;
+            --board-color: #EF5350;
+            --gold: #FFD700;
+        }
+
+        body {
+            font-family: 'Comic Sans MS', 'Chalkboard SE', sans-serif;
+            background-color: var(--primary-red);
+            color: white;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            min-height: 100vh;
+            margin: 0;
+            padding: 10px;
+            overflow-x: hidden;
+            touch-action: manipulation; /* Migliora tocco su tablet */
+        }
+
+        /* HEADER & STATS */
+        .header {
+            width: 100%;
+            max-width: 500px;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-bottom: 10px;
+        }
+
+        .stars-container {
+            font-size: 1.5rem;
+            background: rgba(0,0,0,0.3);
+            padding: 5px 15px;
+            border-radius: 20px;
+            border: 2px solid var(--gold);
+        }
+
+        .level-badge {
+            background: linear-gradient(45deg, #FF6B6B, #FF8E53);
+            padding: 5px 10px;
+            border-radius: 10px;
+            font-weight: bold;
+            font-size: 0.9rem;
+            box-shadow: 0 2px 5px rgba(0,0,0,0.2);
+        }
+
+        /* AREA GIOCO */
+        .game-container {
+            background-color: var(--board-color);
+            border: 5px solid #B71C1C;
+            border-radius: 25px;
+            padding: 15px;
+            width: 95%;
+            max-width: 500px;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            box-shadow: 0 15px 30px rgba(0,0,0,0.4);
+            position: relative;
+            /* Texture griglia */
+            background-image: 
+                linear-gradient(rgba(255,255,255,0.15) 2px, transparent 2px),
+                linear-gradient(90deg, rgba(255,255,255,0.15) 2px, transparent 2px);
+            background-size: 45px 45px;
+        }
+
+        .controls {
+            position: absolute;
+            top: 10px;
+            right: 10px;
+            z-index: 10;
+        }
+
+        .lang-btn {
+            background: white;
+            border: 2px solid #333;
+            border-radius: 50%;
+            width: 40px;
+            height: 40px;
+            font-size: 1.5rem;
+            cursor: pointer;
+            box-shadow: 0 4px 0 rgba(0,0,0,0.2);
+        }
+
+        .lang-btn:active { transform: translateY(2px); box-shadow: none; }
+
+        .image-display {
+            font-size: 5rem; /* Emoji grande */
+            margin: 20px 0 10px 0;
+            filter: drop-shadow(0 5px 5px rgba(0,0,0,0.2));
+            transition: transform 0.3s cubic-bezier(0.175, 0.885, 0.32, 1.275);
+            cursor: pointer;
+        }
+        
+        .image-display:active { transform: scale(1.2) rotate(10deg); }
+
+        /* SLOT E LETTERE */
+        .slots-area {
+            display: flex;
+            gap: 8px;
+            margin: 10px 0 20px 0;
+            min-height: 55px;
+            flex-wrap: wrap;
+            justify-content: center;
+        }
+
+        .slot {
+            width: 45px;
+            height: 45px;
+            background: rgba(0,0,0,0.25);
+            border-radius: 10px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            border: 2px dashed rgba(255,255,255,0.4);
+            font-size: 1.8rem;
+            color: white;
+            cursor: pointer;
+            transition: all 0.2s;
+        }
+
+        .slot.filled {
+            background: white;
+            color: var(--text-blue);
+            border-style: solid;
+            border-color: #ddd;
+            transform: translateY(-2px);
+            box-shadow: 0 4px 0 #ccc;
+        }
+
+        .letters-pool {
+            display: flex;
+            gap: 10px;
+            flex-wrap: wrap;
+            justify-content: center;
+            padding: 15px;
+            background: rgba(0,0,0,0.1);
+            border-radius: 15px;
+            width: 100%;
+            box-sizing: border-box;
+        }
+
+        .tile {
+            width: 48px;
+            height: 48px;
+            background-color: var(--tile-white);
+            color: var(--text-blue);
+            border-radius: 10px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 1.8rem;
+            font-weight: 800;
+            box-shadow: 0 5px 0 #90A4AE;
+            cursor: pointer;
+            user-select: none;
+            transition: transform 0.1s;
+        }
+
+        .tile:active { transform: translateY(5px); box-shadow: 0 0 0; }
+        .tile.used { opacity: 0; pointer-events: none; transform: scale(0); }
+
+        /* MESSAGGI */
+        .message-box {
+            min-height: 40px;
+            font-size: 1.2rem;
+            font-weight: bold;
+            text-align: center;
+            margin-top: 15px;
+            color: #FFEB3B;
+            text-shadow: 2px 2px 0 #D32F2F;
+        }
+
+        .next-btn {
+            display: none;
+            margin-top: 10px;
+            background: #4CAF50;
+            color: white;
+            border: none;
+            padding: 10px 30px;
+            font-size: 1.5rem;
+            border-radius: 50px;
+            cursor: pointer;
+            box-shadow: 0 5px 0 #2E7D32;
+            animation: pulse 1s infinite;
+        }
+
+        @keyframes pulse {
+            0% { transform: scale(1); }
+            50% { transform: scale(1.05); }
+            100% { transform: scale(1); }
+        }
+
+        /* Overlay Level Up */
+        .level-up-overlay {
+            position: fixed;
+            top: 0; left: 0; right: 0; bottom: 0;
+            background: rgba(0,0,0,0.9);
+            display: none;
+            flex-direction: column;
+            align-items: center;
+            justify-content: center;
+            z-index: 1000;
+            color: white;
+            text-align: center;
+        }
+
+        .level-up-overlay h2 { font-size: 3rem; margin: 0; color: #FFD700; }
+        .level-up-overlay p { font-size: 1.5rem; }
+    </style>
+</head>
+<body>
+
+    <div class="header">
+        <div class="level-badge" id="levelDisplay">Livello 1</div>
+        <div class="stars-container">⭐ <span id="score">0</span></div>
+    </div>
+
+    <div class="game-container">
+        <div class="controls">
+            <button class="lang-btn" onclick="toggleLanguage()" id="flagBtn">🇮🇹</button>
+        </div>
+
+        <div class="image-display" id="emojiDisplay" onclick="speakCurrentWord()">🐢</div>
+        
+        <div class="slots-area" id="slotsArea"></div>
+
+        <div class="letters-pool" id="lettersPool"></div>
+
+        <div class="message-box" id="msgBox">Tocca le lettere!</div>
+        <button class="next-btn" id="nextBtn" onclick="nextWord()">AVANTI! 🚀</button>
+    </div>
+
+    <div class="level-up-overlay" id="overlay" onclick="closeOverlay()">
+        <div style="font-size: 5rem;">🏆</div>
+        <h2>SUPER JULIE!</h2>
+        <p id="overlayText">Hai vinto una coppa!</p>
+        <p style="font-size: 1rem; color: #ccc;">(Tocca per continuare)</p>
+    </div>
+
+    <script>
+        // --- DATABASE AGGIORNATO E AMPLIATO ---
+        const fullDatabase = [
+            // FAMIGLIA BELMONTE
+            { it: "JULIE", en: "JULIE", emoji: "👸" },
+            { it: "GABRIELE", en: "DADDY", emoji: "👨‍💻" },
+            { it: "JESSICA", en: "MOMMY", emoji: "👩‍❤️‍💋‍👩" },
+            { it: "CHRISTOPHER", en: "BROTHER", emoji: "👶" },
+            
+            // ANIMALI
+            { it: "LENTO", en: "SLOW", emoji: "🐢" },
+            { it: "TIGRE", en: "TIGER", emoji: "🐯" },
+            { it: "GATTO", en: "CAT", emoji: "🐱" },
+            { it: "CANE", en: "DOG", emoji: "🐶" },
+            { it: "LEONE", en: "LION", emoji: "🦁" },
+            { it: "RANA", en: "FROG", emoji: "🐸" },
+            { it: "ORSO", en: "BEAR", emoji: "🐻" },
+            { it: "APE", en: "BEE", emoji: "🐝" },
+            { it: "PESCE", en: "FISH", emoji: "🐠" },
+
+            // CIBO
+            { it: "GELATO", en: "ICE CREAM", emoji: "🍦" },
+            { it: "MELA", en: "APPLE", emoji: "🍎" },
+            { it: "PIZZA", en: "PIZZA", emoji: "🍕" },
+            { it: "PANE", en: "BREAD", emoji: "🍞" },
+            { it: "LATTE", en: "MILK", emoji: "🥛" },
+            { it: "TORTA", en: "CAKE", emoji: "🎂" },
+            
+            // NATURA & OGGETTI
+            { it: "SOLE", en: "SUN", emoji: "☀️" },
+            { it: "LUNA", en: "MOON", emoji: "🌙" },
+            { it: "PIOGGIA", en: "RAIN", emoji: "🌧️" },
+            { it: "FIORE", en: "FLOWER", emoji: "🌸" },
+            { it: "ALBERO", en: "TREE", emoji: "🌳" },
+            { it: "AUTO", en: "CAR", emoji: "🚗" },
+            { it: "LIBRO", en: "BOOK", emoji: "📖" },
+            { it: "PALLA", en: "BALL", emoji: "⚽" },
+            { it: "ROBOT", en: "ROBOT", emoji: "🤖" }
+        ];
+
+        // --- FRASI DIVERTENTI (VOCALI) ---
+        const funPhrases = [
+            "Bravissima Julie!",
+            "Ma sei un genio!",
+            "Evviva! Giusto!",
+            "Super Veloce!",
+            "Wow, che brava!",
+            "Ottimo lavoro!",
+            "Cinque in alto!",
+            "Sei fortissima!"
+        ];
+
+        // --- STATO DEL GIOCO ---
+        let gameQueue = [];
+        let currentWord = null;
+        let currentLang = 'it';
+        let placedLetters = [];
+        let score = 0;
+        let level = 1;
+
+        // --- INIZIALIZZAZIONE ---
+        function initGame() {
+            // Mischia tutto il database per creare una coda
+            gameQueue = [...fullDatabase].sort(() => Math.random() - 0.5);
+            loadNextLevel();
+        }
+
+        function toggleLanguage() {
+            currentLang = currentLang === 'it' ? 'en' : 'it';
+            document.getElementById('flagBtn').innerText = currentLang === 'it' ? '🇮🇹' : '🇬🇧';
+            // Ricarica la parola corrente nella nuova lingua
+            if (!document.getElementById('nextBtn').style.display || document.getElementById('nextBtn').style.display === 'none') {
+                reloadCurrentLevel();
+            }
+        }
+
+        function nextWord() {
+            loadNextLevel();
+        }
+
+        function loadNextLevel() {
+            if (gameQueue.length === 0) {
+                // Ricomincia se finite
+                gameQueue = [...fullDatabase].sort(() => Math.random() - 0.5);
+            }
+
+            currentWord = gameQueue.pop();
+            reloadCurrentLevel();
+        }
+
+        function reloadCurrentLevel() {
+            // Reset UI
+            document.getElementById('nextBtn').style.display = 'none';
+            document.getElementById('msgBox').innerText = "Tocca le lettere! 👇";
+            document.getElementById('msgBox').style.color = "#FFEB3B";
+            
+            const targetWord = currentWord[currentLang].replace(/\s/g, ''); // Rimuove spazi per frasi tipo ICE CREAM
+            document.getElementById('emojiDisplay').innerText = currentWord.emoji;
+            
+            placedLetters = new Array(targetWord.length).fill(null);
+
+            // Crea Slot
+            const slotsArea = document.getElementById('slotsArea');
+            slotsArea.innerHTML = '';
+            for (let i = 0; i < targetWord.length; i++) {
+                let slot = document.createElement('div');
+                slot.className = 'slot';
+                slot.dataset.index = i;
+                slot.onclick = () => removeLetter(i);
+                slotsArea.appendChild(slot);
+            }
+
+            // Crea Lettere (Shuffled)
+            const poolArea = document.getElementById('lettersPool');
+            poolArea.innerHTML = '';
+            let letters = targetWord.split('').map((char, index) => ({char, id: index}));
+            letters.sort(() => Math.random() - 0.5);
+
+            letters.forEach(item => {
+                let btn = document.createElement('div');
+                btn.className = 'tile';
+                btn.innerText = item.char;
+                btn.id = `tile-${item.id}`;
+                btn.onclick = () => placeLetter(item.char, item.id);
+                poolArea.appendChild(btn);
+            });
+        }
+
+        // --- LOGICA DI GIOCO ---
+        function placeLetter(char, id) {
+            const firstEmpty = placedLetters.indexOf(null);
+            if (firstEmpty !== -1) {
+                // Suono "Pop" semplice (usando synth breve)
+                playTone(600, 0.1);
+
+                placedLetters[firstEmpty] = { char, id };
+                
+                // Aggiorna Slot UI
+                const slots = document.getElementsByClassName('slot');
+                const slot = slots[firstEmpty];
+                slot.innerText = char;
+                slot.classList.add('filled');
+
+                // Nascondi lettera pool
+                document.getElementById(`tile-${id}`).classList.add('used');
+
+                checkWin();
+            }
+        }
+
+        function removeLetter(index) {
+            if (placedLetters[index]) {
+                playTone(400, 0.1); // Suono basso per remove
+                const item = placedLetters[index];
+                
+                // Riabilita lettera pool
+                document.getElementById(`tile-${item.id}`).classList.remove('used');
+
+                // Pulisci slot
+                const slots = document.getElementsByClassName('slot');
+                const slot = slots[index];
+                slot.innerText = '';
+                slot.classList.remove('filled');
+
+                placedLetters[index] = null;
+            }
+        }
+
+        function checkWin() {
+            const currentString = placedLetters.map(l => l ? l.char : '').join('');
+            const targetWord = currentWord[currentLang].replace(/\s/g, '');
+
+            if (currentString === targetWord) {
+                handleWin();
+            }
+        }
+
+        function handleWin() {
+            score++;
+            document.getElementById('score').innerText = score;
+            document.getElementById('nextBtn').style.display = 'block';
+            
+            // Messaggio Divertente
+            const randomPhrase = funPhrases[Math.floor(Math.random() * funPhrases.length)];
+            document.getElementById('msgBox').innerText = randomPhrase;
+            
+            // Feedback Vocale (Prima la frase divertente, poi la parola)
+            speak(randomPhrase + ". " + currentWord[currentLang]);
+
+            // Controllo Livello/Sfida
+            if (score % 5 === 0) {
+                level++;
+                document.getElementById('levelDisplay').innerText = "Livello " + level;
+                setTimeout(showLevelUp, 1000); // Mostra overlay dopo 1 secondo
+            }
+            
+            createConfetti();
+        }
+
+        // --- SINTESI VOCALE & AUDIO ---
+        function speak(text) {
+            if ('speechSynthesis' in window) {
+                const utterance = new SpeechSynthesisUtterance(text);
+                utterance.lang = currentLang === 'it' ? 'it-IT' : 'en-UK';
+                utterance.rate = 0.9; // Un po' più lento per i bimbi
+                utterance.pitch = 1.2; // Un po' più acuto (allegro)
+                window.speechSynthesis.speak(utterance);
+            }
+        }
+
+        function speakCurrentWord() {
+            // Cliccando sull'emoji ripete la parola
+            if(currentWord) {
+                speak(currentWord[currentLang]);
+            }
+        }
+
+        // Simula un piccolo suono beep con Web Audio API (senza file esterni)
+        const audioCtx = new (window.AudioContext || window.webkitAudioContext)();
+        function playTone(freq, duration) {
+            if (audioCtx.state === 'suspended') audioCtx.resume();
+            const osc = audioCtx.createOscillator();
+            const gain = audioCtx.createGain();
+            osc.type = 'sine';
+            osc.frequency.value = freq;
+            osc.connect(gain);
+            gain.connect(audioCtx.destination);
+            osc.start();
+            gain.gain.exponentialRampToValueAtTime(0.00001, audioCtx.currentTime + duration);
+            osc.stop(audioCtx.currentTime + duration);
+        }
+
+        // --- EFFETTI EXTRA ---
+        function showLevelUp() {
+            const overlay = document.getElementById('overlay');
+            const txt = document.getElementById('overlayText');
+            txt.innerText = "Hai completato " + score + " parole!";
+            overlay.style.display = 'flex';
+            speak("Incredibile! Hai superato il livello!");
+        }
+
+        function closeOverlay() {
+            document.getElementById('overlay').style.display = 'none';
+            nextWord();
+        }
+
+        function createConfetti() {
+            for(let i=0; i<30; i++) {
+                const dot = document.createElement('div');
+                dot.style.position = 'fixed';
+                dot.style.width = '10px';
+                dot.style.height = '10px';
+                dot.style.background = ['#ff0', '#f00', '#0f0', '#00f'][Math.floor(Math.random()*4)];
+                dot.style.left = Math.random() * 100 + 'vw';
+                dot.style.top = '-10px';
+                dot.style.borderRadius = '50%';
+                dot.style.transition = 'top 1s ease-in, opacity 1s';
+                dot.style.zIndex = '999';
+                document.body.appendChild(dot);
+                
+                setTimeout(() => {
+                    dot.style.top = '110vh';
+                    dot.style.opacity = '0';
+                }, 10);
+                setTimeout(() => dot.remove(), 1000);
+            }
+        }
+
+        // Start
+        initGame();
+
+    </script>
+</body>
+</html>

@@ -1,0 +1,325 @@
+<!DOCTYPE html>
+<html lang="it">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Il Gioco di Julie 2.0</title>
+    <style>
+        @import url('https://fonts.googleapis.com/css2?family=Fredoka:wght@400;600&display=swap');
+
+        body {
+            font-family: 'Fredoka', sans-serif;
+            background: linear-gradient(135deg, #8EC5FC 0%, #E0C3FC 100%);
+            height: 100vh;
+            margin: 0;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            justify-content: center;
+            overflow: hidden;
+            text-align: center;
+            user-select: none; /* Evita selezioni testo accidentali */
+        }
+
+        #game-container {
+            background: rgba(255, 255, 255, 0.95);
+            padding: 30px;
+            border-radius: 30px;
+            box-shadow: 0 10px 40px rgba(0,0,0,0.15);
+            width: 90%;
+            max-width: 500px;
+            position: relative;
+            transition: transform 0.3s;
+        }
+
+        h1 {
+            color: #8A2387;
+            margin: 0 0 20px 0;
+            font-size: 1.8rem;
+        }
+
+        #score-board {
+            font-size: 1.5rem;
+            color: #fff;
+            background: #F27121;
+            display: inline-block;
+            padding: 8px 25px;
+            border-radius: 50px;
+            box-shadow: 0 4px 0 #bf5b1d;
+            margin-bottom: 20px;
+        }
+
+        #word-display {
+            font-size: 4rem; /* Più grande */
+            font-weight: 600;
+            color: #4a4a4a;
+            margin: 20px 0;
+            text-transform: uppercase;
+            letter-spacing: 3px;
+            min-height: 80px;
+            line-height: 1;
+        }
+
+        /* Animazione Errore */
+        .shake { animation: shake 0.5s; }
+        @keyframes shake {
+            0% { transform: translateX(0); }
+            25% { transform: translateX(-10px); color: red; }
+            50% { transform: translateX(10px); }
+            75% { transform: translateX(-10px); }
+            100% { transform: translateX(0); color: #4a4a4a; }
+        }
+
+        #status {
+            font-size: 1.1rem;
+            color: #666;
+            min-height: 25px;
+            margin-bottom: 20px;
+        }
+
+        #mic-btn {
+            background: #00C9FF; /* Azzurro acceso */
+            color: white;
+            border: none;
+            padding: 18px 50px;
+            font-size: 1.6rem;
+            border-radius: 60px;
+            cursor: pointer;
+            box-shadow: 0 6px 0 #009ec9;
+            transition: all 0.1s;
+            font-family: 'Fredoka', sans-serif;
+            width: 100%;
+            max-width: 300px;
+        }
+
+        #mic-btn:active {
+            transform: translateY(6px);
+            box-shadow: none;
+        }
+
+        #mic-btn.listening {
+            background: #ff4b1f; /* Rosso quando ascolta */
+            box-shadow: 0 6px 0 #c43a17;
+            animation: pulse 1.5s infinite;
+        }
+
+        @keyframes pulse {
+            0% { transform: scale(1); }
+            50% { transform: scale(1.03); }
+            100% { transform: scale(1); }
+        }
+
+        .confetti {
+            position: absolute;
+            width: 12px;
+            height: 12px;
+            background-color: #f00;
+            animation: fall linear forwards;
+            z-index: 100;
+        }
+
+        @keyframes fall {
+            to { transform: translateY(110vh) rotate(720deg); }
+        }
+    </style>
+</head>
+<body>
+
+    <div id="game-container">
+        <h1>🦄 Le Parole di Julie</h1>
+        
+        <div id="score-board">Punti: <span id="score">0</span></div>
+        
+        <div id="word-display">PRONTI?</div>
+        
+        <div id="status">Tocca il tasto blu per iniziare</div>
+        
+        <button id="mic-btn" onclick="handleButtonClick()">▶️ INIZIA</button>
+    </div>
+
+    <script>
+        const words = [
+            "SALE", "MELA", "MALATA", "TELO", "MIMO", 
+            "MIMOSA", "TUTA", "MATITA", "MOTO", "SEMI", 
+            "MELE", "LUME", "LAME", "SETA"
+        ];
+
+        let currentWord = "";
+        let score = 0;
+        let isListening = false;
+        let recognition;
+        let ignoreEndEvent = false; // Flag per evitare loop strani
+
+        const wordEl = document.getElementById('word-display');
+        const statusEl = document.getElementById('status');
+        const btnEl = document.getElementById('mic-btn');
+        const scoreEl = document.getElementById('score');
+
+        // Configurazione Speech Recognition
+        if ('webkitSpeechRecognition' in window || 'SpeechRecognition' in window) {
+            const SpeechRecognition = window.SpeechRecognition || window.webkitSpeechRecognition;
+            recognition = new SpeechRecognition();
+            recognition.lang = 'it-IT';
+            recognition.continuous = false; 
+            recognition.interimResults = false;
+
+            recognition.onstart = function() {
+                isListening = true;
+                btnEl.classList.add("listening");
+                btnEl.innerText = "👂 ASCOLTO...";
+                statusEl.innerText = "Dillo forte!";
+            };
+
+            recognition.onend = function() {
+                isListening = false;
+                btnEl.classList.remove("listening");
+                
+                // Se non abbiamo ignorato l'evento (es. durante un reset manuale)
+                if (!ignoreEndEvent) {
+                    btnEl.innerText = "🎤 RIPROVA";
+                    statusEl.innerText = "Non ho sentito, clicca per riprovare";
+                }
+                ignoreEndEvent = false;
+            };
+
+            recognition.onresult = function(event) {
+                const transcript = event.results[0][0].transcript.trim().toUpperCase();
+                // Pulizia extra per rimuovere il punto finale che a volte Android mette
+                const cleanTranscript = transcript.replace(/[.,\/#!$%\^&\*;:{}=\-_`~()]/g,"");
+                checkAnswer(cleanTranscript);
+            };
+
+            recognition.onerror = function(event) {
+                console.log("Errore riconoscimento:", event.error);
+                isListening = false;
+                btnEl.classList.remove("listening");
+                btnEl.innerText = "⚠️ RIPROVA";
+                statusEl.innerText = "Errore microfono. Clicca per riavviare.";
+            };
+        } else {
+            alert("Usa Google Chrome per giocare!");
+        }
+
+        // Funzione centrale gestita dal bottone
+        function handleButtonClick() {
+            // Se stiamo già ascoltando, il tasto serve a resettare/saltare
+            if (isListening) {
+                stopRecognition(); 
+                return;
+            }
+
+            // Se è la prima volta o siamo in pausa
+            if (!currentWord || wordEl.innerText === "PRONTI?") {
+                nextWord();
+            } else {
+                // Riavvia ascolto sulla parola corrente
+                startRecognition();
+            }
+        }
+
+        function startRecognition() {
+            try {
+                if (recognition && !isListening) {
+                    recognition.start();
+                }
+            } catch (e) {
+                console.error("Errore start:", e);
+                // Se crasha, proviamo un reset forzato
+                stopRecognition();
+            }
+        }
+
+        function stopRecognition() {
+            if (recognition) {
+                ignoreEndEvent = true; // Impedisce che onend scriva messaggi sbagliati
+                recognition.abort();   // Ferma tutto subito
+                isListening = false;
+                btnEl.classList.remove("listening");
+                btnEl.innerText = "🎤 PARLA";
+            }
+        }
+
+        function nextWord() {
+            // Effetto visivo cambio parola
+            wordEl.style.opacity = 0;
+            setTimeout(() => {
+                const randomIndex = Math.floor(Math.random() * words.length);
+                currentWord = words[randomIndex];
+                wordEl.innerText = currentWord;
+                wordEl.style.color = "#4a4a4a";
+                wordEl.style.opacity = 1;
+                statusEl.innerText = "Leggi la parola!";
+                
+                // Ritardo per dare tempo all'occhio di leggere prima di attivare il mic
+                setTimeout(startRecognition, 300); 
+            }, 200);
+        }
+
+        function checkAnswer(spokenWord) {
+            // Logica permissiva: basta che la parola target sia contenuta nella frase detta
+            // Es: Target "MELA", Bimbo dice "LA MELA" -> OK
+            if (spokenWord.includes(currentWord) || currentWord.includes(spokenWord)) {
+                success();
+            } else {
+                statusEl.innerText = `Ho capito "${spokenWord}". Riprova!`;
+                triggerShake(); // Scuoti la parola
+                // Riavvia automaticamente il microfono dopo 1 secondo se ha sbagliato
+                setTimeout(startRecognition, 1000);
+            }
+        }
+
+        function triggerShake() {
+            wordEl.classList.add('shake');
+            setTimeout(() => wordEl.classList.remove('shake'), 500);
+        }
+
+        function success() {
+            // Ferma l'ascolto per evitare doppi trigger
+            stopRecognition();
+            
+            score += 10;
+            scoreEl.innerText = score;
+            wordEl.style.color = "#00C9FF"; 
+            statusEl.innerText = "BRAVISSIMA! 🎉";
+            btnEl.innerText = "👏 EVVIVA!";
+            
+            spawnConfetti();
+            playWinSound();
+
+            // Passa alla prossima parola dopo 2 secondi
+            setTimeout(() => {
+                nextWord();
+            }, 2000);
+        }
+
+        // Suono Vittoria
+        const audioCtx = new (window.AudioContext || window.webkitAudioContext)();
+        function playWinSound() {
+            if (audioCtx.state === 'suspended') audioCtx.resume();
+            const osc = audioCtx.createOscillator();
+            const gainNode = audioCtx.createGain();
+            osc.connect(gainNode);
+            gainNode.connect(audioCtx.destination);
+            osc.type = 'sine';
+            osc.frequency.setValueAtTime(523.25, audioCtx.currentTime); 
+            osc.frequency.exponentialRampToValueAtTime(880, audioCtx.currentTime + 0.1);
+            gainNode.gain.setValueAtTime(0.3, audioCtx.currentTime);
+            gainNode.gain.exponentialRampToValueAtTime(0.01, audioCtx.currentTime + 0.5);
+            osc.start();
+            osc.stop(audioCtx.currentTime + 0.5);
+        }
+
+        function spawnConfetti() {
+            for(let i=0; i<40; i++) {
+                const conf = document.createElement('div');
+                conf.classList.add('confetti');
+                conf.style.left = Math.random() * 100 + 'vw';
+                conf.style.backgroundColor = `hsl(${Math.random() * 360}, 100%, 50%)`;
+                conf.style.animationDuration = (Math.random() * 2 + 1) + 's';
+                document.body.appendChild(conf);
+                setTimeout(() => conf.remove(), 3000);
+            }
+        }
+    </script>
+</body>
+</html>

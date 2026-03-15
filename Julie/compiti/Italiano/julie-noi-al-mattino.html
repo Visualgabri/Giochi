@@ -1,0 +1,146 @@
+<!DOCTYPE html>
+<html lang="it">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Le Storie di Julie 📚</title>
+    <link href="https://fonts.googleapis.com/css2?family=Patrick+Hand&family=Fredoka+One&display=swap" rel="stylesheet">
+    <script src="https://cdn.jsdelivr.net/npm/canvas-confetti@1.6.0/dist/confetti.browser.min.js"></script>
+    <style>
+        :root { --p1: #27ae60; --p2: #e67e22; --bg: #f0f9ff; }
+        body { font-family: 'Patrick Hand', cursive; background: var(--bg); display: flex; flex-direction: column; align-items: center; user-select: none; margin: 0; padding: 20px; }
+        .menu { margin-bottom: 20px; display: flex; gap: 10px; }
+        button.nav { font-family: 'Fredoka One'; padding: 10px 20px; border: none; border-radius: 20px; cursor: pointer; transition: 0.3s; background: white; box-shadow: 0 4px 0 #ccc; }
+        button.nav.active { background: #3498db; color: white; box-shadow: 0 4px 0 #2980b9; transform: translateY(2px); }
+        
+        .container { max-width: 800px; width: 95%; background: white; padding: 30px; border-radius: 30px; border: 8px solid #fff; box-shadow: 0 15px 35px rgba(0,0,0,0.1); text-align: center; }
+        h1 { font-family: 'Fredoka One'; color: #2c3e50; margin-top: 0; }
+        
+        .story-box { font-size: 1.8rem; line-height: 1.8; text-align: left; background: #fdfae1; padding: 25px; border-radius: 20px; border: 3px dashed #f1c40f; margin: 20px 0; min-height: 200px; }
+        
+        /* Tooltip e Parole */
+        .word { display: inline-block; position: relative; cursor: pointer; transition: 0.2s; padding: 0 4px; border-radius: 5px; }
+        .word:hover { background: #fff176; transform: scale(1.1); color: #d35400; }
+        .tooltip { position: absolute; bottom: 120%; left: 50%; transform: translateX(-50%); width: 80px; height: 80px; background: white; border: 3px solid #f1c40f; border-radius: 15px; display: flex; align-items: center; justify-content: center; opacity: 0; visibility: hidden; transition: 0.3s; z-index: 100; font-size: 3rem; box-shadow: 0 10px 20px rgba(0,0,0,0.2); }
+        .word:hover .tooltip { opacity: 1; visibility: visible; bottom: 140%; }
+        .tooltip img { width: 90%; height: 90%; object-fit: contain; }
+
+        .scene { height: 120px; display: flex; justify-content: center; align-items: flex-end; gap: 15px; margin: 20px 0; border-bottom: 4px solid #ddd; padding-bottom: 10px; }
+        .scene-item { font-size: 4rem; animation: pop 0.5s ease-out; }
+        
+        .stars { display: flex; justify-content: center; gap: 15px; margin: 20px 0; }
+        .star { font-size: 3.5rem; color: #eee; cursor: pointer; transition: 0.3s; }
+        .star.active { color: #f1c40f; transform: scale(1.2); text-shadow: 0 0 10px #f39c12; }
+        
+        #feedback { font-weight: bold; font-size: 1.4rem; color: #7f8c8d; height: 1.5em; }
+        @keyframes pop { 0% { transform: scale(0); } 100% { transform: scale(1); } }
+    </style>
+</head>
+<body>
+
+    <div class="menu">
+        <button class="nav active" onclick="loadStory(0)">🌻 NONNO TITO</button>
+        <button class="nav" onclick="loadStory(1)">☀️ IL MATTINO</button>
+    </div>
+
+    <div class="container">
+        <h1 id="title">STORIA</h1>
+        <div class="story-box" id="content"></div>
+        <div class="scene" id="scene"></div>
+        <div id="feedback">Leggi e clicca una stella!</div>
+        <div class="stars" id="stars"></div>
+    </div>
+
+<script>
+    const data = {
+        dictionary: {
+            "NONNO": {img: "https://img.icons8.com/fluency/96/gardener.png", emo: "👴"},
+            "TITO": {img: "https://img.icons8.com/fluency/96/old-man-skin-type-1.png", emo: "👨‍🌾"},
+            "SEME": {img: "https://img.icons8.com/fluency/96/seeds.png", emo: "🌱"},
+            "INNAFFIA": {img: "https://img.icons8.com/fluency/96/watering-can.png", emo: "🚿"},
+            "SOLE": {img: "https://img.icons8.com/fluency/96/sun.png", emo: "☀️"},
+            "PIANTE": {img: "https://img.icons8.com/fluency/96/wheat.png", emo: "🌿"},
+            "MATTINO": {img: "https://img.icons8.com/fluency/96/morning.png", emo: "🌅"},
+            "MAMMA": {img: "https://img.icons8.com/fluency/96/mother.png", emo: "👩"},
+            "PAPÀ": {img: "https://img.icons8.com/fluency/96/father.png", emo: "👨"},
+            "TÈ": {img: "https://img.icons8.com/fluency/96/tea-cup.png", emo: "🍵"},
+            "MENTA": {img: "https://img.icons8.com/fluency/96/mint.png", emo: "🍃"},
+            "PANE": {img: "https://img.icons8.com/fluency/96/bread.png", emo: "🍞"},
+            "SALAME": {img: "https://img.icons8.com/fluency/96/salami.png", emo: "🥓"},
+            "MIELE": {img: "https://img.icons8.com/fluency/96/honey-pot.png", emo: "🍯"}
+        },
+        stories: [
+            {
+                title: "NONNO TITO E LE PIANTE",
+                text: "NONNO TITO PIANTA UN SEME.\nNONNO TITO INNAFFIA IL SEME.\nIL SOLE ILLUMINA IL SEME.\nINFINE SPUNTANO LE PIANTE.",
+                items: ["👴", "🌱", "🚿", "☀️", "🌿"],
+                color: "#27ae60"
+            },
+            {
+                title: "NOI AL MATTINO",
+                text: "AL MATTINO IO, MAMMA E PAPÀ STIAMO INSIEME.\nLA MIA MAMMA AMA IL TÈ ALLA MENTA.\nIL MIO PAPÀ PANE E SALAME.\nIO AMO PANE E MIELE.",
+                items: ["🌅", "👩🍵", "👨🥓", "🍯", "👨‍👩‍👧"],
+                color: "#e67e22"
+            }
+        ]
+    };
+
+    let currentStory = 0;
+    let count = 0;
+
+    function loadStory(idx) {
+        currentStory = idx;
+        count = 0;
+        const s = data.stories[idx];
+        
+        // Update UI
+        document.getElementById('title').innerText = s.title;
+        document.getElementById('title').style.color = s.color;
+        document.querySelectorAll('.nav').forEach((b, i) => b.classList.toggle('active', i === idx));
+        document.getElementById('scene').innerHTML = '';
+        document.getElementById('feedback').innerText = "Forza Julie! Leggi 5 volte!";
+        document.getElementById('feedback').style.color = "#7f8c8d";
+        
+        // Stars
+        const starsHtml = Array(5).fill(0).map((_, i) => `<span class="star" id="st${i}" onclick="step()">★</span>`).join('');
+        document.getElementById('stars').innerHTML = starsHtml;
+
+        // Interactive Text
+        const wordsHtml = s.text.split('\n').map(line => {
+            return line.split(' ').map(w => {
+                const clean = w.replace(/[.,!]/g, '').toUpperCase();
+                const info = data.dictionary[clean];
+                if(info) {
+                    return `<span class="word">${w}<div class="tooltip"><img src="${info.img}" onerror="this.style.display='none'; this.parentElement.innerText='${info.emo}'"></div></span>`;
+                }
+                return `<span class="word">${w}</span>`;
+            }).join(' ');
+        }).join('<br>');
+        document.getElementById('content').innerHTML = wordsHtml;
+    }
+
+    function step() {
+        if (count >= 5) return;
+        
+        document.getElementById(`st${count}`).classList.add('active');
+        const item = data.stories[currentStory].items[count];
+        const span = document.createElement('span');
+        span.className = 'scene-item';
+        span.innerText = item;
+        document.getElementById('scene').appendChild(span);
+        
+        count++;
+        
+        if (count === 5) {
+            document.getElementById('feedback').innerText = "BRAVISSIMA JULIE! HAI VINTO! 🎉";
+            document.getElementById('feedback').style.color = "#27ae60";
+            confetti({ particleCount: 150, spread: 70, origin: { y: 0.6 } });
+        } else {
+            document.getElementById('feedback').innerText = `Ottimo! Ancora ${5-count} volte!`;
+        }
+    }
+
+    loadStory(0);
+</script>
+</body>
+</html>

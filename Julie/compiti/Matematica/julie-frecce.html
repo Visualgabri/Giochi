@@ -1,0 +1,224 @@
+<!DOCTYPE html>
+<html lang="it">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Calcolo Veloce Verticale per Julie</title>
+    <script src="https://cdn.jsdelivr.net/npm/canvas-confetti@1.5.1/dist/confetti.browser.min.js"></script>
+    <style>
+        body {
+            font-family: 'Comic Sans MS', cursive, sans-serif;
+            background-color: #f7fff7;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            justify-content: center;
+            min-height: 100vh;
+            margin: 0;
+            padding: 20px;
+        }
+        .container {
+            background-color: white;
+            padding: 40px;
+            border-radius: 25px;
+            box-shadow: 0 15px 30px rgba(0,0,0,0.1);
+            text-align: center;
+            border: 5px solid #ffcc00; /* Giallo allegro */
+            max-width: 350px;
+            width: 100%;
+        }
+        h1 { color: #ff6b6b; margin-top: 0; font-size: 2.2em; }
+        p { color: #555; font-size: 1.1em; margin-bottom: 30px; }
+
+        .exercise-area {
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            gap: 15px; /* Spazio tra gli elementi verticali */
+            margin-bottom: 30px;
+        }
+
+        .arrow-vertical {
+            font-size: 50px;
+            font-weight: bold;
+            color: #4da3ff; /* Blu freccia */
+            line-height: 1;
+            margin-bottom: -10px; /* Avvicina la freccia ai numeri */
+        }
+
+        .number-stack {
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            gap: 5px; /* Spazio stretto tra i numeri */
+        }
+
+        .digit {
+            font-size: 64px;
+            font-weight: bold;
+            color: #2c3e50;
+            line-height: 1;
+        }
+
+        .divider {
+            width: 120px;
+            height: 4px;
+            background-color: #333;
+            margin: 10px 0;
+            border-radius: 2px;
+        }
+
+        input {
+            font-size: 40px;
+            width: 100px;
+            text-align: center;
+            padding: 15px;
+            border: 4px solid #ddd;
+            border-radius: 15px;
+            outline: none;
+            transition: border-color 0.3s;
+        }
+        input:focus { border-color: #ffcc00; }
+        /* Rimuove le freccette predefinite dell'input number */
+        input::-webkit-outer-spin-button,
+        input::-webkit-inner-spin-button {
+            -webkit-appearance: none;
+            margin: 0;
+        }
+        input[type=number] {
+            -moz-appearance: textfield;
+        }
+
+        .button-group {
+            display: flex;
+            flex-direction: column;
+            gap: 15px;
+            width: 100%;
+        }
+
+        button {
+            color: white;
+            border: none;
+            padding: 18px;
+            font-size: 22px;
+            border-radius: 50px;
+            cursor: pointer;
+            transition: transform 0.1s, box-shadow 0.2s;
+            font-weight: bold;
+            width: 100%;
+        }
+        button:active { transform: scale(0.97); }
+
+        .btn-check {
+            background-color: #4CAF50; /* Verde controlla */
+            box-shadow: 0 5px #388E3C;
+        }
+        .btn-check:hover { box-shadow: 0 3px #388E3C; transform: translateY(2px); }
+
+        .btn-next {
+            background-color: #ff8c00; /* Arancione prossimo */
+            font-size: 18px;
+            padding: 12px;
+            box-shadow: 0 5px #E67E22;
+        }
+        .btn-next:hover { box-shadow: 0 3px #E67E22; transform: translateY(2px); }
+
+
+        .message {
+            margin: 20px 0;
+            font-size: 26px;
+            font-weight: bold;
+            min-height: 35px;
+        }
+    </style>
+</head>
+<body>
+
+<div class="container">
+    <h1>Super Julie! 🚀</h1>
+    <p>Semma i numeri in colonna verso il basso!</p>
+    
+    <div class="exercise-area">
+        <div class="arrow-vertical">↓</div>
+        <div id="numberStack" class="number-stack">
+            </div>
+        <div class="divider"></div>
+        <input type="number" id="userInput" placeholder="?">
+    </div>
+
+    <div class="button-group">
+        <button class="btn-check" onclick="checkAnswer()">Controlla!</button>
+        <div id="message" class="message"></div>
+        <button class="btn-next" onclick="nextExercise()">Prossimo ➡️</button>
+    </div>
+</div>
+
+<script>
+    const exercises = [
+        { nums: [2, 1, 1], ans: 4 },
+        { nums: [1, 1, 2], ans: 4 },
+        { nums: [1, 2, 1], ans: 4 },
+        { nums: [3, 2, 1], ans: 6 },
+        { nums: [2, 2, 3], ans: 7 },
+        { nums: [3, 2, 2], ans: 7 }
+    ];
+
+    let currentIdx = 0;
+
+    function loadExercise() {
+        const ex = exercises[currentIdx];
+        const stack = document.getElementById('numberStack');
+        stack.innerHTML = ''; // Pulisce lo stack precedente
+        
+        ex.nums.forEach(num => {
+            const digitDiv = document.createElement('div');
+            digitDiv.className = 'digit';
+            digitDiv.innerText = num;
+            stack.appendChild(digitDiv);
+        });
+
+        document.getElementById('userInput').value = '';
+        document.getElementById('message').innerText = '';
+        document.getElementById('userInput').focus();
+    }
+
+    function checkAnswer() {
+        const userVal = parseInt(document.getElementById('userInput').value);
+        const correctVal = exercises[currentIdx].ans;
+        const msg = document.getElementById('message');
+
+        if (userVal === correctVal) {
+            msg.innerText = "Fantastica! 🎉";
+            msg.style.color = "#4CAF50";
+            confetti({
+                particleCount: 120,
+                spread: 80,
+                origin: { y: 0.6 }
+            });
+        } else if (!isNaN(userVal)) {
+            msg.innerText = "Quasi! Prova ancora 💪";
+            msg.style.color = "#f44336";
+        } else {
+            msg.innerText = "Scrivi un numero! 🤔";
+            msg.style.color = "#888";
+        }
+    }
+
+    function nextExercise() {
+        currentIdx = (currentIdx + 1) % exercises.length;
+        loadExercise();
+    }
+
+    // Gestione invio con tasto Enter
+    document.getElementById('userInput').addEventListener('keypress', function (e) {
+        if (e.key === 'Enter') {
+            checkAnswer();
+        }
+    });
+
+    // Carica il primo esercizio all'avvio
+    loadExercise();
+</script>
+
+</body>
+</html>

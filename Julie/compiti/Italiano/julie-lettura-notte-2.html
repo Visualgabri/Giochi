@@ -1,0 +1,380 @@
+<!DOCTYPE html>
+<html lang="it">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>La Lettura di Julie - Niente Sonno!</title>
+    <link href="https://fonts.googleapis.com/css2?family=Patrick+Hand&family=Fredoka+One&display=swap" rel="stylesheet">
+    <script src="https://cdn.jsdelivr.net/npm/canvas-confetti@1.6.0/dist/confetti.browser.min.js"></script>
+    <style>
+        :root {
+            --bg-start: #87CEEB; /* Giorno/Sera */
+            --highlight: #e67e22;
+            --tooltip-bg: #fff;
+        }
+
+        body {
+            font-family: 'Patrick Hand', cursive;
+            margin: 0;
+            min-height: 100vh;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            background: linear-gradient(to bottom, var(--bg-start), #e0f7fa);
+            transition: background 1s ease;
+            overflow-x: hidden;
+            user-select: none;
+            padding-bottom: 50px;
+        }
+
+        .container {
+            max-width: 800px;
+            width: 90%;
+            background: rgba(255, 255, 255, 0.95);
+            padding: 2rem;
+            border-radius: 20px;
+            box-shadow: 0 10px 25px rgba(0,0,0,0.1);
+            margin-top: 20px;
+            text-align: center;
+            border: 5px solid #fff;
+            position: relative;
+        }
+
+        h1 {
+            font-family: 'Fredoka One', cursive;
+            color: #d35400;
+            font-size: 2.5rem;
+            margin-bottom: 10px;
+        }
+
+        .matteo-status {
+            font-size: 4rem;
+            margin: 10px;
+            height: 60px; /* Altezza fissa per evitare salti */
+        }
+
+        .story-box {
+            font-size: 1.8rem;
+            line-height: 1.8;
+            color: #2c3e50;
+            text-align: left;
+            padding: 20px;
+            background: #fff3e0;
+            border-radius: 15px;
+            border: 2px dashed #ffb74d;
+            margin: 20px 0;
+            white-space: pre-line;
+            position: relative;
+        }
+
+        /* --- STILE PAROLE INTERATTIVE (Comune per storia e messaggi) --- */
+        .interactive-word {
+            display: inline-block;
+            transition: transform 0.2s, color 0.2s;
+            position: relative; /* Necessario per il tooltip */
+            cursor: help;
+        }
+        
+        .interactive-word:hover {
+            transform: scale(1.3);
+            color: var(--highlight);
+            z-index: 10; /* Porta in primo piano */
+        }
+
+        /* Tooltip Immagine */
+        .word-img-tooltip {
+            position: absolute;
+            bottom: 100%; /* Appare sopra la parola */
+            left: 50%;
+            transform: translateX(-50%);
+            width: 80px;
+            height: 80px;
+            background: var(--tooltip-bg);
+            border-radius: 10px;
+            border: 3px solid var(--highlight);
+            padding: 5px;
+            box-shadow: 0 5px 15px rgba(0,0,0,0.2);
+            opacity: 0;
+            visibility: hidden;
+            transition: all 0.3s cubic-bezier(0.68, -0.55, 0.265, 1.55); /* Effetto rimbalzo */
+            pointer-events: none;
+            z-index: 20;
+        }
+
+        .word-img-tooltip img {
+            width: 100%;
+            height: 100%;
+            object-fit: contain;
+        }
+
+        /* Mostra tooltip al passaggio del mouse */
+        .interactive-word:hover .word-img-tooltip {
+            opacity: 1;
+            visibility: visible;
+            bottom: 120%; /* Si alza leggermente */
+        }
+        /* --------------------------------------------------------- */
+
+
+        .controls {
+            margin-top: 20px;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            gap: 15px;
+        }
+
+        .stars-container {
+            display: flex;
+            gap: 15px;
+            font-size: 3.5rem;
+            color: #bdc3c7;
+            margin: 10px 0;
+        }
+
+        .star {
+            cursor: pointer;
+            transition: transform 0.2s, color 0.3s;
+        }
+
+        .star:hover {
+            transform: scale(1.2) rotate(10deg);
+            color: #dcdde1; 
+        }
+
+        .star.active {
+            color: #f1c40f;
+            animation: pop 0.5s ease;
+            text-shadow: 0 0 10px #f39c12;
+        }
+
+        /* Area per le animazioni progressive */
+        #scene-container {
+            height: 120px;
+            width: 100%;
+            margin-top: 20px;
+            border-top: 2px dashed #bdc3c7;
+            display: flex;
+            justify-content: space-around;
+            align-items: center;
+            overflow: hidden;
+            background: rgba(255,255,255,0.5);
+            border-radius: 0 0 15px 15px;
+        }
+
+        .scene-item {
+            width: 80px;
+            height: 80px;
+            object-fit: contain;
+            animation-duration: 2s;
+            animation-iteration-count: infinite;
+        }
+
+        /* Animazioni per gli elementi della scena */
+        @keyframes jump { 0%, 100% { transform: translateY(0); } 50% { transform: translateY(-20px); } }
+        @keyframes shake { 0% { transform: translate(1px, 1px) rotate(0deg); } 10% { transform: translate(-1px, -2px) rotate(-1deg); } 20% { transform: translate(-3px, 0px) rotate(1deg); } 30% { transform: translate(3px, 2px) rotate(0deg); } 40% { transform: translate(1px, -1px) rotate(1deg); } 50% { transform: translate(-1px, 2px) rotate(-1deg); } 60% { transform: translate(-3px, 1px) rotate(0deg); } 70% { transform: translate(3px, 1px) rotate(-1deg); } 80% { transform: translate(-1px, -1px) rotate(1deg); } 90% { transform: translate(1px, 2px) rotate(0deg); } 100% { transform: translate(1px, -2px) rotate(-1deg); } }
+        @keyframes float { 0%, 100% { transform: translateY(0px); } 50% { transform: translateY(-10px); } }
+        @keyframes twinkle { 0%, 100% { opacity: 1; transform: scale(1); } 50% { opacity: 0.5; transform: scale(0.8); } }
+        @keyframes pop { 0% { transform: scale(1); } 50% { transform: scale(1.6); } 100% { transform: scale(1); } }
+
+        .anim-jump { animation-name: jump; animation-timing-function: ease-in-out;}
+        .anim-shake { animation-name: shake; animation-duration: 0.5s; }
+        .anim-float { animation-name: float; animation-timing-function: ease-in-out; }
+        .anim-twinkle { animation-name: twinkle; }
+
+
+        /* Progressioni Sfondo Notte */
+        body.step-1 { background: linear-gradient(to bottom, #5D9CEC, #b3e5fc); --tooltip-bg: #e3f2fd;}
+        body.step-2 { background: linear-gradient(to bottom, #4A89DC, #81d4fa); --tooltip-bg: #bbdefb;}
+        body.step-3 { background: linear-gradient(to bottom, #3b60a0, #4fc3f7); --tooltip-bg: #90caf9;}
+        body.step-4 { background: linear-gradient(to bottom, #2c3e50, #2980b9); --highlight: #f1c40f; --tooltip-bg: #2c3e50; color: white;}
+        body.step-5 { background: linear-gradient(to bottom, #1a1a2e, #16213e); --highlight: #f1c40f; --tooltip-bg: #1a1a2e; color: white;}
+        
+        body.step-4 .story-box, body.step-5 .story-box { background: #34495e; color: #ecf0f1; border-color: #f1c40f;}
+        body.step-5 .container { box-shadow: 0 0 30px #f1c40f; }
+        
+        /* Aggiustamento colore testo nei tooltip quando è notte */
+        body.step-4 .interactive-word:hover, body.step-5 .interactive-word:hover { color: #f1c40f; }
+    </style>
+</head>
+<body>
+
+    <div class="container">
+        <h1>🌙 NIENTE SONNO 🦁</h1>
+        
+        <div class="matteo-status" id="matteoIcon">🛏️🏃</div>
+        
+        <div class="story-box">
+            <div class="story-text" id="textDisplay"></div>
+        </div>
+
+        <div id="scene-container">
+            </div>
+
+        <div class="controls">
+            <div class="progress-text" id="msg">Leggi la storia, poi tocca una stella!</div>
+            
+            <div class="stars-container">
+                <div class="star" onclick="registerRead()" id="s1">★</div>
+                <div class="star" onclick="registerRead()" id="s2">★</div>
+                <div class="star" onclick="registerRead()" id="s3">★</div>
+                <div class="star" onclick="registerRead()" id="s4">★</div>
+                <div class="star" onclick="registerRead()" id="s5">★</div>
+            </div>
+        </div>
+    </div>
+
+    <script>
+        // --- CONFIGURAZIONE IMMAGINI ---
+        // Uso icone da CDN affidabile (icons8) per non farti scaricare file.
+        const wordImages = {
+            "NOTTE": "https://img.icons8.com/fluency/96/night.png",
+            "MATTEO": "https://img.icons8.com/fluency/96/navel-boy.png",
+            "LETTO": "https://img.icons8.com/fluency/96/bed.png",
+            "SONNO": "https://img.icons8.com/fluency/96/sleep.png",
+            "LEONE": "https://img.icons8.com/fluency/96/lion.png",
+            "MAMMA": "https://img.icons8.com/fluency/96/mother.png",
+            "LUNA": "https://img.icons8.com/fluency/96/full-moon.png",
+            "STELLE": "https://img.icons8.com/fluency/96/star.png"
+        };
+
+        // Elementi che appaiono nello scenario ad ogni passo
+        const stepSceneItems = {
+            1: { img: wordImages["LEONE"], anim: "anim-jump", alt: "Leone che salta" },
+            2: { img: wordImages["LETTO"], anim: "anim-shake", alt: "Letto che trema" },
+            3: { img: wordImages["LUNA"], anim: "anim-float", alt: "Luna" },
+            4: { img: wordImages["STELLE"], anim: "anim-twinkle", alt: "Stelle" },
+            5: { img: "https://img.icons8.com/fluency/96/sleeping-in-bed.png", anim: "anim-float", alt: "Matteo dorme" }
+        };
+
+        const text = `È NOTTE. MATTEO È A LETTO, MA... NIENTE SONNO!
+SI SENTE UN LEONE.
+LA MAMMA TENTA UNA NINNA NANNA,
+MA MATTEO SALTA SUL LETTO.
+SOLO LA LUNA E LE STELLE
+PISOLANO NELLA NOTTE.`;
+
+        // Funzione helper per avvolgere le parole e aggiungere immagini se presenti
+        function wrapTextWithInteraction(rawText) {
+            return rawText.split('\n').map(line => {
+                return line.split(' ').map(word => {
+                    // Puliamo la parola dalla punteggiatura per cercare l'immagine
+                    const cleanWord = word.replace(/[.,!…\?]/g, '').toUpperCase();
+                    const imageUrl = wordImages[cleanWord];
+                    
+                    let tooltipHtml = '';
+                    if (imageUrl) {
+                        tooltipHtml = `<div class="word-img-tooltip"><img src="${imageUrl}" alt="${cleanWord}"></div>`;
+                    }
+                    // Aggiungiamo la classe comune 'interactive-word' e il tooltip se c'è l'immagine
+                    return `<span class="interactive-word">${word}${tooltipHtml}</span>`;
+                }).join(' ');
+            }).join('<br>');
+        }
+
+        // Inizializzazione testo storia
+        const textDisplay = document.getElementById('textDisplay');
+        textDisplay.innerHTML = wrapTextWithInteraction(text);
+
+        // Inizializzazione testo messaggio iniziale
+        const msgEl = document.getElementById('msg');
+        msgEl.innerHTML = wrapTextWithInteraction(msgEl.innerText);
+
+
+        let count = 0;
+        const total = 5;
+        const messages = [
+            "Brava Julie! Ancora 4 volte!",
+            "Ottimo! Il leone inizia a stancarsi...",
+            "Wow! Siamo a metà strada!",
+            "Quasi fatto! Metti il pigiama a Matteo...",
+            "ULTIMA VOLTA! Leggi piano piano..."
+        ];
+
+        // Setup Audio (come prima)
+        const AudioContext = window.AudioContext || window.webkitAudioContext;
+        const audioCtx = new AudioContext();
+
+        function playSound(type) {
+            if (audioCtx.state === 'suspended') audioCtx.resume();
+            const osc = audioCtx.createOscillator();
+            const gain = audioCtx.createGain();
+            osc.connect(gain);
+            gain.connect(audioCtx.destination);
+
+            if (type === 'success') {
+                osc.type = 'sine';
+                osc.frequency.setValueAtTime(600, audioCtx.currentTime);
+                osc.frequency.exponentialRampToValueAtTime(1200, audioCtx.currentTime + 0.1);
+                gain.gain.setValueAtTime(0.3, audioCtx.currentTime);
+                gain.gain.exponentialRampToValueAtTime(0.01, audioCtx.currentTime + 0.4);
+                osc.start(); osc.stop(audioCtx.currentTime + 0.4);
+            } else if (type === 'win') {
+                osc.type = 'triangle';
+                osc.frequency.setValueAtTime(400, audioCtx.currentTime);
+                osc.frequency.setValueAtTime(600, audioCtx.currentTime + 0.2);
+                osc.frequency.setValueAtTime(1000, audioCtx.currentTime + 0.4);
+                gain.gain.value = 0.3;
+                gain.gain.linearRampToValueAtTime(0, audioCtx.currentTime + 1.5);
+                osc.start(); osc.stop(audioCtx.currentTime + 1.5);
+            }
+        }
+
+        function registerRead() {
+            if (count >= total) return;
+            count++;
+            
+            // 1. Aggiorna UI base
+            document.getElementById(`s${count}`).classList.add('active');
+            document.body.classList.remove(`step-${count-1}`);
+            document.body.classList.add(`step-${count}`);
+            playSound('success');
+
+            const iconEl = document.getElementById('matteoIcon');
+            const sceneContainer = document.getElementById('scene-container');
+
+            // 2. Aggiungi elemento animato alla scena
+            if (stepSceneItems[count]) {
+                const itemData = stepSceneItems[count];
+                const img = document.createElement('img');
+                img.src = itemData.img;
+                img.alt = itemData.alt;
+                img.className = `scene-item ${itemData.anim}`;
+                // Aggiunge con un piccolo effetto di entrata
+                img.style.opacity = 0;
+                sceneContainer.appendChild(img);
+                setTimeout(() => img.style.opacity = 1, 100);
+                
+            }
+
+            // 3. Logica progressione testi e icone
+            if (count < total) {
+                // Applica la stessa funzione di wrapping interattivo ai messaggi di feedback
+                msgEl.innerHTML = wrapTextWithInteraction(messages[count - 1]);
+                if(count === 3) iconEl.innerText = "🥱🧸"; 
+            } else {
+                // VITTORIA
+                msgEl.innerHTML = wrapTextWithInteraction("FANTASTICO! MATTEO DORME! SHHH! 😴💤");
+                msgEl.style.color = "#27ae60";
+                iconEl.innerText = "😴🌙"; 
+                
+                playSound('win');
+                fireConfetti();
+                
+                let end = Date.now() + 3000;
+                let frame = () => {
+                    confetti({ particleCount: 5, spread: 60, origin: { y: 0.6 }, colors: ['#f1c40f', '#ffffff'] });
+                    if (Date.now() < end) requestAnimationFrame(frame);
+                };
+                frame();
+            }
+        }
+
+        function fireConfetti() {
+            if(typeof confetti === "function") {
+                confetti({ particleCount: 150, spread: 80, origin: { y: 0.6 } });
+            }
+        }
+    </script>
+</body>
+</html>

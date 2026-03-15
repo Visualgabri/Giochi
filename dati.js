@@ -1,9 +1,21 @@
 const GIOCHI_DATA = [
   {
     "name": "julie-amici-numeri-avanzato.html",
+    "path": "Julie/compiti/Matematica/julie-amici-numeri-avanzato.html",
+    "category": "Matematica",
+    "updatedAt": 1773521936395
+  },
+  {
+    "name": "julie-amici-numeri-avanzato.html",
     "path": "Julie/julie-amici-numeri-avanzato.html",
     "category": "Julie",
     "updatedAt": 1773521936395
+  },
+  {
+    "name": "julie-ascensore-magico.html",
+    "path": "Julie/compiti/Italiano/julie-ascensore-magico.html",
+    "category": "Italiano",
+    "updatedAt": 1773261376029.2744
   },
   {
     "name": "julie-ascensore-magico.html",
@@ -19,9 +31,21 @@ const GIOCHI_DATA = [
   },
   {
     "name": "Julie-Sottrazioni6.html",
+    "path": "Julie/compiti/Matematica/Julie-Sottrazioni6.html",
+    "category": "Matematica",
+    "updatedAt": 1772989686404.867
+  },
+  {
+    "name": "Julie-Sottrazioni6.html",
     "path": "Julie/Julie-Sottrazioni6.html",
     "category": "Julie",
     "updatedAt": 1772989686404.867
+  },
+  {
+    "name": "julie-letture-maiu-minus.html",
+    "path": "Julie/compiti/Italiano/julie-letture-maiu-minus.html",
+    "category": "Italiano",
+    "updatedAt": 1772989511339.0752
   },
   {
     "name": "julie-letture-maiu-minus.html",
@@ -31,9 +55,21 @@ const GIOCHI_DATA = [
   },
   {
     "name": "julie-sottrazioni5.html",
+    "path": "Julie/compiti/Matematica/julie-sottrazioni5.html",
+    "category": "Matematica",
+    "updatedAt": 1772989389590.644
+  },
+  {
+    "name": "julie-sottrazioni5.html",
     "path": "Julie/julie-sottrazioni5.html",
     "category": "Julie",
     "updatedAt": 1772989389590.644
+  },
+  {
+    "name": "julie-sottrazioni4.html",
+    "path": "Julie/compiti/Matematica/julie-sottrazioni4.html",
+    "category": "Matematica",
+    "updatedAt": 1772742107881.1296
   },
   {
     "name": "julie-sottrazioni4.html",
@@ -43,9 +79,21 @@ const GIOCHI_DATA = [
   },
   {
     "name": "julie-sottrazioni3.html",
+    "path": "Julie/compiti/Matematica/julie-sottrazioni3.html",
+    "category": "Matematica",
+    "updatedAt": 1772741183039.403
+  },
+  {
+    "name": "julie-sottrazioni3.html",
     "path": "Julie/julie-sottrazioni3.html",
     "category": "Julie",
     "updatedAt": 1772741183039.403
+  },
+  {
+    "name": "julie-sottrazioni2.html",
+    "path": "Julie/compiti/Matematica/julie-sottrazioni2.html",
+    "category": "Matematica",
+    "updatedAt": 1772740990384.6506
   },
   {
     "name": "julie-sottrazioni2.html",
@@ -55,9 +103,21 @@ const GIOCHI_DATA = [
   },
   {
     "name": "julie-sottrazioni1.html",
+    "path": "Julie/compiti/Matematica/julie-sottrazioni1.html",
+    "category": "Matematica",
+    "updatedAt": 1772740803110.5247
+  },
+  {
+    "name": "julie-sottrazioni1.html",
     "path": "Julie/julie-sottrazioni1.html",
     "category": "Julie",
     "updatedAt": 1772740803110.5247
+  },
+  {
+    "name": "julie-lettura-minuscolo.html",
+    "path": "Julie/compiti/Italiano/julie-lettura-minuscolo.html",
+    "category": "Italiano",
+    "updatedAt": 1772570724778.0662
   },
   {
     "name": "julie-lettura-minuscolo.html",
@@ -67,9 +127,21 @@ const GIOCHI_DATA = [
   },
   {
     "name": "julie-frecce.html",
+    "path": "Julie/compiti/Matematica/julie-frecce.html",
+    "category": "Matematica",
+    "updatedAt": 1772570489099.5957
+  },
+  {
+    "name": "julie-frecce.html",
     "path": "Julie/julie-frecce.html",
     "category": "Julie",
     "updatedAt": 1772570489099.5957
+  },
+  {
+    "name": "julie-lettere-minuscole.html",
+    "path": "Julie/compiti/Italiano/julie-lettere-minuscole.html",
+    "category": "Italiano",
+    "updatedAt": 1772444240480.3098
   },
   {
     "name": "julie-lettere-minuscole.html",
@@ -79,15 +151,33 @@ const GIOCHI_DATA = [
   },
   {
     "name": "juie-ombra-sofia.html",
+    "path": "Julie/compiti/Italiano/juie-ombra-sofia.html",
+    "category": "Italiano",
+    "updatedAt": 1771964115408.5667
+  },
+  {
+    "name": "juie-ombra-sofia.html",
     "path": "Julie/juie-ombra-sofia.html",
     "category": "Julie",
     "updatedAt": 1771964115408.5667
   },
   {
     "name": "julie-in-classe.html",
+    "path": "Julie/compiti/Italiano/julie-in-classe.html",
+    "category": "Italiano",
+    "updatedAt": 1771695083791.682
+  },
+  {
+    "name": "julie-in-classe.html",
     "path": "Julie/julie-in-classe.html",
     "category": "Julie",
     "updatedAt": 1771695083791.682
+  },
+  {
+    "name": "julie-gelato.html",
+    "path": "Julie/compiti/Italiano/julie-gelato.html",
+    "category": "Italiano",
+    "updatedAt": 1770367860776.337
   },
   {
     "name": "julie-gelato.html",
@@ -103,15 +193,33 @@ const GIOCHI_DATA = [
   },
   {
     "name": "sifda-numeri-succ-prec.html",
+    "path": "Julie/compiti/Matematica/sifda-numeri-succ-prec.html",
+    "category": "Matematica",
+    "updatedAt": 1770019346882.4277
+  },
+  {
+    "name": "sifda-numeri-succ-prec.html",
     "path": "Julie/sifda-numeri-succ-prec.html",
     "category": "Julie",
     "updatedAt": 1770019346882.4277
   },
   {
     "name": "julie-gufo.html",
+    "path": "Julie/compiti/Italiano/julie-gufo.html",
+    "category": "Italiano",
+    "updatedAt": 1769767083476.7278
+  },
+  {
+    "name": "julie-gufo.html",
     "path": "Julie/julie-gufo.html",
     "category": "Julie",
     "updatedAt": 1769767083476.7278
+  },
+  {
+    "name": "julie-colibri-coach-tablet.html",
+    "path": "Julie/compiti/Italiano/julie-colibri-coach-tablet.html",
+    "category": "Italiano",
+    "updatedAt": 1769545672668.3594
   },
   {
     "name": "julie-colibri-coach-tablet.html",
@@ -126,10 +234,28 @@ const GIOCHI_DATA = [
     "updatedAt": 1769545249526.2986
   },
   {
+    "name": "colibri-julie-coach.html",
+    "path": "Julie/compiti/Italiano/colibri-julie-coach.html",
+    "category": "Italiano",
+    "updatedAt": 1769545249526.2986
+  },
+  {
     "name": "colibri-julie.html",
     "path": "Julie/colibri-julie.html",
     "category": "Julie",
     "updatedAt": 1769545232510.165
+  },
+  {
+    "name": "colibri-julie.html",
+    "path": "Julie/compiti/Italiano/colibri-julie.html",
+    "category": "Italiano",
+    "updatedAt": 1769545232510.165
+  },
+  {
+    "name": "julie-amici-numeri.html",
+    "path": "Julie/compiti/Matematica/julie-amici-numeri.html",
+    "category": "Matematica",
+    "updatedAt": 1769375700044.6023
   },
   {
     "name": "julie-amici-numeri.html",
@@ -139,9 +265,21 @@ const GIOCHI_DATA = [
   },
   {
     "name": "julie-contadinella-icone.html",
+    "path": "Julie/compiti/Italiano/julie-contadinella-icone.html",
+    "category": "Italiano",
+    "updatedAt": 1769375662717.1604
+  },
+  {
+    "name": "julie-contadinella-icone.html",
     "path": "Julie/julie-contadinella-icone.html",
     "category": "Julie",
     "updatedAt": 1769375662717.1604
+  },
+  {
+    "name": "julie-lucia-contadinella.html",
+    "path": "Julie/compiti/Italiano/julie-lucia-contadinella.html",
+    "category": "Italiano",
+    "updatedAt": 1769160596178.1892
   },
   {
     "name": "julie-lucia-contadinella.html",
@@ -169,15 +307,33 @@ const GIOCHI_DATA = [
   },
   {
     "name": "julie-spesa-emma.html",
+    "path": "Julie/compiti/Italiano/julie-spesa-emma.html",
+    "category": "Italiano",
+    "updatedAt": 1768730431509.3186
+  },
+  {
+    "name": "julie-spesa-emma.html",
     "path": "Julie/julie-spesa-emma.html",
     "category": "Julie",
     "updatedAt": 1768730431509.3186
   },
   {
     "name": "julie-amici-numeri-evoluto.html",
+    "path": "Julie/compiti/Matematica/julie-amici-numeri-evoluto.html",
+    "category": "Matematica",
+    "updatedAt": 1768726760394.3345
+  },
+  {
+    "name": "julie-amici-numeri-evoluto.html",
     "path": "Julie/julie-amici-numeri-evoluto.html",
     "category": "Julie",
     "updatedAt": 1768726760394.3345
+  },
+  {
+    "name": "julie-spesa-emma (con icone).html",
+    "path": "Julie/compiti/Italiano/julie-spesa-emma (con icone).html",
+    "category": "Italiano",
+    "updatedAt": 1768576713664.9185
   },
   {
     "name": "julie-spesa-emma (con icone).html",
@@ -193,15 +349,33 @@ const GIOCHI_DATA = [
   },
   {
     "name": "julie-amici-del-10.html",
+    "path": "Julie/compiti/Matematica/julie-amici-del-10.html",
+    "category": "Matematica",
+    "updatedAt": 1768249179222.6995
+  },
+  {
+    "name": "julie-amici-del-10.html",
     "path": "Julie/julie-amici-del-10.html",
     "category": "Julie",
     "updatedAt": 1768249179222.6995
   },
   {
     "name": "julie-fatina-denti.html",
+    "path": "Julie/compiti/Italiano/julie-fatina-denti.html",
+    "category": "Italiano",
+    "updatedAt": 1768248885269.0195
+  },
+  {
+    "name": "julie-fatina-denti.html",
     "path": "Julie/julie-fatina-denti.html",
     "category": "Julie",
     "updatedAt": 1768248885269.0195
+  },
+  {
+    "name": "pianta-doni-julie.html",
+    "path": "Julie/compiti/Italiano/pianta-doni-julie.html",
+    "category": "Italiano",
+    "updatedAt": 1767900885234.379
   },
   {
     "name": "pianta-doni-julie.html",
@@ -217,15 +391,33 @@ const GIOCHI_DATA = [
   },
   {
     "name": "Julie-lettura-nonno-tito.html",
+    "path": "Julie/compiti/Italiano/Julie-lettura-nonno-tito.html",
+    "category": "Italiano",
+    "updatedAt": 1766677347280.504
+  },
+  {
+    "name": "Julie-lettura-nonno-tito.html",
     "path": "Julie/Julie-lettura-nonno-tito.html",
     "category": "Julie",
     "updatedAt": 1766677347280.504
   },
   {
     "name": "julie-noi-al-mattino.html",
+    "path": "Julie/compiti/Italiano/julie-noi-al-mattino.html",
+    "category": "Italiano",
+    "updatedAt": 1766677224411.9775
+  },
+  {
+    "name": "julie-noi-al-mattino.html",
     "path": "Julie/julie-noi-al-mattino.html",
     "category": "Julie",
     "updatedAt": 1766677224411.9775
+  },
+  {
+    "name": "scarabeo-julie.html",
+    "path": "Julie/compiti/Italiano/scarabeo-julie.html",
+    "category": "Italiano",
+    "updatedAt": 1766321880347.9019
   },
   {
     "name": "scarabeo-julie.html",
@@ -271,9 +463,21 @@ const GIOCHI_DATA = [
   },
   {
     "name": "julie-lettura-notte-2.html",
+    "path": "Julie/compiti/Italiano/julie-lettura-notte-2.html",
+    "category": "Italiano",
+    "updatedAt": 1765707361458.0706
+  },
+  {
+    "name": "julie-lettura-notte-2.html",
     "path": "Julie/julie-lettura-notte-2.html",
     "category": "Julie",
     "updatedAt": 1765707361458.0706
+  },
+  {
+    "name": "julie-lettura-notte.html",
+    "path": "Julie/compiti/Italiano/julie-lettura-notte.html",
+    "category": "Italiano",
+    "updatedAt": 1765706578501.6235
   },
   {
     "name": "julie-lettura-notte.html",
@@ -289,9 +493,21 @@ const GIOCHI_DATA = [
   },
   {
     "name": "super-julie-math.html",
+    "path": "Julie/compiti/Matematica/super-julie-math.html",
+    "category": "Matematica",
+    "updatedAt": 1765570951784.444
+  },
+  {
+    "name": "super-julie-math.html",
     "path": "Julie/super-julie-math.html",
     "category": "Julie",
     "updatedAt": 1765570951784.444
+  },
+  {
+    "name": "Julie-amici-cifre.html",
+    "path": "Julie/compiti/Matematica/Julie-amici-cifre.html",
+    "category": "Matematica",
+    "updatedAt": 1765533107686.7617
   },
   {
     "name": "Julie-amici-cifre.html",
@@ -307,9 +523,21 @@ const GIOCHI_DATA = [
   },
   {
     "name": "Julie-parole-sfidanti.html",
+    "path": "Julie/compiti/Italiano/Julie-parole-sfidanti.html",
+    "category": "Italiano",
+    "updatedAt": 1765188738236.573
+  },
+  {
+    "name": "Julie-parole-sfidanti.html",
     "path": "Julie/Julie-parole-sfidanti.html",
     "category": "Julie",
     "updatedAt": 1765188738236.573
+  },
+  {
+    "name": "Julie-parole-semplici.html",
+    "path": "Julie/compiti/Italiano/Julie-parole-semplici.html",
+    "category": "Italiano",
+    "updatedAt": 1765179457908.349
   },
   {
     "name": "Julie-parole-semplici.html",

@@ -1,0 +1,255 @@
+<!DOCTYPE html>
+<html lang="it">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Julie - L'ascensore magico 🚀</title>
+    <link href="https://fonts.googleapis.com/css2?family=Patrick+Hand&family=Fredoka+One&display=swap" rel="stylesheet">
+    <script src="https://cdn.jsdelivr.net/npm/canvas-confetti@1.6.0/dist/confetti.browser.min.js"></script>
+    <style>
+        :root {
+            --bg-space: #1a237e;
+            --highlight-text: #ffd600;
+            --highlight-bg: #3949ab;
+        }
+
+        body {
+            font-family: 'Patrick Hand', cursive;
+            margin: 0;
+            min-height: 100vh;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            background: linear-gradient(to bottom, #1a237e, #311b92);
+            user-select: none;
+            padding-bottom: 50px;
+            color: white;
+        }
+
+        .container {
+            max-width: 800px;
+            width: 90%;
+            background: rgba(255, 255, 255, 0.96);
+            padding: 2rem;
+            border-radius: 25px;
+            box-shadow: 0 15px 35px rgba(0,0,0,0.3);
+            margin-top: 20px;
+            text-align: center;
+            border: 6px solid #ffffff;
+            color: #1a237e;
+        }
+
+        h1 { font-family: 'Fredoka One', cursive; color: #3949ab; font-size: 2.2rem; margin-bottom: 5px; text-transform: lowercase; }
+
+        /* Stile per il nuovo pulsante */
+        .toggle-btn {
+            background: #ff4081;
+            color: white;
+            border: none;
+            padding: 10px 20px;
+            font-family: 'Fredoka One', cursive;
+            border-radius: 50px;
+            cursor: pointer;
+            font-size: 1.2rem;
+            margin-bottom: 15px;
+            transition: transform 0.2s, background 0.2s;
+            box-shadow: 0 4px 10px rgba(0,0,0,0.2);
+        }
+
+        .toggle-btn:hover { transform: scale(1.05); background: #f50057; }
+
+        .story-box {
+            font-size: 1.8rem;
+            line-height: 1.6;
+            text-align: left;
+            padding: 25px;
+            background: #f5f5f5;
+            border-radius: 20px;
+            border: 3px dashed #3949ab;
+            margin: 15px 0;
+            white-space: pre-line;
+            transition: all 0.3s ease;
+        }
+
+        /* Classe per il maiuscolo */
+        .uppercase-text { text-transform: uppercase; letter-spacing: 2px; }
+
+        .interactive-word {
+            display: inline-block;
+            transition: all 0.2s;
+            position: relative;
+            cursor: pointer;
+            padding: 2px 4px;
+            border-radius: 6px;
+        }
+        
+        .interactive-word:hover {
+            color: var(--highlight-text);
+            background-color: var(--highlight-bg);
+            transform: scale(1.1);
+            z-index: 10;
+        }
+
+        .word-tooltip {
+            position: absolute;
+            bottom: 125%;
+            left: 50%;
+            transform: translateX(-50%);
+            font-size: 3.5rem;
+            background: white;
+            padding: 5px 15px;
+            border-radius: 20px;
+            box-shadow: 0 8px 20px rgba(0,0,0,0.2);
+            opacity: 0;
+            visibility: hidden;
+            transition: 0.3s;
+            z-index: 100;
+            border: 2px solid #3949ab;
+        }
+
+        .interactive-word:hover .word-tooltip {
+            opacity: 1;
+            visibility: visible;
+        }
+
+        #space-scene {
+            height: 180px;
+            background: #000022;
+            border-radius: 20px;
+            margin: 20px 0;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            font-size: 5rem;
+            position: relative;
+            border: 3px solid #3949ab;
+            overflow: hidden;
+        }
+
+        .item { position: absolute; animation: bounceIn 0.6s ease-out; }
+
+        @keyframes bounceIn { 0% { transform: scale(0); } 100% { transform: scale(1); } }
+
+        .stars-container { display: flex; gap: 15px; font-size: 3.5rem; color: #c5cae9; justify-content: center; margin: 15px 0; }
+        .star { cursor: pointer; transition: 0.3s; }
+        .star.active { color: #ffd600; transform: scale(1.2); }
+
+        #msg { font-size: 1.4rem; color: #3949ab; font-weight: bold; min-height: 1.5em; }
+    </style>
+</head>
+<body>
+
+    <div class="container">
+        <h1>🚀 l'ascensore magico 🌙</h1>
+        
+        <button class="toggle-btn" onclick="toggleCase()">✨ TRASFORMA TESTO ✨</button>
+
+        <div class="story-box" id="storyBox">
+            <div id="textDisplay"></div>
+        </div>
+
+        <div id="space-scene">
+            <span id="base">🌠</span>
+        </div>
+
+        <div class="controls">
+            <div id="msg">Schiaccia il tasto L! Leggi e tocca una stella!</div>
+            <div class="stars-container">
+                <div class="star" onclick="registerRead(1)" id="s1">★</div>
+                <div class="star" onclick="registerRead(2)" id="s2">★</div>
+                <div class="star" onclick="registerRead(3)" id="s3">★</div>
+                <div class="star" onclick="registerRead(4)" id="s4">★</div>
+                <div class="star" onclick="registerRead(5)" id="s5">★</div>
+            </div>
+        </div>
+    </div>
+
+    <script>
+        const dictionary = {
+            "katia": "👧", "ascensore": "🛗", "magico": "✨", "lettera": "🔤",
+            "luna": "🌙", "emozionata": "🤩", "bambina": "👧", "giocare": "🪁",
+            "kikko": "👽", "azzurro": "🔵", "pista": "🏎️", "palline": "🔮",
+            "gara": "🏁", "medaglia": "🏅", "marte": "🔴", "premi": "🎁"
+        };
+
+        const storyText = `Katia sale su un ascensore magico, schiaccia il tasto con la lettera l e arriva sulla luna. Katia è emozionata. A un tratto sente una vocetta: - Bambina, vuoi giocare con me? è Kikko, un bambino azzurro. Ha costruito una pista e ci fa correre delle palline. Kikko vince la gara, però mette al collo di Katia una medaglia e dice: - Su Marte premiamo chi perde. Chi vince è già contento e non ha bisogno di premi.`;
+
+        function buildText() {
+            const display = document.getElementById('textDisplay');
+            display.innerHTML = storyText.split(' ').map(word => {
+                const clean = word.replace(/[.,!:-]/g, '').toLowerCase();
+                const emoji = dictionary[clean];
+                if (emoji) {
+                    return `<span class="interactive-word">${word}<div class="word-tooltip">${emoji}</div></span>`;
+                }
+                return `<span class="interactive-word">${word}</span>`;
+            }).join(' ');
+        }
+
+        // Funzione per cambiare tra minuscolo e maiuscolo
+        function toggleCase() {
+            const storyBox = document.getElementById('storyBox');
+            const msg = document.getElementById('msg');
+            storyBox.classList.toggle('uppercase-text');
+            
+            // Cambia anche il messaggio di istruzioni per coerenza
+            if(storyBox.classList.contains('uppercase-text')) {
+                msg.style.textTransform = "uppercase";
+            } else {
+                msg.style.textTransform = "none";
+            }
+        }
+
+        buildText();
+
+        let count = 0;
+        const messages = [
+            "Brava Julie! Katia è sull'ascensore! 🛗",
+            "Siamo arrivati sulla luna! 🌙",
+            "Ecco Kikko, il bambino azzurro! 👽",
+            "Che bella la gara delle palline! 🏁",
+            "UNA MEDAGLIA SPECIALE PER TE! 🏅🎉"
+        ];
+
+        function addItem(emoji, top, left) {
+            const scene = document.getElementById('space-scene');
+            const span = document.createElement('span');
+            span.innerText = emoji;
+            span.className = 'item';
+            span.style.top = top + '%';
+            span.style.left = left + '%';
+            scene.appendChild(span);
+        }
+
+        function registerRead(num) {
+            if (num !== count + 1) return;
+            count = num;
+
+            document.getElementById(`s${count}`).classList.add('active');
+            
+            const currentMsg = messages[count-1];
+            const isUpper = document.getElementById('storyBox').classList.contains('uppercase-text');
+            document.getElementById('msg').innerText = isUpper ? currentMsg.toUpperCase() : currentMsg;
+
+            if(count === 1) addItem("🛗", 40, 45);
+            if(count === 2) addItem("🌙", 20, 20);
+            if(count === 3) addItem("👽", 50, 70);
+            if(count === 4) addItem("🔮", 60, 30);
+            if(count === 5) {
+                addItem("🏅", 40, 45);
+                addItem("🔴", 10, 80);
+                confetti({ particleCount: 150, spread: 70, origin: { y: 0.6 }, colors: ['#ffd600', '#3949ab', '#ffffff'] });
+            }
+            
+            const audioCtx = new (window.AudioContext || window.webkitAudioContext)();
+            const osc = audioCtx.createOscillator();
+            const gain = audioCtx.createGain();
+            osc.connect(gain);
+            gain.connect(audioCtx.destination);
+            osc.frequency.value = 523.25 + (count * 100);
+            gain.gain.exponentialRampToValueAtTime(0.01, audioCtx.currentTime + 0.3);
+            osc.start(); osc.stop(audioCtx.currentTime + 0.3);
+        }
+    </script>
+</body>
+</html>

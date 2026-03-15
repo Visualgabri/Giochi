@@ -1,0 +1,366 @@
+<!DOCTYPE html>
+<html lang="it">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+    <title>La Foresta Magica dei Numeri</title>
+    <link href="https://fonts.googleapis.com/css2?family=Fredoka+One&display=swap" rel="stylesheet">
+    <style>
+        :root {
+            --bg-dark: #1a0f2e;
+            --bg-light: #361e5c;
+            --accent-gold: #ffd700;
+            --accent-pink: #ff66b3;
+            --accent-blue: #33ccff;
+            --text-glow: 0 0 10px rgba(255, 255, 255, 0.8);
+        }
+
+        body {
+            margin: 0;
+            overflow: hidden; /* Niente scroll bars */
+            font-family: 'Fredoka One', cursive;
+            background: radial-gradient(circle at center bottom, var(--bg-light) 0%, var(--bg-dark) 100%);
+            color: white;
+            height: 100vh;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            touch-action: manipulation;
+        }
+
+        /* SFONDO CON PARTICELLE (Stelline) */
+        #stars-container {
+            position: absolute;
+            top: 0; left: 0; width: 100%; height: 100%;
+            pointer-events: none;
+            z-index: -1;
+        }
+        .star {
+            position: absolute;
+            background: white;
+            border-radius: 50%;
+            animation: twinkle var(--duration) infinite ease-in-out;
+            opacity: var(--opacity);
+        }
+        @keyframes twinkle { 0%, 100% { opacity: var(--opacity); transform: scale(1); } 50% { opacity: 0.2; transform: scale(0.5); } }
+
+        /* SCHERMATE (Intro, Gioco, Fine) */
+        .screen {
+            position: absolute;
+            width: 100%; height: 100%;
+            display: flex;
+            flex-direction: column;
+            justify-content: center;
+            align-items: center;
+            transition: opacity 0.5s, transform 0.5s;
+        }
+        .hidden { opacity: 0; pointer-events: none; transform: scale(1.1); }
+        .active { opacity: 1; pointer-events: all; transform: scale(1); }
+
+        /* UI ELEMENTS */
+        h1 {
+            font-size: 3rem;
+            text-shadow: 0 0 20px var(--accent-pink), 0 0 40px var(--accent-blue);
+            text-align: center;
+            margin-bottom: 10px;
+        }
+        p.subtitle { font-size: 1.4rem; color: var(--accent-blue); text-align: center; }
+
+        .btn-magical {
+            background: linear-gradient(45deg, var(--accent-pink), var(--accent-blue));
+            border: none;
+            padding: 15px 30px;
+            font-size: 1.5rem;
+            color: white;
+            border-radius: 30px;
+            font-family: 'Fredoka One', cursive;
+            cursor: pointer;
+            box-shadow: 0 0 20px rgba(255, 102, 179, 0.5);
+            transition: transform 0.2s;
+            margin: 10px;
+        }
+        .btn-magical:active { transform: scale(0.95); }
+
+        /* AREA DI GIOCO */
+        #game-hud {
+            position: absolute;
+            top: 20px;
+            width: 90%;
+            display: flex;
+            justify-content: space-between;
+            font-size: 1.8rem;
+            text-shadow: var(--text-glow);
+            z-index: 10;
+        }
+        .combo-box { color: var(--accent-gold); }
+
+        /* IL PERSONAGGIO CENTRALE (Fatina) */
+        .fairy-container {
+            position: absolute;
+            bottom: 20%;
+            left: 50%;
+            transform: translateX(-50%);
+            text-align: center;
+            z-index: 5;
+        }
+        .fairy-character {
+            font-size: 5rem;
+            filter: drop-shadow(0 0 20px var(--accent-pink));
+            animation: floatFairy 3s ease-in-out infinite;
+        }
+        .fairy-question {
+            background: rgba(0,0,0,0.6);
+            border: 3px solid var(--accent-pink);
+            border-radius: 20px;
+            padding: 15px 30px;
+            font-size: 2.5rem;
+            backdrop-filter: blur(5px);
+            box-shadow: 0 0 30px var(--accent-pink);
+        }
+        @keyframes floatFairy { 0%, 100% { transform: translateY(0); } 50% { transform: translateY(-20px); } }
+
+        /* LE LUCCIOLE (Target volanti) */
+        .firefly {
+            position: absolute;
+            width: 70px; height: 70px;
+            background: radial-gradient(circle, rgba(255,255,255,0.9) 20%, var(--accent-gold) 100%);
+            border-radius: 50%;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            font-size: 2rem;
+            color: #333;
+            box-shadow: 0 0 20px var(--accent-gold), 0 0 40px var(--accent-gold);
+            cursor: pointer;
+            transition: transform 0.1s;
+            animation: flyAround 8s infinite linear alternate;
+            will-change: transform, left, top;
+        }
+        .firefly:active { transform: scale(1.2) !important; }
+        .firefly::after { /* Ali */
+            content: '🦋'; font-size: 1rem; position: absolute; top: -15px; right: -10px; opacity: 0.8;
+        }
+        /* Animazione di volo complessa */
+        @keyframes flyAround {
+            0% { transform: translate(0, 0) rotate(0deg); }
+            25% { transform: translate(100px, -50px) rotate(10deg); }
+            50% { transform: translate(50px, 100px) rotate(-10deg); }
+            75% { transform: translate(-100px, 50px) rotate(5deg); }
+            100% { transform: translate(0, 0) rotate(0deg); }
+        }
+
+        /* EFFETTI DI FEEDBACK */
+        .pop-correct { animation: popSuccess 0.6s forwards; pointer-events: none; }
+        @keyframes popSuccess { 
+            0% { transform: scale(1); opacity: 1; } 
+            50% { transform: scale(2); opacity: 0.5; background: var(--accent-blue); box-shadow: 0 0 50px var(--accent-blue); color: white;}
+            100% { transform: scale(0); opacity: 0; } 
+        }
+        .shake-wrong { animation: shake 0.4s; background: red !important; box-shadow: 0 0 30px red !important; color: white; }
+        @keyframes shake { 0%, 100% {transform:translateX(0);} 25% {transform:translateX(-10px);} 75% {transform:translateX(10px);} }
+
+        /* SCHERMATA FINALE */
+        .final-score-box { font-size: 5rem; color: var(--accent-gold); margin: 20px 0; animation: pulseGold 2s infinite; }
+        @keyframes pulseGold { 50% { text-shadow: 0 0 50px var(--accent-gold); transform: scale(1.05); } }
+    </style>
+</head>
+<body>
+    <div id="stars-container"></div>
+
+    <div id="intro-screen" class="screen active">
+        <h1>La Foresta Magica ✨</h1>
+        <p class="subtitle">Aiuta la fatina a trovare gli amici dei numeri!</p>
+        <p style="margin-top: 30px;">Scegli il tuo numero magico:</p>
+        <div style="display: flex; gap: 10px; flex-wrap: wrap; justify-content: center;">
+            <button class="btn-magical" onclick="startGame(5)">5</button>
+            <button class="btn-magical" onclick="startGame(6)">6</button>
+            <button class="btn-magical" onclick="startGame(7)">7</button>
+            <button class="btn-magical" onclick="startGame(8)">8</button>
+            <button class="btn-magical" onclick="startGame(9)">9</button>
+            <button class="btn-magical" style="background: linear-gradient(45deg, var(--accent-gold), #ff9a00); font-size: 2rem;" onclick="startGame(10)">10</button>
+        </div>
+    </div>
+
+    <div id="game-screen" class="screen hidden">
+        <div id="game-hud">
+            <div>⭐ Punti: <span id="score">0</span></div>
+            <div>⏱️ <span id="timer">60</span>s</div>
+            <div class="combo-box">🔥 Combo: x<span id="combo">0</span></div>
+        </div>
+
+        <div id="fireflies-container">
+            </div>
+
+        <div class="fairy-container">
+            <div class="fairy-character">🧚</div>
+            <div class="fairy-question">
+                <span id="fairy-num">?</span> + <span style="color:var(--accent-gold)">?</span> = <span id="target-num">10</span>
+            </div>
+        </div>
+    </div>
+
+    <div id="end-screen" class="screen hidden">
+        <h1>Magia Completata! 🎉</h1>
+        <p class="subtitle">Sei stata fantastica!</p>
+        <div class="final-score-box" id="final-score">0</div>
+        <button class="btn-magical" onclick="location.reload()">Gioca Ancora! 🔄</button>
+    </div>
+
+    <script>
+        // --- SETUP AMBIENTE ---
+        // Genera stelline di sfondo
+        const starsContainer = document.getElementById('stars-container');
+        for(let i=0; i<50; i++) {
+            let star = document.createElement('div');
+            star.className = 'star';
+            star.style.left = Math.random() * 100 + '%';
+            star.style.top = Math.random() * 100 + '%';
+            let size = Math.random() * 3 + 'px';
+            star.style.width = size; star.style.height = size;
+            star.style.setProperty('--duration', (Math.random() * 3 + 2) + 's');
+            star.style.setProperty('--opacity', Math.random() * 0.7 + 0.3);
+            starsContainer.appendChild(star);
+        }
+
+        // --- STATO DEL GIOCO ---
+        let gameState = {
+            target: 10,
+            currentFairyNum: 0,
+            correctAnswer: 0,
+            score: 0,
+            combo: 0,
+            timeLeft: 60,
+            timerId: null,
+            active: false
+        };
+
+        // Elements
+        const screens = { intro: document.getElementById('intro-screen'), game: document.getElementById('game-screen'), end: document.getElementById('end-screen') };
+        const ui = { score: document.getElementById('score'), timer: document.getElementById('timer'), combo: document.getElementById('combo'), fairyNum: document.getElementById('fairy-num'), targetNum: document.getElementById('target-num'), firefliesCont: document.getElementById('fireflies-container'), finalScore: document.getElementById('final-score') };
+
+        // AUDIO SYNTH (Web Audio API - Nessun file esterno necessario!)
+        const audioCtx = new (window.AudioContext || window.webkitAudioContext)();
+        function playSound(type) {
+            if(audioCtx.state === 'suspended') audioCtx.resume();
+            const osc = audioCtx.createOscillator(); const gain = audioCtx.createGain();
+            osc.connect(gain); gain.connect(audioCtx.destination);
+            const now = audioCtx.currentTime;
+            if (type === 'win') {
+                // Suono "bling" acuto e felice che sale di tono con la combo
+                let baseFreq = 600 + (gameState.combo * 50); 
+                osc.frequency.setValueAtTime(baseFreq, now);
+                osc.frequency.exponentialRampToValueAtTime(baseFreq + 300, now + 0.2);
+                gain.gain.setValueAtTime(0.2, now); gain.gain.exponentialRampToValueAtTime(0.01, now + 0.3);
+                osc.start(now); osc.stop(now + 0.3);
+            } else if (type === 'lose') {
+                // Suono "buzz" basso
+                osc.type = 'sawtooth'; osc.frequency.setValueAtTime(150, now);
+                gain.gain.setValueAtTime(0.2, now); gain.gain.exponentialRampToValueAtTime(0.01, now + 0.3);
+                osc.start(now); osc.stop(now + 0.3);
+            }
+        }
+
+        // --- LOGICA GIOCO ---
+        function showScreen(name) {
+            Object.values(screens).forEach(s => s.classList.remove('active', 'hidden'));
+            Object.values(screens).forEach(s => s.classList.add('hidden'));
+            screens[name].classList.remove('hidden');
+            screens[name].classList.add('active');
+        }
+
+        function startGame(target) {
+            gameState.target = target;
+            gameState.score = 0; gameState.combo = 0; gameState.timeLeft = 60; gameState.active = true;
+            
+            ui.targetNum.innerText = target;
+            updateHud();
+            showScreen('game');
+            
+            gameState.timerId = setInterval(() => {
+                gameState.timeLeft--;
+                updateHud();
+                if(gameState.timeLeft <= 0) endGame();
+            }, 1000);
+
+            nextRound();
+        }
+
+        function updateHud() {
+            ui.score.innerText = gameState.score;
+            ui.timer.innerText = gameState.timeLeft;
+            ui.combo.innerText = gameState.combo;
+            // Allarme rosso ultimi 10 secondi
+            ui.timer.style.color = gameState.timeLeft <= 10 ? '#ff3333' : 'white';
+        }
+
+        function nextRound() {
+            if(!gameState.active) return;
+            
+            // 1. Definisci la nuova equazione
+            gameState.currentFairyNum = Math.floor(Math.random() * (gameState.target + 1));
+            gameState.correctAnswer = gameState.target - gameState.currentFairyNum;
+            ui.fairyNum.innerText = gameState.currentFairyNum;
+
+            // 2. Pulisci vecchie lucciole
+            ui.firefliesCont.innerHTML = '';
+
+            // 3. Genera nuove lucciole (la risposta giusta + 4 sbagliate)
+            let options = [gameState.correctAnswer];
+            while(options.length < 5) {
+                let wrong = Math.floor(Math.random() * (gameState.target + 1));
+                if(options.indexOf(wrong) === -1) options.push(wrong);
+            }
+            options.sort(() => Math.random() - 0.5); // Mischia
+
+            // Crea elementi DOM per le lucciole
+            options.forEach(num => {
+                let ff = document.createElement('div');
+                ff.className = 'firefly';
+                ff.innerText = num;
+                // Posizione iniziale casuale nella metà superiore
+                ff.style.left = Math.random() * 80 + 10 + '%';
+                ff.style.top = Math.random() * 40 + 10 + '%';
+                // Ritardo animazione casuale per non farle muovere all'unisono
+                ff.style.animationDelay = -(Math.random() * 5) + 's';
+                
+                ff.onclick = (e) => checkAnswer(num, e.target);
+                ui.firefliesCont.appendChild(ff);
+            });
+        }
+
+        function checkAnswer(guess, element) {
+            if(!gameState.active || element.classList.contains('pop-correct')) return;
+
+            if(guess === gameState.correctAnswer) {
+                // GIUSTO!
+                gameState.combo++;
+                gameState.score += (1 + Math.floor(gameState.combo / 3)); // Punti bonus combo
+                playSound('win');
+                element.classList.add('pop-correct'); // Animazione esplosione
+                updateHud();
+                // Aspetta un attimo prima del prossimo round per godersi l'effetto
+                setTimeout(nextRound, 600);
+            } else {
+                // SBAGLIATO!
+                gameState.combo = 0;
+                playSound('lose');
+                element.classList.add('shake-wrong');
+                updateHud();
+                setTimeout(() => element.classList.remove('shake-wrong'), 500);
+            }
+        }
+
+        function endGame() {
+            gameState.active = false;
+            clearInterval(gameState.timerId);
+            ui.finalScore.innerText = gameState.score;
+            showScreen('end');
+        }
+
+        // Sblocca audio al primo tocco
+        document.body.addEventListener('touchstart', () => { if(audioCtx.state === 'suspended') audioCtx.resume(); }, {once:true});
+        document.body.addEventListener('click', () => { if(audioCtx.state === 'suspended') audioCtx.resume(); }, {once:true});
+
+    </script>
+</body>
+</html>

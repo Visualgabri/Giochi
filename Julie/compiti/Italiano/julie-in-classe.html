@@ -1,0 +1,257 @@
+<!DOCTYPE html>
+<html lang="it">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Julie - In Classe 🏫</title>
+    <link href="https://fonts.googleapis.com/css2?family=Patrick+Hand&family=Fredoka+One&display=swap" rel="stylesheet">
+    <script src="https://cdn.jsdelivr.net/npm/canvas-confetti@1.6.0/dist/confetti.browser.min.js"></script>
+    <style>
+        :root {
+            --bg-school: #e3f2fd;
+            --highlight-text: #1565c0;
+            --highlight-bg: #bbdefb;
+        }
+
+        body {
+            font-family: 'Patrick Hand', cursive;
+            margin: 0;
+            min-height: 100vh;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            background: linear-gradient(to bottom, #90caf9, #e3f2fd);
+            user-select: none;
+            padding-bottom: 50px;
+        }
+
+        .container {
+            max-width: 800px;
+            width: 90%;
+            background: rgba(255, 255, 255, 0.96);
+            padding: 2rem;
+            border-radius: 25px;
+            box-shadow: 0 15px 35px rgba(0,0,0,0.1);
+            margin-top: 20px;
+            text-align: center;
+            border: 6px solid #ffffff;
+        }
+
+        h1 { font-family: 'Fredoka One', cursive; color: #1565c0; font-size: 2.2rem; margin-bottom: 5px; }
+
+        .story-box {
+            font-size: 1.9rem;
+            line-height: 1.7;
+            color: #0d47a1;
+            text-align: left;
+            padding: 25px;
+            background: #ffffff;
+            border-radius: 20px;
+            border: 3px dashed #1e88e5;
+            margin: 15px 0;
+            white-space: pre-line;
+        }
+
+        /* --- PAROLE INTERATTIVE E ICONE --- */
+        .interactive-word {
+            display: inline-block;
+            transition: all 0.2s;
+            position: relative;
+            cursor: pointer;
+            padding: 2px 4px;
+            border-radius: 6px;
+        }
+        
+        .interactive-word:hover {
+            color: var(--highlight-text);
+            background-color: var(--highlight-bg);
+            transform: scale(1.15);
+            z-index: 10;
+        }
+
+        .word-tooltip {
+            position: absolute;
+            bottom: 125%;
+            left: 50%;
+            transform: translateX(-50%);
+            font-size: 3.5rem;
+            background: white;
+            padding: 5px 15px;
+            border-radius: 20px;
+            box-shadow: 0 8px 20px rgba(0,0,0,0.15);
+            opacity: 0;
+            visibility: hidden;
+            transition: 0.3s cubic-bezier(0.175, 0.885, 0.32, 1.275);
+            z-index: 100;
+            border: 2px solid #1e88e5;
+        }
+
+        .interactive-word:hover .word-tooltip {
+            opacity: 1;
+            visibility: visible;
+        }
+
+        /* --- SCENA DELLA CLASSE --- */
+        #class-scene {
+            height: 180px;
+            background: #fff9c4;
+            border-radius: 20px;
+            margin: 20px 0;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            font-size: 5rem;
+            position: relative;
+            border: 3px solid #fbc02d;
+            overflow: hidden;
+        }
+
+        .student-item {
+            position: absolute;
+            animation: bounceIn 0.6s ease-out;
+            transition: all 0.5s;
+        }
+
+        @keyframes bounceIn {
+            0% { transform: scale(0); }
+            100% { transform: scale(1); }
+        }
+
+        /* --- CONTROLLI --- */
+        .stars-container {
+            display: flex;
+            gap: 15px;
+            font-size: 3.5rem;
+            color: #bbdefb;
+            justify-content: center;
+            margin: 15px 0;
+        }
+
+        .star { cursor: pointer; transition: 0.3s; }
+        .star.active { color: #fbc02d; transform: scale(1.2); text-shadow: 0 0 15px rgba(251, 192, 45, 0.8); }
+
+        #msg { font-size: 1.4rem; color: #1565c0; font-weight: bold; min-height: 1.5em; }
+    </style>
+</head>
+<body>
+
+    <div class="container">
+        <h1>🏫 IN CLASSE 📚</h1>
+        
+        <div class="story-box">
+            <div id="textDisplay"></div>
+        </div>
+
+        <div id="class-scene">
+            <span id="base-scene">🖍️</span>
+        </div>
+
+        <div class="controls">
+            <div id="msg">Entra in classe! Leggi e tocca una stella!</div>
+            <div class="stars-container">
+                <div class="star" onclick="registerRead(1)" id="s1">★</div>
+                <div class="star" onclick="registerRead(2)" id="s2">★</div>
+                <div class="star" onclick="registerRead(3)" id="s3">★</div>
+                <div class="star" onclick="registerRead(4)" id="s4">★</div>
+                <div class="star" onclick="registerRead(5)" id="s5">★</div>
+            </div>
+        </div>
+    </div>
+
+    <script>
+        const dictionary = {
+            "CLASSE": "🏫", "SCUOLA": "🏫", "BAMBINI": "👦👧",
+            "DIVERSI": "🌈", "MARZIA": "👧", "POESIE": "📜",
+            "FABRIZIO": "👦", "DISEGNO": "🎨", "UMBERTO": "👦",
+            "NUVOLE": "☁️", "MACCHINE": "🏎️", "INSIEME": "🤝"
+        };
+
+        const storyText = `A SCUOLA I BAMBINI SCOPRIRONO
+CHE ERANO TUTTI DIVERSI FRA LORO.
+MARZIA INVENTAVA POESIE.
+FABRIZIO ERA BRAVISSIMO NEL DISEGNO.
+E C'ERA UMBERTO, CHE AVEVA LA TESTA
+FRA LE NUVOLE, PERCHÉ PENSAVA
+SEMPRE A COSTRUIRE MACCHINE
+DI OGNI TIPO.
+OGNI BAMBINO, INSOMMA, SAPEVA
+FARE QUALCOSA E TUTTI INSIEME
+SAPEVANO FARE TANTE COSE.`;
+
+        function buildText() {
+            const display = document.getElementById('textDisplay');
+            display.innerHTML = storyText.split('\n').map(line => {
+                return line.split(' ').map(word => {
+                    const clean = word.replace(/[.,!?…]/g, '').toUpperCase();
+                    const emoji = dictionary[clean];
+                    if (emoji) {
+                        return `<span class="interactive-word">${word}<div class="word-tooltip">${emoji}</div></span>`;
+                    }
+                    return `<span class="interactive-word">${word}</span>`;
+                }).join(' ');
+            }).join('<br>');
+        }
+
+        buildText();
+
+        let count = 0;
+        const messages = [
+            "Brava Julie! La scuola è aperta! 🏫",
+            "Guarda Marzia con la sua poesia! 📜",
+            "Ecco il disegno di Fabrizio! 🎨",
+            "Umberto sogna le sue macchine! 🏎️☁️",
+            "TUTTI INSIEME SIAMO UNA SUPER SQUADRA! 🤝🎉"
+        ];
+
+        function addStudent(emoji, top, left) {
+            const scene = document.getElementById('class-scene');
+            const span = document.createElement('span');
+            span.innerText = emoji;
+            span.className = 'student-item';
+            span.style.top = top + '%';
+            span.style.left = left + '%';
+            scene.appendChild(span);
+        }
+
+        function registerRead(num) {
+            if (num !== count + 1) return;
+            count = num;
+
+            document.getElementById(`s${count}`).classList.add('active');
+            const msgEl = document.getElementById('msg');
+            msgEl.innerText = messages[count-1];
+
+            // Riempimento della scena progressiva
+            if(count === 1) addStudent("🏢", 30, 45); 
+            if(count === 2) addStudent("📜👧", 45, 20);
+            if(count === 3) addStudent("🎨👦", 50, 70);
+            if(count === 4) {
+                addStudent("☁️", 10, 50);
+                addStudent("🏎️👦", 60, 45);
+            }
+            if(count === 5) {
+                addStudent("🤝", 10, 10);
+                addStudent("✨", 15, 85);
+                confetti({
+                    particleCount: 150,
+                    spread: 70,
+                    origin: { y: 0.6 },
+                    colors: ['#1e88e5', '#fbc02d', '#ffffff']
+                });
+                msgEl.style.color = "#1976d2";
+                msgEl.style.fontSize = "1.6rem";
+            }
+            
+            // Suono di feedback
+            const audioCtx = new (window.AudioContext || window.webkitAudioContext)();
+            const osc = audioCtx.createOscillator();
+            const gain = audioCtx.createGain();
+            osc.connect(gain);
+            gain.connect(audioCtx.destination);
+            osc.frequency.value = 440 + (count * 110);
+            gain.gain.exponentialRampToValueAtTime(0.01, audioCtx.currentTime + 0.3);
+            osc.start(); osc.stop(audioCtx.currentTime + 0.3);
+        }
+    </script>
+</body>
+</html>

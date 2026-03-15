@@ -1,0 +1,264 @@
+<!DOCTYPE html>
+<html lang="it">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+    <title>Julie: Lettura Notturna 🌙</title>
+    <link href="https://fonts.googleapis.com/css2?family=Montserrat:wght@400;900&display=swap" rel="stylesheet">
+    <style>
+        :root {
+            --sfondo: #0a0e14;
+            --scheda: #1a1f26;
+            --testo-principale: #e0e6ed;
+            --primario: #7289da;
+            --successo: #43b581;
+            --aiuto: #faa61a;
+        }
+
+        body {
+            font-family: 'Montserrat', sans-serif;
+            background-color: var(--sfondo);
+            color: var(--testo-principale);
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            justify-content: center;
+            height: 100vh;
+            margin: 0;
+            overflow: hidden;
+            touch-action: manipulation;
+        }
+
+        #game-card {
+            background: var(--scheda);
+            padding: 40px;
+            border-radius: 30px;
+            box-shadow: 0 20px 50px rgba(0,0,0,0.5);
+            text-align: center;
+            width: 85%;
+            max-width: 550px;
+            border: 2px solid #2f353d;
+        }
+
+        .score-board {
+            font-size: 22px;
+            color: var(--primario);
+            font-weight: bold;
+            margin-bottom: 10px;
+            text-transform: uppercase;
+            letter-spacing: 1px;
+        }
+
+        /* Testo in STAMPATELLO MINUSCOLO */
+        #word-display {
+            font-size: 75px;
+            font-weight: 400; /* Peso regolare per il minuscolo */
+            color: #ffffff;
+            margin: 40px 0;
+            min-height: 110px;
+            cursor: pointer;
+            transition: all 0.2s ease;
+            user-select: none;
+            text-transform: lowercase; /* Forza il minuscolo */
+        }
+
+        /* Trasformazione in STAMPATELLO MAIUSCOLO */
+        #word-display.hint-mode {
+            font-weight: 900; /* Molto più marcato */
+            font-size: 65px;
+            color: var(--aiuto);
+            text-transform: uppercase; /* Forza il maiuscolo */
+            letter-spacing: 4px;
+        }
+
+        .instruction {
+            font-size: 16px;
+            color: #8e9297;
+            margin-bottom: 25px;
+        }
+
+        .btn-container {
+            display: flex;
+            gap: 20px;
+            justify-content: center;
+            margin-top: 20px;
+        }
+
+        button {
+            padding: 18px 35px;
+            font-size: 18px;
+            border: none;
+            border-radius: 15px;
+            cursor: pointer;
+            font-weight: bold;
+            transition: all 0.1s;
+            text-transform: uppercase;
+        }
+
+        #correct-btn { 
+            background-color: var(--successo); 
+            color: white;
+            box-shadow: 0 4px 0 #2d7d5a;
+        }
+
+        #next-btn { 
+            background-color: #4f545c; 
+            color: white;
+            box-shadow: 0 4px 0 #32353b;
+        }
+
+        button:active {
+            transform: translateY(4px);
+            box-shadow: none;
+        }
+
+        #confetti-canvas {
+            position: fixed;
+            top: 0;
+            left: 0;
+            pointer-events: none;
+            z-index: 100;
+        }
+
+        .feedback-text {
+            height: 30px;
+            font-weight: bold;
+            color: var(--successo);
+            margin-top: 20px;
+            font-size: 1.2rem;
+        }
+
+        /* Piccole stelle decorative per il tema notte */
+        .star-bg {
+            position: absolute;
+            background: white;
+            border-radius: 50%;
+            opacity: 0.3;
+            z-index: -1;
+        }
+    </style>
+</head>
+<body>
+
+    <canvas id="confetti-canvas"></canvas>
+
+    <div id="game-card">
+        <div class="score-board">Progresso Julie: <span id="stars">0</span> ⭐</div>
+        
+        <div class="instruction">Leggi la parola minuscola... 🌙</div>
+        
+        <div id="word-display" onclick="toggleHint()">---</div>
+        
+        <div class="instruction" style="font-size: 13px; font-style: italic;">
+            (Tocca la parola per vederla GRANDE)
+        </div>
+
+        <div class="btn-container">
+            <button id="correct-btn" onclick="celebrate()">L'ho letta! ✅</button>
+            <button id="next-btn" onclick="newWord()">Prossima ➡️</button>
+        </div>
+
+        <div id="feedback" class="feedback-text"></div>
+    </div>
+
+    <script>
+        const words = [
+            "mela", "gatto", "luna", "palla", "libro", 
+            "fiore", "casa", "sole", "nido", "topo",
+            "rana", "cane", "torta", "mare", "pane"
+        ];
+
+        let currentWord = "";
+        let score = 0;
+        const wordDisplay = document.getElementById('word-display');
+        const starsDisplay = document.getElementById('stars');
+        const feedback = document.getElementById('feedback');
+
+        function newWord() {
+            const index = Math.floor(Math.random() * words.length);
+            currentWord = words[index];
+            wordDisplay.innerText = currentWord;
+            wordDisplay.classList.remove('hint-mode');
+            feedback.innerText = "";
+        }
+
+        function toggleHint() {
+            wordDisplay.classList.toggle('hint-mode');
+        }
+
+        function celebrate() {
+            score++;
+            starsDisplay.innerText = score;
+            feedback.innerText = "BRAVISSIMA JULIE! 🌟";
+            playWinSound();
+            startConfetti();
+            setTimeout(newWord, 1800);
+        }
+
+        // Suono delicato per la notte
+        const audioCtx = new (window.AudioContext || window.webkitAudioContext)();
+        function playWinSound() {
+            const osc = audioCtx.createOscillator();
+            const gain = audioCtx.createGain();
+            osc.connect(gain);
+            gain.connect(audioCtx.destination);
+            osc.type = 'triangle'; // Suono più dolce del sine
+            osc.frequency.setValueAtTime(523.25, audioCtx.currentTime); // DO
+            osc.frequency.exponentialRampToValueAtTime(659.25, audioCtx.currentTime + 0.3); // MI
+            gain.gain.setValueAtTime(0.05, audioCtx.currentTime);
+            gain.gain.exponentialRampToValueAtTime(0.001, audioCtx.currentTime + 0.6);
+            osc.start();
+            osc.stop(audioCtx.currentTime + 0.6);
+        }
+
+        // Effetto coriandoli "polvere di stelle"
+        const canvas = document.getElementById('confetti-canvas');
+        const ctx = canvas.getContext('2d');
+        let particles = [];
+
+        function startConfetti() {
+            canvas.width = window.innerWidth;
+            canvas.height = window.innerHeight;
+            particles = [];
+            for(let i=0; i<40; i++) {
+                particles.push({
+                    x: Math.random() * canvas.width,
+                    y: canvas.height + 10,
+                    color: i % 2 === 0 ? '#faa61a' : '#ffffff',
+                    velX: (Math.random() - 0.5) * 8,
+                    velY: -Math.random() * 12 - 8
+                });
+            }
+            animate();
+        }
+
+        function animate() {
+            ctx.clearRect(0, 0, canvas.width, canvas.height);
+            particles.forEach((p, i) => {
+                p.x += p.velX;
+                p.y += p.velY;
+                p.velY += 0.4;
+                ctx.fillStyle = p.color;
+                ctx.beginPath();
+                ctx.arc(p.x, p.y, 3, 0, Math.PI * 2);
+                ctx.fill();
+                if(p.y > canvas.height) particles.splice(i, 1);
+            });
+            if(particles.length > 0) requestAnimationFrame(animate);
+        }
+
+        // Crea stelline di sfondo
+        for(let i=0; i<30; i++) {
+            const s = document.createElement('div');
+            s.className = 'star-bg';
+            const size = Math.random() * 3 + 'px';
+            s.style.width = size; s.style.height = size;
+            s.style.left = Math.random() * 100 + 'vw';
+            s.style.top = Math.random() * 100 + 'vh';
+            document.body.appendChild(s);
+        }
+
+        newWord();
+    </script>
+</body>
+</html>

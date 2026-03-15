@@ -1,0 +1,579 @@
+<!DOCTYPE html>
+<html lang="it">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+    <title>Il Super Quaderno di Julie</title>
+    <link href="https://fonts.googleapis.com/css2?family=Patrick+Hand&display=swap" rel="stylesheet">
+    <style>
+        :root {
+            --paper-color: #fff;
+            --grid-color: #dbeeff; 
+            --ink-color: #2c3e50;
+            --color-1: #3498db; /* Blu */
+            --color-2: #e74c3c; /* Rosso */
+            --color-success: #27ae60;
+            --color-accent: #f1c40f;
+        }
+
+        body {
+            font-family: 'Patrick Hand', cursive;
+            background-color: #f0f0f0;
+            margin: 0;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            min-height: 100vh;
+            overflow: hidden;
+            touch-action: manipulation;
+        }
+
+        /* --- UI PRINCIPALE --- */
+        .notebook-sheet {
+            background-color: var(--paper-color);
+            background-image: 
+                linear-gradient(var(--grid-color) 1px, transparent 1px),
+                linear-gradient(90deg, var(--grid-color) 1px, transparent 1px);
+            background-size: 30px 30px;
+            width: 100%;
+            max-width: 600px;
+            height: 100vh;
+            max-height: 900px;
+            position: relative;
+            box-shadow: 0 0 25px rgba(0,0,0,0.15);
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            padding: 10px;
+            border-radius: 4px;
+        }
+
+        /* Header con Progress Bar */
+        .header-area {
+            width: 100%;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            padding: 10px 20px;
+            box-sizing: border-box;
+        }
+
+        .stars-container {
+            font-size: 1.5rem;
+            color: #ddd;
+        }
+        .star.active { color: var(--color-accent); text-shadow: 0 0 5px rgba(241, 196, 15, 0.5); transform: scale(1.2); transition: all 0.3s; }
+
+        h1 {
+            color: var(--ink-color);
+            font-size: 2rem;
+            margin: 0;
+            text-align: center;
+            flex-grow: 1;
+        }
+
+        .btn-settings {
+            background: none;
+            border: 2px solid var(--ink-color);
+            border-radius: 50%;
+            width: 40px;
+            height: 40px;
+            font-size: 1.2rem;
+            cursor: pointer;
+        }
+
+        /* --- ZONA PALLINI (VISUALIZZAZIONE) --- */
+        .game-visual {
+            flex-grow: 1;
+            display: flex;
+            flex-direction: column;
+            justify-content: center;
+            align-items: center;
+            width: 100%;
+        }
+
+        .tokens-grid {
+            display: grid;
+            grid-template-columns: repeat(5, 1fr); /* Griglia da 5 per simulare le mani */
+            gap: 12px;
+            padding: 20px;
+            background: rgba(255,255,255,0.8);
+            border-radius: 20px;
+            border: 2px dashed #ccc;
+            transition: transform 0.2s;
+        }
+
+        .token {
+            width: 45px;
+            height: 45px;
+            border-radius: 50%;
+            border: 2px solid var(--ink-color);
+            background-color: white;
+            transition: all 0.3s cubic-bezier(0.175, 0.885, 0.32, 1.275);
+            cursor: pointer;
+            position: relative;
+            box-shadow: 2px 2px 5px rgba(0,0,0,0.1);
+        }
+
+        /* Colori dinamici */
+        .token.filled-1 { background-color: var(--color-1); border-color: #2980b9; }
+        .token.filled-2 { background-color: var(--color-2); border-color: #c0392b; }
+        
+        .token.highlight { transform: scale(1.2); box-shadow: 0 0 15px var(--color-accent); z-index: 10; }
+        
+        /* Animazione Conteggio */
+        .token::after {
+            content: attr(data-index);
+            position: absolute;
+            top: 50%; left: 50%;
+            transform: translate(-50%, -50%);
+            font-size: 1.2rem;
+            color: white;
+            font-weight: bold;
+            opacity: 0;
+            transition: opacity 0.2s;
+        }
+        .token.show-number::after { opacity: 1; }
+
+        /* --- EQUAZIONE --- */
+        .equation-area {
+            font-size: 3.5rem;
+            font-weight: bold;
+            color: var(--ink-color);
+            margin: 20px 0;
+            display: flex;
+            align-items: center;
+            gap: 10px;
+        }
+
+        .num-slot {
+            display: inline-block;
+            padding: 0 10px;
+            min-width: 50px;
+            text-align: center;
+        }
+
+        .question-mark {
+            color: #e74c3c;
+            border-bottom: 4px dotted #e74c3c;
+            cursor: pointer;
+            animation: pulse 2s infinite;
+        }
+
+        /* --- TASTIERINO --- */
+        .numpad {
+            display: grid;
+            grid-template-columns: repeat(6, 1fr); /* Più largo */
+            gap: 8px;
+            width: 95%;
+            margin-bottom: 20px;
+        }
+
+        .key-btn {
+            font-family: 'Patrick Hand', cursive;
+            font-size: 1.8rem;
+            background: white;
+            border: 2px solid var(--ink-color);
+            border-radius: 12px;
+            padding: 15px 0;
+            cursor: pointer;
+            box-shadow: 0 4px 0 rgba(0,0,0,0.2);
+            transition: all 0.1s;
+        }
+
+        .key-btn:active {
+            transform: translateY(4px);
+            box-shadow: 0 0 0 rgba(0,0,0,0.2);
+        }
+
+        .key-btn.correct { background-color: var(--color-success); color: white; border-color: #1e8449; }
+        .key-btn.wrong { background-color: #e74c3c; color: white; animation: shake 0.4s; }
+
+        /* --- MENU SETTINGS --- */
+        #settings-screen {
+            position: absolute;
+            top: 0; left: 0; width: 100%; height: 100%;
+            background: rgba(255,255,255,0.98);
+            z-index: 100;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            justify-content: center;
+            gap: 20px;
+        }
+        
+        .mode-btn {
+            padding: 15px 30px;
+            font-size: 1.5rem;
+            border: 3px solid var(--ink-color);
+            border-radius: 50px;
+            background: white;
+            cursor: pointer;
+            min-width: 250px;
+            font-family: 'Patrick Hand', cursive;
+        }
+        .mode-btn:hover { background: #eef; }
+        .mode-btn.selected { background: var(--color-1); color: white; border-color: #2980b9; }
+
+        /* ANIMAZIONI */
+        @keyframes pulse { 0% { transform: scale(1); } 50% { transform: scale(1.1); } 100% { transform: scale(1); } }
+        @keyframes shake { 0%, 100% { transform: translateX(0); } 25% { transform: translateX(-5px); } 75% { transform: translateX(5px); } }
+        
+        .hidden { display: none !important; }
+
+        /* CONFETTI (Semplice CSS Particle) */
+        .confetti { position: absolute; width: 10px; height: 10px; background: #f00; animation: fall linear forwards; pointer-events: none; z-index: 999;}
+        @keyframes fall { to { transform: translateY(100vh) rotate(720deg); } }
+
+    </style>
+</head>
+<body>
+
+    <div class="notebook-sheet">
+        
+        <div class="header-area">
+            <button class="btn-settings" onclick="openSettings()">⚙️</button>
+            <div class="stars-container" id="stars-display">
+                ★★★★★
+            </div>
+        </div>
+
+        <h1 id="game-title">Sommiamo!</h1>
+
+        <div class="game-visual">
+            <div class="tokens-grid" id="tokens-grid">
+                </div>
+            <p style="color:#777; font-size: 1.2rem; margin-top: 10px;">
+                💡 Tocca i pallini per contarli!
+            </p>
+        </div>
+
+        <div class="equation-area" id="equation-display">
+            </div>
+
+        <div id="feedback-msg" style="height: 30px; font-size: 1.5rem; color: var(--color-success);"></div>
+
+        <div class="numpad" id="numpad">
+            </div>
+
+    </div>
+
+    <div id="settings-screen">
+        <h1>Menu Genitore</h1>
+        <p>Cosa vuoi allenare oggi?</p>
+        
+        <button class="mode-btn" onclick="setMode('friends_10', 10)">
+            👫 Gli Amici del 10<br><span style="font-size:1rem">(Trova il numero mancante)</span>
+        </button>
+
+        <button class="mode-btn" onclick="setMode('friends_x', 5)">
+            🖐️ Gli Amici del 5<br><span style="font-size:1rem">(Facile: una mano)</span>
+        </button>
+
+        <button class="mode-btn" onclick="setMode('sum', 10)">
+            ➕ Facciamo le Somme<br><span style="font-size:1rem">(3 + 2 = ?)</span>
+        </button>
+        
+        <button class="mode-btn" style="border-color: #27ae60; margin-top:20px;" onclick="startGame()">
+            ▶️ INIZIA
+        </button>
+    </div>
+
+    <script>
+        /**
+         * LOGICA DI GIOCO - GABRIELE EDITION
+         * Strutturata per essere modificabile.
+         */
+
+        // STATO DEL GIOCO
+        const state = {
+            mode: 'friends_10', // 'sum', 'friends_10', 'friends_x'
+            target: 10,         // Il numero massimo o target
+            score: 0,
+            streak: 0,
+            currentQ: { a: 0, b: 0, ans: 0, missing: 'b' }, // a + b = ans
+            isWaiting: false
+        };
+
+        // DOM ELEMENTS
+        const els = {
+            grid: document.getElementById('tokens-grid'),
+            eq: document.getElementById('equation-display'),
+            numpad: document.getElementById('numpad'),
+            feedback: document.getElementById('feedback-msg'),
+            settings: document.getElementById('settings-screen'),
+            title: document.getElementById('game-title'),
+            stars: document.getElementById('stars-display')
+        };
+
+        // SOUND ENGINE (Sintetizzatore semplice)
+        const audioCtx = new (window.AudioContext || window.webkitAudioContext)();
+        function playTone(type) {
+            if(audioCtx.state === 'suspended') audioCtx.resume();
+            const osc = audioCtx.createOscillator();
+            const gain = audioCtx.createGain();
+            osc.connect(gain);
+            gain.connect(audioCtx.destination);
+
+            const now = audioCtx.currentTime;
+            
+            if (type === 'correct') {
+                // Suono vittoria (arpeggio veloce)
+                osc.type = 'sine';
+                osc.frequency.setValueAtTime(523.25, now); // C5
+                osc.frequency.setValueAtTime(659.25, now + 0.1); // E5
+                osc.frequency.setValueAtTime(783.99, now + 0.2); // G5
+                gain.gain.setValueAtTime(0.2, now);
+                gain.gain.exponentialRampToValueAtTime(0.01, now + 0.4);
+                osc.start(now);
+                osc.stop(now + 0.4);
+            } else if (type === 'wrong') {
+                // Suono errore (basso)
+                osc.type = 'sawtooth';
+                osc.frequency.setValueAtTime(150, now);
+                osc.frequency.linearRampToValueAtTime(100, now + 0.2);
+                gain.gain.setValueAtTime(0.2, now);
+                gain.gain.linearRampToValueAtTime(0.01, now + 0.2);
+                osc.start(now);
+                osc.stop(now + 0.2);
+            } else if (type === 'pop') {
+                // Suono click pallino
+                osc.frequency.setValueAtTime(800, now);
+                gain.gain.setValueAtTime(0.05, now);
+                gain.gain.exponentialRampToValueAtTime(0.01, now + 0.1);
+                osc.start(now);
+                osc.stop(now + 0.1);
+            }
+        }
+
+        // --- CORE FUNCTIONS ---
+
+        function openSettings() {
+            els.settings.classList.remove('hidden');
+        }
+
+        function setMode(modeName, targetNum) {
+            state.mode = modeName;
+            state.target = targetNum;
+            // Highlight bottone selezionato (logica UI semplificata)
+            document.querySelectorAll('.mode-btn').forEach(b => b.classList.remove('selected'));
+            event.target.closest('button').classList.add('selected');
+        }
+
+        function startGame() {
+            els.settings.classList.add('hidden');
+            state.score = 0;
+            updateStars();
+            
+            // Setup Tastierino Dinamico
+            els.numpad.innerHTML = '';
+            const maxVal = (state.mode === 'sum') ? state.target * 2 : state.target; // Se somma, il risultato può essere > target base
+            
+            // Limitiamo il tastierino per non avere troppi tasti
+            const keypadMax = (state.target <= 10) ? 10 : state.target; 
+            
+            for(let i=0; i<=keypadMax; i++) {
+                let btn = document.createElement('button');
+                btn.className = 'key-btn';
+                btn.innerText = i;
+                btn.onclick = () => checkAnswer(i, btn);
+                els.numpad.appendChild(btn);
+            }
+
+            // Titolo dinamico
+            if(state.mode === 'friends_10') els.title.innerText = "Gli Amici del 10";
+            else if(state.mode === 'friends_x') els.title.innerText = "Gli Amici del " + state.target;
+            else els.title.innerText = "Quanto fa la somma?";
+
+            nextQuestion();
+        }
+
+        function nextQuestion() {
+            state.isWaiting = false;
+            els.feedback.innerText = "";
+            document.querySelectorAll('.key-btn').forEach(b => {
+                b.className = 'key-btn'; // Reset colori
+            });
+
+            // LOGICA DOMANDA
+            if (state.mode === 'sum') {
+                // a + b = ?
+                // Assicuriamoci che la somma non superi 10 (per ora, per semplicità)
+                let max = state.target; 
+                state.currentQ.a = Math.floor(Math.random() * (max + 1));
+                state.currentQ.b = Math.floor(Math.random() * (max - state.currentQ.a + 1));
+                state.currentQ.ans = state.currentQ.a + state.currentQ.b;
+                state.currentQ.missing = 'ans';
+            } else {
+                // a + ? = target
+                state.currentQ.ans = state.target; // Il totale è fisso
+                state.currentQ.a = Math.floor(Math.random() * (state.target + 1));
+                state.currentQ.b = state.target - state.currentQ.a; // Questo è il numero da indovinare
+                state.currentQ.missing = 'b';
+            }
+
+            renderVisuals();
+            renderEquation();
+        }
+
+        function renderVisuals() {
+            els.grid.innerHTML = '';
+            
+            // Definiamo quanti token mostrare totali
+            let totalTokens = (state.mode === 'sum') ? state.currentQ.ans : state.target;
+            // Se in modalità somma e la risposta è 0, mostriamo comunque lo spazio vuoto? No, mostriamo 0.
+            if(state.mode === 'sum' && totalTokens === 0) totalTokens = 0; // Caso raro
+            // Se modalità amici, mostriamo sempre il target (es. 10 slot)
+            if(state.mode.includes('friends')) totalTokens = state.target;
+
+            // Determiniamo i colori
+            // Friends: Parte A colorata, Parte B vuota
+            // Sum: Parte A colore 1, Parte B colore 2
+            
+            let countA = state.currentQ.a;
+            let countB = (state.mode === 'sum') ? state.currentQ.b : 0; // In friends B è vuoto
+
+            // Creiamo i pallini
+            for(let i = 0; i < totalTokens; i++) {
+                let t = document.createElement('div');
+                t.className = 'token';
+                t.dataset.index = i + 1; // Per contare
+                
+                // Colorazione
+                if (i < countA) {
+                    t.classList.add('filled-1'); // Blu
+                } else if (state.mode === 'sum' && i < (countA + countB)) {
+                    t.classList.add('filled-2'); // Rosso
+                } else {
+                    t.classList.add('empty'); // Bianco
+                }
+
+                // Interazione: Click per contare
+                t.onclick = function() {
+                    playTone('pop');
+                    this.classList.toggle('show-number');
+                    this.classList.add('highlight');
+                    setTimeout(() => this.classList.remove('highlight'), 300);
+                };
+
+                els.grid.appendChild(t);
+            }
+        }
+
+        function renderEquation() {
+            let q = state.currentQ;
+            let html = '';
+
+            // Parte 1
+            html += `<span class="num-slot" style="color:var(--color-1)">${q.a}</span>`;
+            
+            html += ` + `;
+
+            // Parte 2
+            if (state.mode === 'sum') {
+                html += `<span class="num-slot" style="color:var(--color-2)">${q.b}</span>`;
+            } else {
+                // In friends, questo è quello che manca
+                html += `<span class="num-slot question-mark">?</span>`;
+            }
+
+            html += ` = `;
+
+            // Risultato
+            if (state.mode === 'sum') {
+                html += `<span class="num-slot question-mark">?</span>`;
+            } else {
+                html += `<span class="num-slot">${state.target}</span>`;
+            }
+
+            els.eq.innerHTML = html;
+        }
+
+        function checkAnswer(val, btn) {
+            if (state.isWaiting) return;
+
+            let correctVal = (state.mode === 'sum') ? state.currentQ.ans : state.currentQ.b;
+
+            if (val === correctVal) {
+                // VITTORIA
+                state.isWaiting = true;
+                playTone('correct');
+                btn.classList.add('correct');
+                els.feedback.innerText = "Bravissima Julie! 🌟";
+                
+                // Riempi visivamente i buchi se in mode friends
+                if(state.mode.includes('friends')) {
+                    document.querySelectorAll('.token.empty').forEach(t => {
+                        t.classList.add('filled-2'); // Diventano rossi
+                        t.classList.add('highlight');
+                    });
+                    // Aggiorna l'equazione per mostrare il numero
+                    els.eq.querySelector('.question-mark').innerText = correctVal;
+                    els.eq.querySelector('.question-mark').classList.remove('question-mark');
+                } else {
+                    els.eq.querySelector('.question-mark').innerText = correctVal;
+                }
+
+                state.score++;
+                updateStars();
+                
+                // FESTA OGNI 5
+                if(state.score % 5 === 0) fireConfetti();
+
+                setTimeout(nextQuestion, 2000);
+
+            } else {
+                // ERRORE
+                playTone('wrong');
+                btn.classList.add('wrong');
+                els.feedback.innerText = "Riprova...";
+                els.grid.classList.add('shake'); // Scuote la griglia
+                setTimeout(() => { 
+                    btn.classList.remove('wrong'); 
+                    els.grid.classList.remove('shake');
+                }, 500);
+            }
+        }
+
+        function updateStars() {
+            let html = '';
+            for(let i=0; i<5; i++) {
+                if (i < (state.score % 5) || (state.score > 0 && state.score % 5 === 0 && i < 5)) { 
+                    // Logica un po' spartana per riempire le stelle
+                     if(state.score % 5 === 0 && state.score > 0) html += '<span class="star active">★</span>'; 
+                     else html += '<span class="star active">★</span>';
+                } else {
+                    html += '<span class="star">☆</span>';
+                }
+            }
+            if (state.score % 5 === 0 && state.score > 0) {
+                 // Reset visivo dopo la festa, gestito poi
+                 els.stars.innerHTML = html; 
+            } else {
+                els.stars.innerHTML = html;
+            }
+        }
+
+        // --- SISTEMA PARTICELLE (CONFETTI) ---
+        function fireConfetti() {
+            const colors = ['#e74c3c', '#3498db', '#f1c40f', '#2ecc71', '#9b59b6'];
+            for(let i=0; i<50; i++) {
+                let c = document.createElement('div');
+                c.className = 'confetti';
+                c.style.left = Math.random() * 100 + 'vw';
+                c.style.top = -10 + 'px';
+                c.style.backgroundColor = colors[Math.floor(Math.random() * colors.length)];
+                c.style.animationDuration = (Math.random() * 2 + 2) + 's';
+                document.body.appendChild(c);
+                setTimeout(() => c.remove(), 4000);
+            }
+            playTone('correct'); // Doppio suono per enfasi
+        }
+
+        // Start
+        // Non avviamo subito il gioco, mostriamo settings
+        els.settings.classList.remove('hidden');
+
+    </script>
+</body>
+</html>
