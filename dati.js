@@ -1,5 +1,11 @@
 const GIOCHI_DATA = [
   {
+    "name": "julie-obiettivo9.html",
+    "path": "Julie/Matematica/julie-obiettivo9.html",
+    "category": "Matematica",
+    "updatedAt": 1773692932151.2424
+  },
+  {
     "name": "index2.html",
     "path": "index2.html",
     "category": "Vari",

@@ -1,0 +1,150 @@
+<!DOCTYPE html>
+<html lang="it">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+    <title>Julie - Tanti modi per fare 9</title>
+    <style>
+        body {
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+            background-color: #f0f9ff;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            justify-content: center;
+            height: 100vh;
+            margin: 0;
+            overflow: hidden;
+            touch-action: manipulation;
+        }
+
+        h1 { color: #2c3e50; margin-bottom: 10px; font-size: 2rem; }
+        
+        #target-container {
+            font-size: 4rem;
+            background: #ffeb3b;
+            padding: 20px 40px;
+            border-radius: 20px;
+            box-shadow: 0 8px 0 #fbc02d;
+            margin-bottom: 30px;
+            border: 4px solid #f9a825;
+        }
+
+        #current-sum {
+            font-size: 2.5rem;
+            color: #e91e63;
+            min-height: 60px;
+            margin-bottom: 20px;
+        }
+
+        .numbers-grid {
+            display: grid;
+            grid-template-columns: repeat(3, 1fr);
+            gap: 15px;
+            max-width: 300px;
+        }
+
+        .num-btn {
+            width: 80px;
+            height: 80px;
+            font-size: 2rem;
+            border: none;
+            border-radius: 15px;
+            background: #4caf50;
+            color: white;
+            box-shadow: 0 6px 0 #388e3c;
+            cursor: pointer;
+            transition: all 0.1s;
+        }
+
+        .num-btn:active {
+            transform: translateY(4px);
+            box-shadow: 0 2px 0 #388e3c;
+        }
+
+        #message {
+            margin-top: 30px;
+            font-size: 1.5rem;
+            font-weight: bold;
+            height: 40px;
+        }
+
+        #reset-btn {
+            margin-top: 20px;
+            padding: 10px 25px;
+            background: #2196f3;
+            color: white;
+            border: none;
+            border-radius: 10px;
+            font-size: 1.2rem;
+        }
+
+        /* Effetti particelle per vittoria */
+        .celebration { color: #ff5722; animation: bounce 0.5s infinite alternate; }
+        @keyframes bounce { from { transform: scale(1); } to { transform: scale(1.1); } }
+    </style>
+</head>
+<body>
+
+    <h1>Julie, facciamo 9!</h1>
+    
+    <div id="target-container">9</div>
+
+    <div id="current-sum">Somma: <span id="valore">0</span></div>
+
+    <div class="numbers-grid">
+        <button class="num-btn" onclick="addNumber(1)">1</button>
+        <button class="num-btn" onclick="addNumber(2)">2</button>
+        <button class="num-btn" onclick="addNumber(3)">3</button>
+        <button class="num-btn" onclick="addNumber(4)">4</button>
+        <button class="num-btn" onclick="addNumber(5)">5</button>
+        <button class="num-btn" onclick="addNumber(6)">6</button>
+    </div>
+
+    <div id="message"></div>
+
+    <button id="reset-btn" onclick="resetGame()">Riprova</button>
+
+    <script>
+        let currentTotal = 0;
+        const target = 9;
+        const display = document.getElementById('valore');
+        const message = document.getElementById('message');
+
+        function addNumber(n) {
+            if (currentTotal >= target) return;
+
+            currentTotal += n;
+            display.innerText = currentTotal;
+
+            if (currentTotal === target) {
+                message.innerText = "🌟 Bravissima Julie! Hai fatto 9! 🌟";
+                message.className = "celebration";
+                playWinSound();
+            } else if (currentTotal > target) {
+                message.innerText = "Ops! Troppo alto. Riprova!";
+                message.style.color = "red";
+            }
+        }
+
+        function resetGame() {
+            currentTotal = 0;
+            display.innerText = "0";
+            message.innerText = "";
+            message.className = "";
+        }
+
+        function playWinSound() {
+            // Un semplice bip di successo usando Web Audio API
+            const context = new (window.AudioContext || window.webkitAudioContext)();
+            const osc = context.createOscillator();
+            const gain = context.createGain();
+            osc.type = "sine";
+            osc.connect(gain);
+            gain.connect(context.destination);
+            osc.start();
+            osc.stop(context.currentTime + 0.2);
+        }
+    </script>
+</body>
+</html>
