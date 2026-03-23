@@ -1,5 +1,23 @@
 const GIOCHI_DATA = [
   {
+    "name": "julie-ticche-tocche.html",
+    "path": "Julie/Italiano/julie-ticche-tocche.html",
+    "category": "Italiano",
+    "updatedAt": 1774296913252.9902
+  },
+  {
+    "name": "julie-piombino.html",
+    "path": "Julie/Italiano/julie-piombino.html",
+    "category": "Italiano",
+    "updatedAt": 1774296540332.0457
+  },
+  {
+    "name": "julie-filastrocca-primavera.html",
+    "path": "Julie/Italiano/julie-filastrocca-primavera.html",
+    "category": "Italiano",
+    "updatedAt": 1774295998504.0325
+  },
+  {
     "name": "julie-obiettivo9.html",
     "path": "Julie/Matematica/julie-obiettivo9.html",
     "category": "Matematica",

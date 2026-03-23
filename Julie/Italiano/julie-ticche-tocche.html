@@ -1,0 +1,212 @@
+<!DOCTYPE html>
+<html lang="it">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Julie - Il Mago Ticche Tocche 🧙‍♂️</title>
+    <link href="https://fonts.googleapis.com/css2?family=Patrick+Hand&family=Fredoka+One&display=swap" rel="stylesheet">
+    <script src="https://cdn.jsdelivr.net/npm/canvas-confetti@1.6.0/dist/confetti.browser.min.js"></script>
+    <style>
+        :root {
+            --bg-magic: #f3e5f5;
+            --highlight-text: #6a1b9a;
+            --highlight-bg: #e1bee7;
+        }
+
+        body {
+            font-family: 'Patrick Hand', cursive;
+            margin: 0;
+            min-height: 100vh;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            background: linear-gradient(to bottom, #ce93d8, #f3e5f5);
+            user-select: none;
+            padding-bottom: 50px;
+        }
+
+        .container {
+            max-width: 800px;
+            width: 90%;
+            background: rgba(255, 255, 255, 0.96);
+            padding: 2rem;
+            border-radius: 25px;
+            box-shadow: 0 15px 35px rgba(0,0,0,0.1);
+            margin-top: 20px;
+            text-align: center;
+            border: 6px solid #ffffff;
+        }
+
+        h1 { font-family: 'Fredoka One', cursive; color: #6a1b9a; font-size: 2.2rem; margin-bottom: 5px; }
+
+        .story-box {
+            font-size: 1.9rem;
+            line-height: 1.7;
+            text-align: left;
+            padding: 25px;
+            background: #ffffff;
+            border-radius: 20px;
+            border: 3px dashed #ba68c8;
+            margin: 15px 0;
+            white-space: pre-line;
+            color: #4a148c;
+        }
+
+        .interactive-word {
+            display: inline-block;
+            transition: all 0.2s;
+            position: relative;
+            cursor: pointer;
+            padding: 2px 4px;
+            border-radius: 6px;
+        }
+        
+        .interactive-word:hover {
+            color: var(--highlight-text);
+            background-color: var(--highlight-bg);
+            transform: scale(1.1);
+            z-index: 10;
+        }
+
+        .word-tooltip {
+            position: absolute;
+            bottom: 125%;
+            left: 50%;
+            transform: translateX(-50%);
+            font-size: 3.5rem;
+            background: white;
+            padding: 5px 15px;
+            border-radius: 20px;
+            box-shadow: 0 8px 20px rgba(0,0,0,0.15);
+            opacity: 0;
+            visibility: hidden;
+            transition: 0.3s;
+            z-index: 100;
+            border: 2px solid #ba68c8;
+        }
+
+        .interactive-word:hover .word-tooltip {
+            opacity: 1;
+            visibility: visible;
+        }
+
+        #magic-scene {
+            height: 180px;
+            background: #fdf4ff;
+            border-radius: 20px;
+            margin: 20px 0;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            font-size: 5rem;
+            position: relative;
+            border: 3px solid #ba68c8;
+            overflow: hidden;
+        }
+
+        .magic-item { position: absolute; animation: bounceIn 0.6s ease-out; }
+        @keyframes bounceIn { 0% { transform: scale(0); } 100% { transform: scale(1); } }
+
+        .stars-container { display: flex; gap: 15px; font-size: 3.5rem; color: #e1bee7; justify-content: center; margin: 15px 0; }
+        .star { cursor: pointer; transition: 0.3s; }
+        .star.active { color: #fbc02d; transform: scale(1.2); text-shadow: 0 0 15px rgba(251, 192, 45, 0.8); }
+        #msg { font-size: 1.4rem; color: #6a1b9a; font-weight: bold; min-height: 1.5em; }
+    </style>
+</head>
+<body>
+
+    <div class="container">
+        <h1>🧙‍♂️ TICCHE TOCCHE 🕰️</h1>
+        
+        <div class="story-box">
+            <div id="textDisplay"></div>
+        </div>
+
+        <div id="magic-scene">
+            <span id="base-scene">🕰️</span>
+        </div>
+
+        <div class="controls">
+            <div id="msg">Senti il tic-tac? Leggi e tocca una stella!</div>
+            <div class="stars-container">
+                <div class="star" onclick="registerRead(1)" id="s1">★</div>
+                <div class="star" onclick="registerRead(2)" id="s2">★</div>
+                <div class="star" onclick="registerRead(3)" id="s3">★</div>
+                <div class="star" onclick="registerRead(4)" id="s4">★</div>
+                <div class="star" onclick="registerRead(5)" id="s5">★</div>
+            </div>
+        </div>
+    </div>
+
+    <script>
+        const dictionary = {
+            "TICCHE": "⏰", "TOCCHE": "🕰️", "MAGO": "🧙‍♂️", "TEMPO": "⏳",
+            "OROLOGIO": "🕰️", "INVERNO": "❄️", "NEVE": "🌨️", "PRIMAVERA": "🌸",
+            "FIORI": "🌻", "ESTATE": "☀️", "ARCOBALENO": "🌈", "TEMPORALI": "⛈️",
+            "AUTUNNO": "🍂", "FOGLIE": "🍁"
+        };
+
+        // Testo trascritto rispettando maiuscole/minuscole e la regola della maiuscola dopo il punto
+        const storyText = `TICCHE TOCCHE ERA IL MAGO DEL TEMPO. 
+		CON IL SUO GRANDE OROLOGIO CREAVA IL TEMPO, TUTTI I GIORNI DELL'ANNO! In inverno, Ticche Tocche svuotava sull'intera città il suo sacco pieno di fiocchi di neve. In primavera, seminava i germogli dei fiori. IN ESTATE, TICCHE TOCCHE ACCENDEVA L'ARCOBALENO MANDANDO VIA I TEMPORALI.	In autunno, spargeva qua e là foglie dorate, al ritmo del tic toc del suo orologio.`;
+
+        function buildText() {
+            const display = document.getElementById('textDisplay');
+            display.innerHTML = storyText.split(' ').map(word => {
+                const clean = word.replace(/[.,!'’!?…]/g, '').toUpperCase();
+                const emoji = dictionary[clean];
+                if (emoji) {
+                    return `<span class="interactive-word">${word}<div class="word-tooltip">${emoji}</div></span>`;
+                }
+                return `<span class="interactive-word">${word}</span>`;
+            }).join(' ');
+        }
+
+        buildText();
+
+        let count = 0;
+        const messages = [
+            "Brava Julie! Il tempo sta correndo! 🕰️",
+            "Guarda quanta neve in città! ❄️",
+            "Che belli i fiori di primavera! 🌸",
+            "Sotto l'arcobaleno d'estate! 🌈",
+            "TUTTE LE FOGLIE D'AUTUNNO! COMPLIMENTI! 🍂🎉"
+        ];
+
+        function addMagic(emoji, top, left) {
+            const scene = document.getElementById('magic-scene');
+            const span = document.createElement('span');
+            span.innerText = emoji;
+            span.className = 'magic-item';
+            span.style.top = top + '%';
+            span.style.left = left + '%';
+            scene.appendChild(span);
+        }
+
+        function registerRead(num) {
+            if (num !== count + 1) return;
+            count = num;
+            document.getElementById(`s${count}`).classList.add('active');
+            document.getElementById('msg').innerText = messages[count-1];
+
+            if(count === 1) addMagic("🧙‍♂️", 40, 45); 
+            if(count === 2) addMagic("❄️", 20, 20);
+            if(count === 3) addMagic("🌸", 60, 70);
+            if(count === 4) addMagic("🌈", 15, 60);
+            if(count === 5) {
+                addMagic("🍂", 65, 25);
+                confetti({ particleCount: 150, spread: 70, origin: { y: 0.6 } });
+            }
+            
+            const audioCtx = new (window.AudioContext || window.webkitAudioContext)();
+            const osc = audioCtx.createOscillator();
+            const gain = audioCtx.createGain();
+            osc.connect(gain);
+            gain.connect(audioCtx.destination);
+            osc.frequency.value = 523.25 + (count * 100);
+            gain.gain.exponentialRampToValueAtTime(0.01, audioCtx.currentTime + 0.3);
+            osc.start(); osc.stop(audioCtx.currentTime + 0.3);
+        }
+    </script>
+</body>
+</html>

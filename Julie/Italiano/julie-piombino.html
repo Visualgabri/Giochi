@@ -1,0 +1,238 @@
+<!DOCTYPE html>
+<html lang="it">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Julie - La pioggia di confetti 🍬</title>
+    <link href="https://fonts.googleapis.com/css2?family=Patrick+Hand&family=Fredoka+One&display=swap" rel="stylesheet">
+    <script src="https://cdn.jsdelivr.net/npm/canvas-confetti@1.6.0/dist/confetti.browser.min.js"></script>
+    <style>
+        :root {
+            --bg-sweet: #fce4ec;
+            --highlight-text: #d81b60;
+            --highlight-bg: #f8bbd0;
+        }
+
+        body {
+            font-family: 'Patrick Hand', cursive;
+            margin: 0;
+            min-height: 100vh;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            background: linear-gradient(to bottom, #f8bbd0, #fce4ec);
+            user-select: none;
+            padding-bottom: 50px;
+            color: #880e4f;
+        }
+
+        .container {
+            max-width: 800px;
+            width: 90%;
+            background: rgba(255, 255, 255, 0.96);
+            padding: 2rem;
+            border-radius: 25px;
+            box-shadow: 0 15px 35px rgba(0,0,0,0.1);
+            margin-top: 20px;
+            text-align: center;
+            border: 6px solid #ffffff;
+        }
+
+        h1 { font-family: 'Fredoka One', cursive; color: #ad1457; font-size: 2rem; margin-bottom: 5px; }
+
+        .story-box {
+            font-size: 1.9rem;
+            line-height: 1.7;
+            text-align: left;
+            padding: 25px;
+            background: #ffffff;
+            border-radius: 20px;
+            border: 3px dashed #f06292;
+            margin: 15px 0;
+            white-space: pre-line;
+        }
+
+        /* --- INTERATTIVITÀ PAROLE --- */
+        .interactive-word {
+            display: inline-block;
+            transition: all 0.2s;
+            position: relative;
+            cursor: pointer;
+            padding: 2px 4px;
+            border-radius: 6px;
+        }
+        
+        .interactive-word:hover {
+            color: var(--highlight-text);
+            background-color: var(--highlight-bg);
+            transform: scale(1.1);
+            z-index: 10;
+        }
+
+        .word-tooltip {
+            position: absolute;
+            bottom: 125%;
+            left: 50%;
+            transform: translateX(-50%);
+            font-size: 3.5rem;
+            background: white;
+            padding: 5px 15px;
+            border-radius: 20px;
+            box-shadow: 0 8px 20px rgba(0,0,0,0.15);
+            opacity: 0;
+            visibility: hidden;
+            transition: 0.3s cubic-bezier(0.175, 0.885, 0.32, 1.275);
+            z-index: 100;
+            border: 2px solid #f06292;
+        }
+
+        .interactive-word:hover .word-tooltip {
+            opacity: 1;
+            visibility: visible;
+        }
+
+        /* --- SCENA PROGRESSIVA --- */
+        #scene {
+            height: 180px;
+            background: #fff9fb;
+            border-radius: 20px;
+            margin: 20px 0;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            font-size: 5rem;
+            position: relative;
+            border: 3px solid #f8bbd0;
+            overflow: hidden;
+        }
+
+        .item {
+            position: absolute;
+            animation: bounceIn 0.6s ease-out;
+        }
+
+        @keyframes bounceIn {
+            0% { transform: scale(0); }
+            100% { transform: scale(1); }
+        }
+
+        /* --- CONTROLLI --- */
+        .stars-container {
+            display: flex;
+            gap: 15px;
+            font-size: 3.5rem;
+            color: #f8bbd0;
+            justify-content: center;
+            margin: 15px 0;
+        }
+
+        .star { cursor: pointer; transition: 0.3s; }
+        .star.active { color: #fbc02d; transform: scale(1.2); text-shadow: 0 0 15px rgba(251, 192, 45, 0.6); }
+
+        #msg { font-size: 1.4rem; color: #ad1457; font-weight: bold; min-height: 1.5em; }
+    </style>
+</head>
+<body>
+
+    <div class="container">
+        <h1>🍬 PIOVONO CONFETTI 🍭</h1>
+        
+        <div class="story-box">
+            <div id="textDisplay"></div>
+        </div>
+
+        <div id="scene">
+            <span id="base">☁️</span>
+        </div>
+
+        <div class="controls">
+            <div id="msg">raccogli i confetti! leggi e tocca una stella!</div>
+            <div class="stars-container">
+                <div class="star" onclick="registerRead(1)" id="s1">★</div>
+                <div class="star" onclick="registerRead(2)" id="s2">★</div>
+                <div class="star" onclick="registerRead(3)" id="s3">★</div>
+                <div class="star" onclick="registerRead(4)" id="s4">★</div>
+                <div class="star" onclick="registerRead(5)" id="s5">★</div>
+            </div>
+        </div>
+    </div>
+
+    <script>
+        const dictionary = {
+            "PIOMBINO": "🏘️", "CONFETTI": "🍬", "COLORI": "🌈", "BAMBINO": "👦",
+            "MENTA": "🌿", "ROSA": "🌸", "FRAGOLA": "🍓", "PIOGGIA": "🌧️",
+            "STRADE": "🛣️", "SCOLARI": "🧑‍🎓", "SCUOLA": "🏫", "CARTELLE": "🎒",
+            "NUVOLA": "☁️", "GIORNATA": "☀️"
+        };
+
+        // Testo trascritto con alternanza maiuscolo/minuscolo e maiuscola dopo il punto
+        const storyText = `UNA VOLTA A PIOMBINO PIOVVERO CONFETTI DI TUTTI I COLORI. UN BAMBINO SI MISE IN BOCCA UN CHICCO VERDE CHE SAPEVA DI MENTA. UN ALTRO ASSAGGIÒ UN CHICCO ROSA E SAPEVA DI FRAGOLA. La pioggia durò poco, ma lasciò le strade coperte da un tappeto di confetti profumati. Gli scolari, tornando da scuola, ne trovarono ancora da riempirsi le cartelle. FU UNA GRANDE GIORNATA, MA DA ALLORA QUELLA NUVOLA NON È PASSATA PIÙ.`;
+
+        function buildText() {
+            const display = document.getElementById('textDisplay');
+            display.innerHTML = storyText.split(' ').map(word => {
+                const clean = word.replace(/[.,!?…]/g, '').toUpperCase();
+                const emoji = dictionary[clean];
+                if (emoji) {
+                    return `<span class="interactive-word">${word}<div class="word-tooltip">${emoji}</div></span>`;
+                }
+                return `<span class="interactive-word">${word}</span>`;
+            }).join(' ');
+        }
+
+        buildText();
+
+        let count = 0;
+        const messages = [
+            "brava julie! sta piovendo dolcezza! 🍬",
+            "senti il gusto della menta? 🌿",
+            "e ora quello della fragola! 🍓",
+            "riempiamo tutte le cartelle! 🎒",
+            "CHE BELLA GIORNATA A PIOMBINO! 🎉🍭"
+        ];
+
+        function addItem(emoji, top, left) {
+            const scene = document.getElementById('scene');
+            const span = document.createElement('span');
+            span.innerText = emoji;
+            span.className = 'item';
+            span.style.top = top + '%';
+            span.style.left = left + '%';
+            scene.appendChild(span);
+        }
+
+        function registerRead(num) {
+            if (num !== count + 1) return;
+            count = num;
+
+            document.getElementById(`s${count}`).classList.add('active');
+            const msgEl = document.getElementById('msg');
+            msgEl.innerText = messages[count-1];
+
+            // Aggiorna la scena
+            if(count === 1) addItem("🍬", 20, 30);
+            if(count === 2) addItem("🌿", 40, 70);
+            if(count === 3) addItem("🍓", 60, 20);
+            if(count === 4) addItem("🎒", 70, 60);
+            if(count === 5) {
+                addItem("🌈", 10, 50);
+                confetti({
+                    particleCount: 150,
+                    spread: 70,
+                    origin: { y: 0.6 },
+                    colors: ['#f06292', '#fbc02d', '#81c784', '#64b5f6']
+                });
+            }
+            
+            const audioCtx = new (window.AudioContext || window.webkitAudioContext)();
+            const osc = audioCtx.createOscillator();
+            const gain = audioCtx.createGain();
+            osc.connect(gain);
+            gain.connect(audioCtx.destination);
+            osc.frequency.value = 523.25 + (count * 100);
+            gain.gain.exponentialRampToValueAtTime(0.01, audioCtx.currentTime + 0.3);
+            osc.start(); osc.stop(audioCtx.currentTime + 0.3);
+        }
+    </script>
+</body>
+</html>
