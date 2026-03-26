@@ -1,0 +1,278 @@
+<!DOCTYPE html>
+<html lang="it">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Julie - Il Nonno (Edizione Notturna) 🌙</title>
+    <link href="https://fonts.googleapis.com/css2?family=Patrick+Hand&family=Fredoka+One&display=swap" rel="stylesheet">
+    <script src="https://cdn.jsdelivr.net/npm/canvas-confetti@1.6.0/dist/confetti.browser.min.js"></script>
+    <style>
+        :root {
+            /* Palette Tema Scuro */
+            --bg-page: #121212; /* Sfondo nero morbido */
+            --bg-container: #1e1e1e; /* Sfondo contenitore grigio scuro */
+            --highlight-text: #bb86fc; /* Viola chiaro per contrasto */
+            --highlight-bg: #332940; /* Sfondo hover scuro */
+            --primary-color: #03dac6; /* Turchese per il titolo */
+            --text-color: #e0e0e0; /* Testo grigio molto chiaro */
+            --author-color: #9e9e9e; /* Testo autore attenuato */
+            --border-color: #3700b3; /* Viola profondo per i bordi */
+            --scene-bg: #252525; /* Sfondo area magica */
+        }
+
+        body {
+            font-family: 'Patrick Hand', cursive;
+            margin: 0;
+            min-height: 100vh;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            background-color: var(--bg-page);
+            color: var(--text-color);
+            user-select: none;
+            padding-bottom: 50px;
+        }
+
+        .container {
+            max-width: 800px;
+            width: 90%;
+            background: var(--bg-container);
+            padding: 2.5rem;
+            border-radius: 20px;
+            box-shadow: 0 10px 30px rgba(0,0,0,0.5);
+            margin-top: 30px;
+            text-align: center;
+            border: 2px solid #333;
+        }
+
+        h1 { 
+            font-family: 'Fredoka One', cursive; 
+            color: var(--primary-color); 
+            font-size: 2.4rem; 
+            margin-bottom: 20px; 
+            text-transform: uppercase;
+            text-shadow: 0 0 10px rgba(3, 218, 198, 0.3);
+        }
+
+        .story-box {
+            font-size: 1.8rem;
+            line-height: 1.6;
+            text-align: left;
+            padding: 10px;
+            background: none;
+            margin: 20px 0;
+            white-space: pre-line;
+            color: var(--text-color);
+        }
+
+        .author-box {
+            font-size: 1.1rem;
+            text-align: left;
+            margin-top: -10px;
+            margin-bottom: 20px;
+            color: var(--author-color);
+            font-style: italic;
+        }
+
+        .interactive-word {
+            display: inline-block;
+            transition: all 0.2s;
+            position: relative;
+            cursor: pointer;
+            padding: 2px 4px;
+            border-radius: 4px;
+        }
+        
+        .interactive-word:hover {
+            color: var(--highlight-text);
+            background-color: var(--highlight-bg);
+            transform: scale(1.05);
+            z-index: 10;
+        }
+
+        .word-tooltip {
+            position: absolute;
+            bottom: 125%;
+            left: 50%;
+            transform: translateX(-50%);
+            font-size: 3rem;
+            background: #2c2c2c;
+            padding: 8px 15px;
+            border-radius: 15px;
+            box-shadow: 0 6px 20px rgba(0,0,0,0.6);
+            opacity: 0;
+            visibility: hidden;
+            transition: 0.3s;
+            z-index: 100;
+            border: 2px solid var(--highlight-text);
+        }
+
+        .interactive-word:hover .word-tooltip {
+            opacity: 1;
+            visibility: visible;
+        }
+
+        #magic-scene {
+            height: 160px;
+            background: var(--scene-bg);
+            border-radius: 15px;
+            margin: 25px 0;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            font-size: 4.5rem;
+            position: relative;
+            border: 1px solid #444;
+            overflow: hidden;
+        }
+
+        .magic-item { 
+            position: absolute; 
+            animation: bounceIn 0.6s ease-out; 
+            filter: drop-shadow(0 0 5px rgba(255,255,255,0.2));
+        }
+
+        @keyframes bounceIn { 0% { transform: scale(0); } 100% { transform: scale(1); } }
+
+        .stars-container { 
+            display: flex; 
+            gap: 12px; 
+            font-size: 3rem; 
+            color: #444; 
+            justify-content: center; 
+            margin: 15px 0; 
+        }
+
+        .star { cursor: pointer; transition: 0.3s; }
+        .star.active { 
+            color: var(--primary-color); 
+            transform: scale(1.15); 
+            text-shadow: 0 0 15px rgba(3, 218, 198, 0.5); 
+        }
+
+        #msg { 
+            font-size: 1.3rem; 
+            color: var(--highlight-text); 
+            font-weight: bold; 
+            min-height: 1.5em; 
+        }
+
+        .night-indicator {
+            position: fixed;
+            top: 10px;
+            right: 10px;
+            font-size: 1.5rem;
+            opacity: 0.5;
+        }
+        
+    </style>
+</head>
+<body>
+
+    <div class="night-indicator">🌙✨</div>
+
+    <div class="container">
+        <h1>IL NONNO 👴</h1>
+        
+        <div class="story-box">
+            <div id="textDisplay"></div>
+        </div>
+
+        <div class="author-box">
+            Christine Nöstlinger, <i>Il nonno segreto</i>, Einaudi Scuola
+        </div>
+
+        <div id="magic-scene">
+            <span id="base-scene">👴📜</span>
+        </div>
+
+        <div class="controls">
+            <div id="msg">Tocca le stelle mentre leggi la storia di notte...</div>
+            <div class="stars-container">
+                <div class="star" onclick="registerRead(1)" id="s1">★</div>
+                <div class="star" onclick="registerRead(2)" id="s2">★</div>
+                <div class="star" onclick="registerRead(3)" id="s3">★</div>
+                <div class="star" onclick="registerRead(4)" id="s4">★</div>
+                <div class="star" onclick="registerRead(5)" id="s5">★</div>
+            </div>
+        </div>
+        
+    </div>
+
+    <script>
+        const dictionary = {
+            "NONNO": "👴", "ALTO": "📏", "MAGRO": "🧍‍♂️", "PANCETTA": "🤰", "ROTONDA": "⚪",
+            "OCCHI": "👀", "BLU": "🔵", "RICCIOLI": "🌀", "BIANCHI": "⚪", "BAFFI": "👨‍⚖️",
+            "SOPRACCIGLIA": "🤨", "PELLE": "✋", "SCURA": "🏽", "INVERNO": "❄️", "RUGOSA": "🧓",
+            "CARTA": "📄", "PIEDI": "🦶", "ENORMI": "👣", "SCARPE": "👞", "DOMENICHE": "🗓️",
+            "BICI": "🚲", "GIRO": "🚴‍♂️", "CASA": "🏠", "STORIE": "📚"
+        };
+
+        const storyText = `Mio nonno è molto alto, ma non molto largo, piuttosto magro. Soltanto tutt’intorno nel mezzo è un po’ grasso, perché ha una pancetta rotonda. Ha gli occhi di un colore blu elettrico e riccioli bianchi pettinati con la riga nel mezzo. Anche i baffi e le sopracciglia sono bianchi. La sua pelle è scura, anche d’inverno, e rugosa come la carta crespa. Il nonno ha anche dei piedi enormi: deve farsi fare le scarpe su misura. Tutte le domeniche prende la sua bici e mi porta a fare un giro. Poi torniamo a casa e ascolto le sue storie.`;
+
+        function buildText() {
+            const display = document.getElementById('textDisplay');
+            display.innerHTML = storyText.split(' ').map(word => {
+                const clean = word.replace(/[.,!'’!?…:]/g, '').toUpperCase();
+                const emoji = dictionary[clean];
+                if (emoji) {
+                    return `<span class="interactive-word">${word}<div class="word-tooltip">${emoji}</div></span>`;
+                }
+                return `<span class="interactive-word">${word}</span>`;
+            }).join(' ');
+        }
+
+        buildText();
+
+        let count = 0;
+        const messages = [
+            "Brava Julie! Che nonno alto! 📏",
+            "Che belli quegli occhi blu! 👀🔵",
+            "Pelle rugosa come carta crespa... 🧓",
+            "Scarpe giganti per piedi enormi! 👞",
+            "BUONANOTTE CON LE STORIE DEL NONNO! 🚲📚✨"
+        ];
+
+        function addMagic(emoji, top, left) {
+            const scene = document.getElementById('magic-scene');
+            const span = document.createElement('span');
+            span.innerText = emoji;
+            span.className = 'magic-item';
+            span.style.top = top + '%';
+            span.style.left = left + '%';
+            scene.appendChild(span);
+        }
+
+        function registerRead(num) {
+            if (num !== count + 1) return;
+            count = num;
+            document.getElementById(`s${count}`).classList.add('active');
+            document.getElementById('msg').innerText = messages[count-1];
+
+            if(count === 1) addMagic("📏", 30, 20); 
+            if(count === 2) addMagic("👀", 20, 70);
+            if(count === 3) addMagic("✋", 70, 20);
+            if(count === 4) addMagic("👞", 60, 80);
+            if(count === 5) {
+                addMagic("🚲", 10, 45);
+                addMagic("📚", 70, 50);
+                confetti({ 
+                    particleCount: 150, 
+                    spread: 70, 
+                    origin: { y: 0.6 },
+                    colors: ['#03dac6', '#bb86fc', '#ffffff'] 
+                });
+            }
+            
+            const audioCtx = new (window.AudioContext || window.webkitAudioContext)();
+            const osc = audioCtx.createOscillator();
+            const gain = audioCtx.createGain();
+            osc.connect(gain);
+            gain.connect(audioCtx.destination);
+            osc.frequency.value = 300 + (count * 60); 
+            gain.gain.exponentialRampToValueAtTime(0.01, audioCtx.currentTime + 0.3);
+            osc.start(); osc.stop(audioCtx.currentTime + 0.3);
+        }
+    </script>
+</body>
+</html>
