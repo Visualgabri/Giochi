@@ -1,0 +1,235 @@
+<!DOCTYPE html>
+<html lang="it">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Julie - Il Sogno di Pepper 🦝</title>
+    <link href="https://fonts.googleapis.com/css2?family=Patrick+Hand&family=Fredoka+One&display=swap" rel="stylesheet">
+    <script src="https://cdn.jsdelivr.net/npm/canvas-confetti@1.6.0/dist/confetti.browser.min.js"></script>
+    <style>
+        :root {
+            /* Palette sognante: blu acqua, verde bosco e colori del sogno */
+            --bg-page-top: #b3e5fc; /* Azzurro cielo del sogno */
+            --bg-page-bottom: #c8e6c9; /* Verde prato del sogno */
+            --highlight-text: #01579b; /* Blu scuro per testo interattivo */
+            --highlight-bg: #e1f5fe; /* Celeste chiarissimo per hover */
+            --text-color: #1a237e; /* Blu scuro per il testo della storia */
+            --msg-color: #00796b; /* Verde teal per i messaggi */
+            --star-inactive: #b0bec5; /* Grigio-blu per stelle inattive */
+        }
+
+        body {
+            font-family: 'Patrick Hand', cursive;
+            margin: 0;
+            min-height: 100vh;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            background: linear-gradient(to bottom, var(--bg-page-top), var(--bg-page-bottom));
+            user-select: none;
+            padding-bottom: 50px;
+        }
+
+        .container {
+            max-width: 800px;
+            width: 90%;
+            background: rgba(255, 255, 255, 0.97);
+            padding: 2.5rem;
+            border-radius: 25px;
+            box-shadow: 0 15px 35px rgba(0,0,0,0.1);
+            margin-top: 30px;
+            text-align: center;
+            border: 6px solid #ffffff;
+        }
+
+        /* Titolo in stampatello maiuscolo come il testo del libro */
+        h1 { font-family: 'Fredoka One', cursive; color: var(--text-color); font-size: 2.6rem; margin-bottom: 15px; text-transform: uppercase; }
+
+        .story-box {
+            font-size: 2.1rem; /* Caratteri grandi per la lettura */
+            line-height: 1.7;
+            text-align: left;
+            padding: 25px;
+            background: #ffffff;
+            border-radius: 20px;
+            border: 3px dashed #81d4fa; /* Bordo azzurro tratteggiato */
+            margin: 20px 0;
+            white-space: pre-line;
+            color: var(--text-color);
+        }
+
+        /* Stile per evidenziare il nesso GN in blu come nel libro */
+        .story-box b { color: #1e88e5; font-weight: normal; }
+
+        .interactive-word {
+            display: inline-block;
+            transition: all 0.2s;
+            position: relative;
+            cursor: pointer;
+            padding: 2px 5px;
+            border-radius: 6px;
+        }
+        
+        .interactive-word:hover {
+            color: var(--highlight-text);
+            background-color: var(--highlight-bg);
+            transform: scale(1.08);
+            z-index: 10;
+        }
+
+        .word-tooltip {
+            position: absolute;
+            bottom: 125%;
+            left: 50%;
+            transform: translateX(-50%);
+            font-size: 3.8rem;
+            background: white;
+            padding: 10px 20px;
+            border-radius: 20px;
+            box-shadow: 0 10px 25px rgba(0,0,0,0.2);
+            opacity: 0;
+            visibility: hidden;
+            transition: 0.3s;
+            z-index: 100;
+            border: 3px solid #81d4fa;
+        }
+
+        .interactive-word:hover .word-tooltip {
+            opacity: 1;
+            visibility: visible;
+        }
+
+        #magic-scene {
+            height: 190px;
+            background: #e1f5fe; /* Celeste acqua chiarissimo */
+            border-radius: 20px;
+            margin: 25px 0;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            font-size: 5.5rem;
+            position: relative;
+            border: 4px solid #4fc3f7; /* Bordo azzurro stagno */
+            overflow: hidden;
+        }
+
+        .magic-item { position: absolute; animation: bounceIn 0.6s ease-out; }
+        @keyframes bounceIn { 0% { transform: scale(0); } 100% { transform: scale(1); } }
+
+        .stars-container { display: flex; gap: 18px; font-size: 3.8rem; color: var(--star-inactive); justify-content: center; margin: 20px 0; }
+        .star { cursor: pointer; transition: 0.3s; }
+        .star.active { color: #ffd600; transform: scale(1.25); text-shadow: 0 0 18px rgba(255, 214, 0, 0.8); }
+        #msg { font-size: 1.5rem; color: var(--msg-color); font-weight: bold; min-height: 1.6em; }
+    </style>
+</head>
+<body>
+
+    <div class="container">
+        <h1>IL SOGNO DI PEPPER 🦝✨</h1>
+        
+        <div class="story-box">
+            <div id="textDisplay"></div>
+        </div>
+
+        <div id="magic-scene">
+            <span id="base-scene">🦝</span> </div>
+
+        <div class="controls">
+            <div id="msg">Pepper sta dormendo... Leggi e tocca la prima stella per iniziare il sogno! 💤</div>
+            <div class="stars-container">
+                <div class="star" onclick="registerRead(1)" id="s1">★</div>
+                <div class="star" onclick="registerRead(2)" id="s2">★</div>
+                <div class="star" onclick="registerRead(3)" id="s3">★</div>
+                <div class="star" onclick="registerRead(4)" id="s4">★</div>
+            </div>
+        </div>
+    </div>
+
+    <script>
+        // Dizionario personalizzato per la storia di Pepper
+        const dictionary = {
+            "PEPPER": "🦝", "SOGNA": "✨☁️", "BELLO": "🤩", "BAGNO": "🏊‍♂️", 
+            "STAGNO": "💧", "INCONTRA": "🤝", "GNOMO": "🎅"
+        };
+
+        // Testo in stampatello maiuscolo con nessi GN evidenziati
+        const storyText = `PEPPER SO<b>GN</b>A. FA UN BEL BA<b>GN</b>O NELLO STA<b>GN</b>O E INCONTRA UNO <b>GN</b>OMO.`;
+
+        function buildText() {
+            const display = document.getElementById('textDisplay');
+            // Splittiamo tenendo i tag HTML per b
+            const words = storyText.split(/(\s+|<[^>]>)/).filter(Boolean);
+            
+            display.innerHTML = words.map(part => {
+                if (part.startsWith('<') || part.trim() === '') {
+                    return part; // Ritorna tag o spazi vuoti così come sono
+                }
+                // Rimuove la punteggiatura alla fine e converte in maiuscolo per il controllo nel dizionario
+                const clean = part.replace(/[.,!'’!?…]/g, '').toUpperCase();
+                const emoji = dictionary[clean];
+                if (emoji) {
+                    return `<span class="interactive-word">${part}<div class="word-tooltip">${emoji}</div></span>`;
+                }
+                return `<span class="interactive-word">${part}</span>`;
+            }).join('');
+        }
+
+        buildText();
+
+        let count = 0;
+        const messages = [
+            "Shhh... Pepper ha iniziato a sognare! ✨☁️",
+            "Che fresco questo bagno nello stagno! 💧🏊‍♂️",
+            "Guarda! Uno gnomo con il cappello rosso! 🎅",
+            "BRAVA JULIE! HAI LETTO TUTTA LA STORIA! 🎉🦝"
+        ];
+
+        function addMagic(emoji, top, left) {
+            const scene = document.getElementById('magic-scene');
+            const span = document.createElement('span');
+            span.innerText = emoji;
+            span.className = 'magic-item';
+            span.style.top = top + '%';
+            span.style.left = left + '%';
+            scene.appendChild(span);
+        }
+
+        function registerRead(num) {
+            if (num !== count + 1) return;
+            count = num;
+            document.getElementById(`s${count}`).classList.add('active');
+            document.getElementById('msg').innerText = messages[count-1];
+
+            // Rimuove Pepper che dorme all'inizio del sogno
+            if(count === 1) {
+                const baseScene = document.getElementById('base-scene');
+                if(baseScene) baseScene.style.display = 'none';
+                addMagic("✨", 40, 45); // Effetto sogno al centro
+            }
+            
+            // Aggiunge elementi magici nello "stagno"
+            if(count === 2) {
+                addMagic("🏊‍♂️", 20, 20); // Procione che nuota
+                addMagic("💧", 15, 75);
+            }
+            if(count === 3) {
+                addMagic("🎅", 60, 70); // Lo gnomo
+                addMagic("🍄", 65, 25);
+            }
+            if(count === 4) {
+                confetti({ particleCount: 150, spread: 70, origin: { y: 0.6 } });
+            }
+            
+            // Effetto sonoro semplice
+            const audioCtx = new (window.AudioContext || window.webkitAudioContext)();
+            const osc = audioCtx.createOscillator();
+            const gain = audioCtx.createGain();
+            osc.connect(gain);
+            gain.connect(audioCtx.destination);
+            osc.frequency.value = 440 + (count * 110); // Aumenta di frequenza a ogni stella
+            gain.gain.exponentialRampToValueAtTime(0.01, audioCtx.currentTime + 0.3);
+            osc.start(); osc.stop(audioCtx.currentTime + 0.3);
+        }
+    </script>
+</body>
+</html>
