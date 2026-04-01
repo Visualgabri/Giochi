@@ -1,0 +1,541 @@
+﻿<!DOCTYPE html>
+<html lang="it">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Dashboard Contabile - febbraio 2026</title>
+    <style>
+	
+	        tbody tr.highlighted-row { background-color: var(--highlight-green) !important; color: white; font-weight: 500;}
+
+        /* --- NUOVA REGOLA CSS AGGIUNTA --- */
+        tbody tr.highlight-renewal { 
+            background-color: rgba(246, 194, 62, 0.2); /* Usa il colore arancione con trasparenza */
+            font-weight: 500;
+        }
+        tbody tr.highlight-renewal:hover {
+             background-color: rgba(246, 194, 62, 0.4);
+        }
+        /* --- FINE NUOVA REGOLA --- */
+
+        .sortable-table th { cursor: pointer; }
+		
+        :root {
+            --bg-color: #1a1c23; --sidebar-bg: #22252e; --card-bg: #2a2d38; --text-color: #e0e0e0;
+            --text-muted: #8c93a3; --accent-color: #4e73df; --green-color: #1cc88a; --orange-color: #f6c23e;
+            --red-color: #e74a3b; --border-color: #3a3d4a; --blue-color: #36b9cc; --purple-color: #6f42c1;
+            --highlight-green: rgba(28, 200, 138, 0.2);
+        }
+        * { margin: 0; padding: 0; box-sizing: border-box; font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif; }
+        html { scroll-behavior: smooth; }
+        body { background-color: var(--bg-color); color: var(--text-color); }
+
+        .sidebar { 
+            width: 280px; background-color: var(--sidebar-bg); height: 100vh; padding: 20px 0; 
+            position: fixed; top: 0; left: 0; display: flex; flex-direction: column; 
+            transition: transform 0.3s ease-in-out; z-index: 1000;
+            will-change: transform;
+            overscroll-behavior-y: contain;
+        }
+        .sidebar-header { text-align: center; padding: 0 20px 20px 20px; border-bottom: 1px solid var(--border-color); }
+        .sidebar-header h2 { font-size: 1.5rem; color: white; }
+        .sidebar-header p { font-size: 0.9rem; color: var(--text-muted); }
+        .sidebar-nav { list-style: none; flex-grow: 1; margin-top: 20px; overflow-y: auto; }
+        .sidebar-nav li a { display: flex; justify-content: space-between; align-items: center; padding: 15px 20px; color: var(--text-muted); text-decoration: none; font-size: 1rem; transition: all 0.3s ease; }
+        .sidebar-nav li a:hover, .sidebar-nav li a.active { background-color: var(--accent-color); color: white; border-left: 4px solid var(--green-color); padding-left: 16px; }
+        .sidebar-nav .nav-text { display: flex; align-items: center; gap: 15px; }
+        .sidebar-nav .nav-total { font-size: 0.8rem; font-weight: bold; background-color: rgba(255,255,255,0.1); padding: 2px 6px; border-radius: 4px; }
+        
+        .sidebar-toggle, .overlay { display: none; }
+        
+        .main-content { margin-left: 280px; width: calc(100% - 280px); padding: 30px; }
+        header { margin-bottom: 30px; }
+        header h1 { font-size: 2.5rem; margin-bottom: 5px; }
+        header #periodo-riferimento { background-color: var(--accent-color); color: white; padding: 5px 10px; border-radius: 5px; font-weight: bold; }
+        
+        .dashboard-section { display: none; }
+        .dashboard-section.active { display: block; }
+        .kpi-grid { display: grid; grid-template-columns: repeat(auto-fit, minmax(220px, 1fr)); gap: 20px; margin-bottom: 30px; }
+        .kpi-card { background-color: var(--card-bg); padding: 20px; border-radius: 8px; border-left: 5px solid var(--accent-color); transition: transform 0.2s ease; }
+        .kpi-card:hover { transform: translateY(-5px); }
+        .clickable-kpi { cursor: pointer; }
+
+        .kpi-card .kpi-content { display: flex; justify-content: space-between; align-items: center; }
+        .kpi-card.green { border-color: var(--green-color); } .kpi-card.orange { border-color: var(--orange-color); } .kpi-card.blue { border-color: var(--blue-color); } .kpi-card.red { border-color: var(--red-color); } .kpi-card.purple { border-color: var(--purple-color); }
+        .kpi-card h3 { color: var(--text-muted); font-size: 0.9rem; text-transform: uppercase; font-weight: bold; margin-bottom: 5px;}
+        .kpi-card .value { font-size: 1.8rem; font-weight: bold; color: white; }
+        .kpi-card .icon { font-size: 2.8rem; opacity: 0.7; }
+        .kpi-progress { display: flex; align-items: center; gap: 10px; margin-top: 10px; }
+        .kpi-progress span { font-size: 0.8rem; font-weight: bold; color: var(--text-muted); }
+        .kpi-progress .progress-bar-container { flex-grow: 1; background-color: var(--bg-color); height: 8px; border-radius: 4px; overflow: hidden; }
+        .kpi-progress .progress-bar { height: 100%; border-radius: 4px; background-color: var(--accent-color); transition: width 0.5s ease-in-out;}
+        .kpi-progress .progress-bar.red { background-color: var(--red-color); }
+        .kpi-progress .progress-bar.green { background-color: var(--green-color); }
+        
+        .chart-container { background-color: var(--card-bg); padding: 20px; border-radius: 8px; margin-bottom: 30px; position: relative; height: 400px; }
+        .chart-container h3, .table-container h3, .table-container h2 { margin-bottom: 15px; border-bottom: 1px solid var(--border-color); padding-bottom: 10px; }
+        .table-container h2 { border-bottom: none; padding-bottom: 0; }
+        .chart-container h3 .media-val { font-size: 0.9rem; color: var(--text-muted); font-weight: normal; margin-left: 15px; display: block; margin-top: 5px; }
+        
+        .header-count { font-size: 1rem; color: var(--text-muted); font-weight: normal; margin-left: 10px; background-color: var(--bg-color); padding: 3px 8px; border-radius: 5px; }
+        .table-container { background-color: var(--card-bg); padding: 20px; border-radius: 8px; margin-bottom: 20px; overflow-x: auto; /* Default for mobile */ }
+        .table-header-with-total { display: flex; justify-content: space-between; align-items: center; margin-bottom: 15px; flex-wrap: wrap; gap: 10px;}
+        .total-calculator { display: flex; align-items: center; gap: 15px; font-size: 0.9rem; flex-wrap: wrap;}
+        .total-calculator input { background-color: var(--bg-color); border: 1px solid var(--border-color); color: white; padding: 5px 8px; border-radius: 4px; width: 100px; text-align: right; }
+        .total-calculator .difference { font-weight: bold; min-width: 80px; text-align: right; }
+        
+        table { width: 100%; border-collapse: collapse; min-width: 600px; }
+        th, td { padding: 12px 15px; text-align: left; border-bottom: 1px solid var(--border-color); white-space: nowrap; }
+        
+        thead th { background-color: var(--sidebar-bg); font-weight: bold; color: var(--text-color); }
+        tbody tr { transition: background-color 0.2s ease; }
+        tbody tr.selectable-row:hover { background-color: #323541; cursor: pointer; }
+        tbody tr.highlighted-row { background-color: var(--highlight-green) !important; color: white; font-weight: 500;}
+        .sortable-table th { cursor: pointer; }
+        .sortable-table th:hover { background-color: #323541; }
+        
+        .link-list a { display: flex; align-items: center; gap: 15px; background-color: var(--card-bg); padding: 15px; margin-bottom: 10px; border-radius: 5px; text-decoration: none; color: var(--text-color); transition: background-color 0.3s; font-weight: bold; }
+        .link-list a:hover { background-color: var(--accent-color); }
+        .link-list span { font-size: 1.2rem; }
+
+        .client-subtotal-inline { display: inline-block; margin-left: 5px; font-size: 0.85em; font-weight: bold; color: var(--green-color); opacity: 0.9; }
+
+        .compact-name-list { min-width: 100%; table-layout: fixed; border-collapse: separate; border-spacing: 0; }
+        .compact-name-list th, 
+        .compact-name-list td { width: 50%; padding: 4px 8px; font-size: 0.85rem; white-space: normal; word-break: break-word; }
+
+        @media (max-width: 992px) {
+            .sidebar { transform: translateX(-100%); }
+            .sidebar.open { transform: translateX(0); box-shadow: 5px 0 15px rgba(0,0,0,0.2); }
+            .main-content { margin-left: 0; width: 100%; padding: 20px 15px; }
+            .sidebar-toggle { display: block; position: fixed; top: 15px; left: 15px; z-index: 1001; background: var(--card-bg); color: white; border: 1px solid var(--border-color); border-radius: 5px; width: 40px; height: 40px; font-size: 1.5rem; cursor: pointer; }
+            .overlay { display: none; position: fixed; top: 0; left: 0; width: 100%; height: 100%; background: rgba(0, 0, 0, 0.5); z-index: 999; }
+            .overlay.active { display: block; }
+            header { padding-top: 50px; text-align: center; }
+            header h1 { font-size: 1.8rem; }
+            header p { font-size: 0.9rem; }
+            .kpi-card .value { font-size: 1.5rem; }
+            .kpi-card .icon { font-size: 2rem; }
+            .table-container { padding: 15px; }
+            .total-calculator { justify-content: flex-start; }
+            .chart-container h3 .media-val { margin-left: 0; }
+            .chart-container { height: 320px; padding: 15px; }
+            .main-content table:not(.compact-name-list) th,
+            .main-content table:not(.compact-name-list) td { padding: 8px 10px; font-size: 0.9rem; white-space: normal; word-break: break-word; }
+        }
+
+        @media (min-width: 993px) {
+            .table-container { overflow-x: hidden; }
+            table:not(.compact-name-list) { table-layout: fixed; min-width: 100%; }
+            table:not(.compact-name-list) th, 
+            table:not(.compact-name-list) td { 
+                white-space: normal; 
+                word-wrap: break-word;
+                padding-top: 8px;
+                padding-bottom: 8px;
+                font-size: 0.9rem;
+            }
+        }
+    </style>
+</head>
+<body>
+    <button class="sidebar-toggle" aria-label="Apri menu">☰</button>
+    <div class="overlay"></div>
+    <nav class="sidebar">
+        <div class="sidebar-header"><h2>PT Dashboard</h2><p>Analisi Contabile</p></div>
+        <ul class="sidebar-nav">
+            <li><a href="#" class="nav-link active" data-target="panoramica"><div class="nav-text">📊 Panoramica</div></a></li>
+            <li><a href="#" class="nav-link" data-target="vendite-dirette"><div class="nav-text">💵 Vendite Dirette</div><span class="nav-total">4.916,00 €</span></a></li>
+            <li><a href="#" class="nav-link" data-target="servizi-aggiuntivi"><div class="nav-text">🧩 Servizi Aggiuntivi</div><span class="nav-total">1.845,00 €</span></a></li>
+            <li><a href="#" class="nav-link" data-target="vendite-online"><div class="nav-text">🌐 Vendite Online</div><span class="nav-total">355,00 €</span></a></li>
+            <li><a href="#" class="nav-link" data-target="analisi-sessioni"><div class="nav-text">💪 Analisi Sessioni</div></a></li>
+            <li><a href="#" class="nav-link" data-target="previsioni"><div class="nav-text">🗓️ Analisi Previsionale</div></a></li>
+            <li><a href="#" class="nav-link" data-target="clienti"><div class="nav-text">👥 Clienti del Mese</div></a></li>
+            <li><a href="#" class="nav-link" data-target="documenti"><div class="nav-text">📂 Documenti e Link</div></a></li>
+        </ul>
+    </nav>
+<main class="main-content">
+    <header><h1>Dashboard Contabile</h1><p>Riepilogo per il periodo: <span id="periodo-riferimento">febbraio 2026</span></p></header>
+
+    <section id="panoramica" class="dashboard-section active">
+        <div class="kpi-grid">
+            <div class="kpi-card green"><div class="kpi-content"><div><h3>Ricavo Totale</h3><span class="value">6.761,00 €</span></div><span class="icon">💶</span></div></div>
+            <div class="kpi-card orange clickable-kpi" data-target="clienti"><div class="kpi-content"><div><h3>Clienti Unici</h3><span class="value">25</span></div><span class="icon">👥</span></div></div>
+            <div class="kpi-card clickable-kpi" data-target="analisi-sessioni"><div class="kpi-content"><div><h3>Sessioni Svolte</h3><span class="value">119</span></div><span class="icon">🏃</span></div></div>
+            <div class="kpi-card purple clickable-kpi" data-target="previsioni" data-scroll-to="previsione-unificata-container"><div class="kpi-content"><div><h3>Previsione Mese Pross.</h3><span class="value">8.310,00 €</span></div><span class="icon">🔮</span></div></div>
+            <div class="kpi-card red"><div><div class="kpi-content"><div><h3>Incasso Banca/Carta</h3><span class="value">4.636,00 €</span></div><span class="icon">💳</span></div><div class="kpi-progress"><span>68,6%</span><div class="progress-bar-container"><div class="progress-bar red" style="width: 68,6%;"></div></div></div></div></div>
+            <div class="kpi-card green"><div><div class="kpi-content"><div><h3>Incasso Contanti</h3><span class="value">2.125,00 €</span></div><span class="icon">💵</span></div><div class="kpi-progress"><span>31,4%</span><div class="progress-bar-container"><div class="progress-bar green" style="width: 31,4%;"></div></div></div></div></div>
+            <div class="kpi-card blue clickable-kpi" data-target="vendite-dirette" data-scroll-to="pacchetti-container"><div class="kpi-content"><div><h3>Valore Pacchetti</h3><span class="value">4.576,00 €</span></div><span class="icon">📦</span></div></div>
+            <div class="kpi-card blue clickable-kpi" data-target="vendite-dirette" data-scroll-to="sessioni-container"><div class="kpi-content"><div><h3>Valore Sessioni</h3><span class="value">340,00 €</span></div><span class="icon">🎟️</span></div></div>
+            <div class="kpi-card purple clickable-kpi" data-target="servizi-aggiuntivi" data-scroll-to="schedewo-container"><div class="kpi-content"><div><h3>Valore Schede WO</h3><span class="value">1.395,00 €</span></div><span class="icon">📋</span></div></div>
+            <div class="kpi-card purple clickable-kpi" data-target="servizi-aggiuntivi" data-scroll-to="alim-container"><div class="kpi-content"><div><h3>Valore Alim.</h3><span class="value">450,00 €</span></div><span class="icon">🍎</span></div></div>
+        </div>
+        <div class="chart-container"><h3>🍩 Ripartizione Ricavi del Mese</h3><canvas id="revenueChart"></canvas></div>
+        <div class="table-container">
+            <h3>💳 Dettaglio Incassi Elettronici del Mese <span class="header-count">25</span><span class="media-val" style="margin-left: 15px;">Totale: 4.636,00 €</span></h3>
+            <table id="incassi-elettronici-table" class="sortable-table">
+                <thead><tr><th>Cliente</th><th style="text-align: center;">Descrizione</th><th>Data</th><th style="text-align: right;">Importo</th><th style="text-align: center;">Metodo</th></tr></thead>
+                <tbody><tr><td>Chiara Piovaticci</td><td title='Pacchetto 10 sessioni' style='text-align: center; font-size: 0.9rem;'>Pacchetto 10 sessioni</td><td>24/02/2026</td><td style='text-align: right;'>452,00 €</td><td style='text-align: center;'>&#x1F3E6;</td></tr>
+<tr><td>Stefano Becchetti</td><td title='Pak 10' style='text-align: center; font-size: 0.9rem;'>Pak 10</td><td>24/02/2026</td><td style='text-align: right;'>452,00 €</td><td style='text-align: center;'>&#x1F3E6;</td></tr>
+<tr><td>Ilvio Giannoni</td><td title='Pacchetto 10 sessioni' style='text-align: center; font-size: 0.9rem;'>Pacchetto 10 sessioni</td><td>24/02/2026</td><td style='text-align: right;'>472,00 €</td><td style='text-align: center;'>&#x1F3E6;</td></tr>
+<tr><td>Marina Torre</td><td title='Scheda allenamento' style='text-align: center; font-size: 0.9rem;'>&#128196;</td><td>24/02/2026</td><td style='text-align: right;'>122,00 €</td><td style='text-align: center;'>&#x1F3E6;</td></tr>
+<tr><td>Filippo Cruccolini</td><td title='Scheda allenamento' style='text-align: center; font-size: 0.9rem;'>&#128196;</td><td>23/02/2026</td><td style='text-align: right;'>122,00 €</td><td style='text-align: center;'>&#x1F3E6;</td></tr>
+<tr><td>Filippo Cruccolini</td><td title='Scheda alimentazione' style='text-align: center; font-size: 0.9rem;'>&#127822;</td><td>23/02/2026</td><td style='text-align: right;'>45,00 €</td><td style='text-align: center;'>&#x1F3E6;</td></tr>
+<tr><td>Michela Dell'Aquila</td><td title='Pacchetto 10 sessioni' style='text-align: center; font-size: 0.9rem;'>Pacchetto 10 sessioni</td><td>20/02/2026</td><td style='text-align: right;'>452,00 €</td><td style='text-align: center;'>&#x1F3E6;</td></tr>
+<tr><td>Simone Giombini</td><td title='Pacchetto 10 sessioni' style='text-align: center; font-size: 0.9rem;'>Pacchetto 10 sessioni</td><td>19/02/2026</td><td style='text-align: right;'>232,00 €</td><td style='text-align: center;'>&#x1F3E6;</td></tr>
+<tr><td>Brian Grau</td><td title='Scheda allenamento' style='text-align: center; font-size: 0.9rem;'>&#128196;</td><td>17/02/2026</td><td style='text-align: right;'>110,00 €</td><td style='text-align: center;'>&#x1F3E6;</td></tr>
+<tr><td>Brian Grau</td><td title='Scheda alimentazione' style='text-align: center; font-size: 0.9rem;'>&#127822;</td><td>17/02/2026</td><td style='text-align: right;'>60,00 €</td><td style='text-align: center;'>&#x1F3E6;</td></tr>
+<tr><td>Mattia Panzeri</td><td title='Scheda allenamento' style='text-align: center; font-size: 0.9rem;'>&#128196;</td><td>17/02/2026</td><td style='text-align: right;'>87,00 €</td><td style='text-align: center;'>&#x1F3E6;</td></tr>
+<tr><td>Giacomo Berzilli</td><td title='Pacchetto 10 sessioni' style='text-align: center; font-size: 0.9rem;'>Pacchetto 10 sessioni</td><td>12/02/2026</td><td style='text-align: right;'>472,00 €</td><td style='text-align: center;'>&#x1F3E6;</td></tr>
+<tr><td>Lorenzo Luzi</td><td title='Scheda allenamento' style='text-align: center; font-size: 0.9rem;'>&#128196;</td><td>12/02/2026</td><td style='text-align: right;'>60,00 €</td><td style='text-align: center;'>&#x1F3E6;</td></tr>
+<tr><td>Elisabetta Furia</td><td title='Pacchetto 10 sessioni' style='text-align: center; font-size: 0.9rem;'>Pacchetto 10 sessioni</td><td>10/02/2026</td><td style='text-align: right;'>472,00 €</td><td style='text-align: center;'>&#x1F3E6;</td></tr>
+<tr><td>Andrea Durini</td><td title='Scheda alimentazione' style='text-align: center; font-size: 0.9rem;'>&#127822;</td><td>09/02/2026</td><td style='text-align: right;'>45,00 €</td><td style='text-align: center;'>&#x1F3E6;</td></tr>
+<tr><td>Francesco De Vitis</td><td title='Scheda allenamento' style='text-align: center; font-size: 0.9rem;'>&#128196;</td><td>09/02/2026</td><td style='text-align: right;'>105,00 €</td><td style='text-align: center;'>&#x1F4B3;</td></tr>
+<tr><td>Andrea Durini</td><td title='PAK 10' style='text-align: center; font-size: 0.9rem;'>PAK 10</td><td>09/02/2026</td><td style='text-align: right;'>262,00 €</td><td style='text-align: center;'>&#x1F3E6;</td></tr>
+<tr><td>Francesco De Vitis</td><td title='Scheda alimentazione' style='text-align: center; font-size: 0.9rem;'>&#127822;</td><td>09/02/2026</td><td style='text-align: right;'>45,00 €</td><td style='text-align: center;'>&#x1F4B3;</td></tr>
+<tr><td>Eugenia Falini</td><td title='Sessione: ' style='text-align: center; font-size: 0.9rem;'>&#128170;</td><td>05/02/2026</td><td style='text-align: right;'>150,00 €</td><td style='text-align: center;'>&#x1F3E6;</td></tr>
+<tr><td>Eugenia Falini</td><td title='Scheda allenamento' style='text-align: center; font-size: 0.9rem;'>&#128196;</td><td>05/02/2026</td><td style='text-align: right;'>70,00 €</td><td style='text-align: center;'>&#x1F3E6;</td></tr>
+<tr><td>Luca Massetti</td><td title='Sessione: ' style='text-align: center; font-size: 0.9rem;'>&#128170;</td><td>03/02/2026</td><td style='text-align: right;'>50,00 €</td><td style='text-align: center;'>&#x1F3E6;</td></tr>
+<tr><td>Stefania Tantari</td><td title='Scheda allenamento' style='text-align: center; font-size: 0.9rem;'>&#128196;</td><td>03/02/2026</td><td style='text-align: right;'>91,00 €</td><td style='text-align: center;'>&#x1F3E6;</td></tr>
+<tr><td>Luca Massetti</td><td title='Scheda allenamento' style='text-align: center; font-size: 0.9rem;'>&#128196;</td><td>03/02/2026</td><td style='text-align: right;'>72,00 €</td><td style='text-align: center;'>&#x1F3E6;</td></tr>
+<tr><td>Gabriele Cappelli</td><td title='SOLO PAGATO' style='text-align: center; font-size: 0.9rem;'>SOLO PAGATO</td><td>03/02/2026</td><td style='text-align: right;'>45,00 €</td><td style='text-align: center;'>&#x1F3E6;</td></tr>
+<tr><td>Gabriele Cappelli</td><td title='Scheda allenamento' style='text-align: center; font-size: 0.9rem;'>&#128196;</td><td>03/02/2026</td><td style='text-align: right;'>91,00 €</td><td style='text-align: center;'>&#x1F3E6;</td></tr>
+</tbody>
+            </table>
+        </div>
+    </section>
+
+    <section id="vendite-dirette" class="dashboard-section">
+        <h2>💵 Dettaglio Vendite Dirette</h2>
+        <div id="pacchetti-container" class="table-container"><div class="table-header-with-total"><h3>📦 Pacchetti Venduti <span class="header-count">12</span></h3><div class="total-calculator"><span>Totale: <strong data-total-value="4576">4.576,00 €</strong></span><input type="number" placeholder="Confronto..." aria-label="Valore di confronto pacchetti"><span>Differenza: <strong class="difference">€ 0,00</strong></span></div></div><table class="sortable-table"><thead><tr><th>Cliente</th><th>Pacchetto</th><th>Sess. Rim.</th><th>Data</th><th style="text-align: right;">Importo</th><th style="text-align: center;">Metodo</th></tr></thead><tbody><tr><td>Alessandro Mariani</td><td>Pacchetto 12 sessioni 35€ l'una 3 volte settimana</td><td>6</td><td>04/02/2026</td><td style='text-align: right;'>300,00 €</td><td style='text-align: center;'>&#x1F4B5;</td></tr>
+<tr><td>Andrea Durini</td><td>PAK 10</td><td>2</td><td>09/02/2026</td><td style='text-align: right;'>262,00 €</td><td style='text-align: center;'>&#x1F3E6;</td></tr>
+<tr><td>Elisabetta Furia</td><td>Pacchetto 10 sessioni</td><td>2</td><td>10/02/2026</td><td style='text-align: right;'>472,00 €</td><td style='text-align: center;'>&#x1F3E6;</td></tr>
+<tr><td>Giacomo Berzilli</td><td>Pacchetto 10 sessioni</td><td>4</td><td>12/02/2026</td><td style='text-align: right;'>472,00 €</td><td style='text-align: center;'>&#x1F3E6;</td></tr>
+<tr><td>Simone Nodessi</td><td>Pak annuale 77 sess Ogni mese 200€</td><td>69</td><td>12/02/2026</td><td style='text-align: right;'>200,00 €</td><td style='text-align: center;'>&#x1F4B5;</td></tr>
+<tr><td>Simone Giombini</td><td>Pacchetto 10 sessioni</td><td>4</td><td>19/02/2026</td><td style='text-align: right;'>232,00 €</td><td style='text-align: center;'>&#x1F3E6;</td></tr>
+<tr><td>Simone Giombini</td><td>Pacchetto 10 sessioni</td><td>4</td><td>20/02/2026</td><td style='text-align: right;'>240,00 €</td><td style='text-align: center;'>&#x1F4B5;</td></tr>
+<tr><td>Michela Dell'Aquila</td><td>Pacchetto 10 sessioni</td><td>8</td><td>20/02/2026</td><td style='text-align: right;'>452,00 €</td><td style='text-align: center;'>&#x1F3E6;</td></tr>
+<tr><td>Ilvio Giannoni</td><td>Pacchetto 10 sessioni</td><td>7</td><td>24/02/2026</td><td style='text-align: right;'>472,00 €</td><td style='text-align: center;'>&#x1F3E6;</td></tr>
+<tr><td>Stefano Becchetti</td><td>Pak 10</td><td>9</td><td>24/02/2026</td><td style='text-align: right;'>452,00 €</td><td style='text-align: center;'>&#x1F3E6;</td></tr>
+<tr><td>Chiara Piovaticci</td><td>Pacchetto 10 sessioni</td><td>7</td><td>24/02/2026</td><td style='text-align: right;'>452,00 €</td><td style='text-align: center;'>&#x1F3E6;</td></tr>
+<tr><td>Stefano Gatti</td><td>Pacchetto 15 sessioni + 1 regalo</td><td>11</td><td>25/02/2026</td><td style='text-align: right;'>570,00 €</td><td style='text-align: center;'>&#x1F4B5;</td></tr>
+</tbody></table></div>
+        <div id="sessioni-container" class="table-container"><div class="table-header-with-total"><h3>💪 Sessioni Singole Vendute <span class="header-count">5</span></h3><div class="total-calculator"><span>Totale: <strong data-total-value="340">340,00 €</strong></span><input type="number" placeholder="Confronto..." aria-label="Valore di confronto sessioni"><span>Differenza: <strong class="difference">€ 0,00</strong></span></div></div><table class="sortable-table"><thead><tr><th>Cliente</th><th>Note</th><th>Data</th><th style="text-align: right;">Importo</th><th style="text-align: center;">Metodo</th></tr></thead><tbody><tr><td>Luca Massetti</td><td></td><td>03/02/2026 00:00</td><td style='text-align: right;'>50,00 €</td><td style='text-align: center;'>&#x1F3E6;</td></tr>
+<tr><td>Eugenia Falini</td><td></td><td>05/02/2026 00:00</td><td style='text-align: right;'>150,00 €</td><td style='text-align: center;'>&#x1F3E6;</td></tr>
+<tr><td>Damiano Rossi</td><td></td><td>05/02/2026 16:30</td><td style='text-align: right;'>50,00 €</td><td style='text-align: center;'>&#x1F4B5;</td></tr>
+<tr><td>Carla Leone</td><td></td><td>07/02/2026 09:00</td><td style='text-align: right;'>40,00 €</td><td style='text-align: center;'>&#x1F4B5;</td></tr>
+<tr><td>Filippo Cruccolini</td><td></td><td>23/02/2026 00:00</td><td style='text-align: right;'>50,00 €</td><td style='text-align: center;'>&#x1F4B5;</td></tr>
+</tbody></table></div>
+    </section>
+
+    <section id="servizi-aggiuntivi" class="dashboard-section">
+        <h2>🧩 Dettaglio Servizi Aggiuntivi</h2>
+        <div id="schedewo-container" class="table-container"><div class="table-header-with-total"><h3>📄 Schede Workout <span class="header-count">24</span></h3><div class="total-calculator"><span>Totale: <strong data-total-value="1395">1.395,00 €</strong></span><input type="number" placeholder="Confronto..." aria-label="Valore di confronto schede wo"><span>Differenza: <strong class="difference">€ 0,00</strong></span></div></div><table class="sortable-table"><thead><tr><th>Cliente</th><th>Data</th><th style="text-align: right;">Importo</th><th style="text-align: center;">Metodo</th></tr></thead><tbody><tr><td>Franca Balducci</td><td>02/02/2026 00:00</td><td style='text-align: right;'>40,00 €</td><td style='text-align: center;'>&#x1F4B5;</td></tr>
+<tr><td>Gabriele Cappelli</td><td>03/02/2026 00:00</td><td style='text-align: right;'>91,00 €</td><td style='text-align: center;'>&#x1F3E6;</td></tr>
+<tr><td>Stefania Tantari</td><td>03/02/2026 00:00</td><td style='text-align: right;'>91,00 €</td><td style='text-align: center;'>&#x1F3E6;</td></tr>
+<tr><td>Luca Massetti</td><td>03/02/2026 00:00</td><td style='text-align: right;'>72,00 €</td><td style='text-align: center;'>&#x1F3E6;</td></tr>
+<tr><td>Mauro Manini</td><td>03/02/2026 09:45</td><td style='text-align: right;'>50,00 €</td><td style='text-align: center;'>&#x1F4B5;</td></tr>
+<tr><td>Eugenia Falini</td><td>05/02/2026 00:00</td><td style='text-align: right;'>70,00 €</td><td style='text-align: center;'>&#x1F3E6;</td></tr>
+<tr><td>Gabriele Baccinelli</td><td>05/02/2026 12:00</td><td style='text-align: right;'>105,00 €</td><td style='text-align: center;'>&#x1F4B5;</td></tr>
+<tr><td>Damiano Rossi</td><td>05/02/2026 16:30</td><td style='text-align: right;'>70,00 €</td><td style='text-align: center;'>&#x1F4B5;</td></tr>
+<tr><td>Francesco De Vitis</td><td>09/02/2026 00:00</td><td style='text-align: right;'>105,00 €</td><td style='text-align: center;'>&#x1F4B3;</td></tr>
+<tr><td>Elisabetta Furia</td><td>09/02/2026 08:00</td><td></td><td style='text-align: center;'></td></tr>
+<tr><td>Francesco Sforza</td><td>10/02/2026 08:05</td><td style='text-align: right;'>80,00 €</td><td style='text-align: center;'>&#x1F4B5;</td></tr>
+<tr><td>Lorenzo Luzi</td><td>12/02/2026 00:00</td><td style='text-align: right;'>60,00 €</td><td style='text-align: center;'>&#x1F3E6;</td></tr>
+<tr><td>Claudia Caligiana</td><td>13/02/2026 13:30</td><td style='text-align: right;'>60,00 €</td><td style='text-align: center;'>&#x1F4B5;</td></tr>
+<tr><td>Tiziano Passetti</td><td>14/02/2026 16:00</td><td style='text-align: right;'>60,00 €</td><td style='text-align: center;'>&#x1F4B5;</td></tr>
+<tr><td>Brian Grau</td><td>17/02/2026 00:00</td><td style='text-align: right;'>110,00 €</td><td style='text-align: center;'>&#x1F3E6;</td></tr>
+<tr><td>Mattia Panzeri</td><td>17/02/2026 00:00</td><td style='text-align: right;'>87,00 €</td><td style='text-align: center;'>&#x1F3E6;</td></tr>
+<tr><td>Michele Delicati</td><td>17/02/2026 08:30</td><td></td><td style='text-align: center;'></td></tr>
+<tr><td>Ilvio Giannoni</td><td>18/02/2026 08:00</td><td></td><td style='text-align: center;'></td></tr>
+<tr><td>Chiara Piovaticci</td><td>18/02/2026 08:30</td><td></td><td style='text-align: center;'></td></tr>
+<tr><td>Filippo Cruccolini</td><td>23/02/2026 00:00</td><td style='text-align: right;'>122,00 €</td><td style='text-align: center;'>&#x1F3E6;</td></tr>
+<tr><td>Marina Torre</td><td>24/02/2026 00:00</td><td style='text-align: right;'>122,00 €</td><td style='text-align: center;'>&#x1F3E6;</td></tr>
+<tr><td>Giacomo Berzilli</td><td>25/02/2026 08:00</td><td></td><td style='text-align: center;'></td></tr>
+<tr><td>Simone Giombini</td><td>25/02/2026 08:30</td><td></td><td style='text-align: center;'></td></tr>
+<tr><td>Michela Dell'Aquila</td><td>26/02/2026 09:15</td><td></td><td style='text-align: center;'></td></tr>
+</tbody></table></div>
+        <div id="alim-container" class="table-container"><div class="table-header-with-total"><h3>🍎 Alimentazione <span class="header-count">10</span></h3><div class="total-calculator"><span>Totale: <strong data-total-value="450">450,00 €</strong></span><input type="number" placeholder="Confronto..." aria-label="Valore di confronto alimentazione"><span>Differenza: <strong class="difference">€ 0,00</strong></span></div></div><table class="sortable-table"><thead><tr><th>Cliente</th><th>Data</th><th style="text-align: right;">Importo</th><th style="text-align: center;">Metodo</th></tr></thead><tbody><tr><td>Franca Balducci</td><td>02/02/2026 00:00</td><td style='text-align: right;'>45,00 €</td><td style='text-align: center;'>&#x1F4B5;</td></tr>
+<tr><td>Gabriele Cappelli</td><td>03/02/2026 00:00</td><td style='text-align: right;'>45,00 €</td><td style='text-align: center;'>&#x1F3E6;</td></tr>
+<tr><td>Gabriele Baccinelli</td><td>05/02/2026 12:00</td><td style='text-align: right;'>45,00 €</td><td style='text-align: center;'>&#x1F4B5;</td></tr>
+<tr><td>Mauro Manini</td><td>07/02/2026 13:30</td><td style='text-align: right;'>35,00 €</td><td style='text-align: center;'>&#x1F4B5;</td></tr>
+<tr><td>Francesco De Vitis</td><td>09/02/2026 00:00</td><td style='text-align: right;'>45,00 €</td><td style='text-align: center;'>&#x1F4B3;</td></tr>
+<tr><td>Andrea Durini</td><td>09/02/2026 00:00</td><td style='text-align: right;'>45,00 €</td><td style='text-align: center;'>&#x1F3E6;</td></tr>
+<tr><td>Francesco Sforza</td><td>10/02/2026 09:00</td><td style='text-align: right;'>40,00 €</td><td style='text-align: center;'>&#x1F4B5;</td></tr>
+<tr><td>Tiziano Passetti</td><td>14/02/2026 16:00</td><td style='text-align: right;'>45,00 €</td><td style='text-align: center;'>&#x1F4B5;</td></tr>
+<tr><td>Brian Grau</td><td>17/02/2026 00:00</td><td style='text-align: right;'>60,00 €</td><td style='text-align: center;'>&#x1F3E6;</td></tr>
+<tr><td>Filippo Cruccolini</td><td>23/02/2026 00:00</td><td style='text-align: right;'>45,00 €</td><td style='text-align: center;'>&#x1F3E6;</td></tr>
+</tbody></table></div>
+        <div class="table-container"><div class="table-header-with-total"><h3>⚙️ Altri Servizi <span class="header-count">5</span></h3><div class="total-calculator"><span>Totale: <strong data-total-value="0">0,00 €</strong></span><input type="number" placeholder="Confronto..." aria-label="Valore di confronto altri servizi"><span>Differenza: <strong class="difference">€ 0,00</strong></span></div></div><table class="sortable-table"><thead><tr><th>Cliente</th><th>Data</th><th style="text-align: right;">Importo</th><th style="text-align: center;">Metodo</th></tr></thead><tbody><tr><td>Gabriele Baccinelli</td><td>05/02/2026 12:00</td><td></td><td style='text-align: center;'></td></tr>
+<tr><td>Mauro Manini</td><td>07/02/2026 07:45</td><td></td><td style='text-align: center;'></td></tr>
+<tr><td>Francesco Sforza</td><td>10/02/2026 11:00</td><td></td><td style='text-align: center;'></td></tr>
+<tr><td>Tiziano Passetti</td><td>14/02/2026 08:00</td><td></td><td style='text-align: center;'></td></tr>
+<tr><td>Luca Broccatelli</td><td>27/02/2026 08:15</td><td></td><td style='text-align: center;'></td></tr>
+</tbody></table></div>
+    </section>
+    
+    <section id="vendite-online" class="dashboard-section">
+         <h2>🌐 Dettaglio Vendite Online</h2>
+         <div class="table-container"><div class="table-header-with-total"><h3>💻 Servizi Online <span class="header-count">4</span></h3><div class="total-calculator"><span>Totale: <strong data-total-value="355">355,00 €</strong></span><input type="number" placeholder="Confronto..." aria-label="Valore di confronto servizi online"><span>Differenza: <strong class="difference">€ 0,00</strong></span></div></div><table class="sortable-table"><thead><tr><th>Cliente</th><th>Servizio</th><th>Data</th><th style="text-align: right;">Importo</th><th style="text-align: center;">Metodo</th></tr></thead><tbody><tr><td>Gabriele Baccinelli</td><td>Servizio Online</td><td>05/02/2026 12:00</td><td style='text-align: right;'>150,00 €</td><td style='text-align: center;'>&#x1F4B5;</td></tr>
+<tr><td>Mauro Manini</td><td>Servizio Online</td><td>07/02/2026 13:30</td><td style='text-align: right;'>85,00 €</td><td style='text-align: center;'>&#x1F4B5;</td></tr>
+<tr><td>Francesco Sforza</td><td>Servizio Online</td><td>10/02/2026 11:00</td><td style='text-align: right;'>120,00 €</td><td style='text-align: center;'>&#x1F4B5;</td></tr>
+<tr><td>Luca Broccatelli</td><td>Servizio Online</td><td>27/02/2026 08:15</td><td></td><td style='text-align: center;'></td></tr>
+</tbody></table></div>
+    </section>
+    
+    <section id="analisi-sessioni" class="dashboard-section">
+        <h2>💪 Analisi Sessioni Annuale</h2>
+        <div class="chart-container"><h3>📊 Andamento Media Settimanale Sessioni <span class="media-val">Media Annuale: 4,6</span></h3><canvas id="weeklySessionsChart"></canvas></div>
+        <div class="chart-container"><h3>📈 Andamento Totale Sessioni Mensili <span class="media-val">Media Mensile Annua: 119,5 (Totale Anno: 239)</span></h3><canvas id="monthlySessionsChart"></canvas></div>
+        <div class="chart-container"><h3>👤 Andamento Clienti Unici Mensili <span class="media-val">Media Mensile Annua: 4,0 (Totale Anno: 50)</span></h3><canvas id="clientsChart"></canvas></div>
+        <div class="table-container"><h3>🧾 Sessioni da Saldare</h3><table class="sortable-table"><thead><tr><th>Cliente</th><th>Rimaste</th><th>Parziali</th><th>Delta</th><th style="text-align: right;">Importo da Saldare</th><th>Ultima Sessione</th></tr></thead><tbody><tr><td>Lorenzo Luzi</td><td>3</td><td>5</td><td>2</td><td>20,00 €</td><td>03/02/2026 12:30</td></tr>
+<tr><td>Alessandro Mariani</td><td>6</td><td>6</td><td>0</td><td>220,00 €</td><td>26/02/2026 19:30</td></tr>
+<tr><td>Michele Delicati</td><td>6</td><td>5</td><td>-1</td><td>472,00 €</td><td>26/02/2026 12:30</td></tr>
+<tr><td>Angie Zorba</td><td>6</td><td>5</td><td>-1</td><td>50,00 €</td><td>11/06/2025 18:45</td></tr>
+<tr><td>Marco Colcelli</td><td>29</td><td>25</td><td>-4</td><td>1.900,00 €</td><td>18/02/2026 12:30</td></tr>
+</tbody></table></div>
+    </section>
+
+    <section id="previsioni" class="dashboard-section">
+        <h2>🗓️ Analisi Previsionale</h2>
+<!-- Sezione id="previsioni" -->
+<!-- Sezione id="previsioni" -->
+<div class="table-container">
+    <h3>⏳ Pacchetti in Scadenza questo Mese <span class="header-count">0</span><span class="media-val" style="margin-left: 15px;">Totale: 0,00 €</span></h3>
+    <table class="sortable-table">
+        <!-- L'intestazione è già corretta e include 5 colonne -->
+        <thead>
+            <tr>
+                <th>Cliente</th>
+                <th>Pacchetto</th>
+                <th>Sess. Rim.</th>
+                <th>Data Scadenza</th>
+                <th style="text-align: right;">Importo Rinnovo</th>
+            </tr>
+        </thead>
+        <tbody><tr><td colspan='5'>Nessun dato disponibile.</td></tr></tbody>
+    </table>
+</div>
+<div class="table-container" style="margin-top: 30px;">
+    <h3>🗓️ Pacchetti in Scadenza il Prossimo Mese <span class="header-count">11</span><span class="media-val" style="margin-left: 15px;">Totale Previsionale: 5.176,00 €</span></h3>
+    <table class="sortable-table">
+        <thead>
+            <tr>
+                <th>Cliente</th>
+                <th>Pacchetto</th>
+                <th>Sess. Rim.</th>
+                <th>Data Scadenza</th>
+                <th style="text-align: right;">Importo Rinnovo</th>
+            </tr>
+        </thead>
+        <tbody><tr><td>Elisabetta Furia</td><td>Pacchetto 10 sessioni</td><td>2</td><td>05/03/2026</td><td style='text-align: right;'>472,00 €</td></tr>
+<tr><td>Andrea Durini</td><td>PAK 10</td><td>2</td><td>07/03/2026</td><td style='text-align: right;'>472,00 €</td></tr>
+<tr><td>Claudia Caligiana</td><td>Pacchetto 10 sessioni</td><td>2</td><td>20/03/2026</td><td style='text-align: right;'>452,00 €</td></tr>
+<tr><td>Lorenzo Luzi</td><td>Pacchetto 10 sessioni 45€ l'una</td><td>3</td><td>24/03/2026</td><td style='text-align: right;'>452,00 €</td></tr>
+<tr><td>Giacomo Berzilli</td><td>Pacchetto 10 sessioni</td><td>4</td><td>09/03/2026</td><td style='text-align: right;'>472,00 €</td></tr>
+<tr><td>Simone Giombini</td><td>Pacchetto 10 sessioni</td><td>4</td><td>13/03/2026</td><td style='text-align: right;'>472,00 €</td></tr>
+<tr><td>Martina Salvetti</td><td>Pacchetto 10 sessioni</td><td>4</td><td>20/03/2026</td><td style='text-align: right;'>470,00 €</td></tr>
+<tr><td>Michele Delicati</td><td>Pacchetto 10 sessioni</td><td>6</td><td>10/03/2026</td><td style='text-align: right;'>472,00 €</td></tr>
+<tr><td>Alessandro Mariani</td><td>Pacchetto 12 sessioni 35€ l'una 3 volte settimana</td><td>6</td><td>26/03/2026</td><td style='text-align: right;'>420,00 €</td></tr>
+<tr><td>Chiara Piovaticci</td><td>Pacchetto 10 sessioni</td><td>7</td><td>24/03/2026</td><td style='text-align: right;'>452,00 €</td></tr>
+<tr><td>Stefano Gatti</td><td>Pacchetto 15 sessioni + 1 regalo</td><td>11</td><td>18/03/2026</td><td style='text-align: right;'>570,00 €</td></tr>
+</tbody>
+    </table>
+</div>
+        <div id="previsione-unificata-container" class="table-container" style="margin-top: 30px;">
+            <div class="table-header-with-total">
+                <h3>🔄 Previsioni Unificate Mese Prossimo <span class="header-count">59</span></h3>
+                <div class="total-calculator" style="font-size: 0.95rem; gap: 25px;">
+                     <span><strong>Totale:</strong> <strong style="color: var(--green-color);">3.134,00 €</strong></span>
+                </div>
+            </div>
+            <div style="display: flex; justify-content: flex-end; gap: 20px; padding: 0 5px 15px 5px; font-size: 0.9rem; color: var(--text-muted); flex-wrap: wrap;">
+                <span>🍎 Alim: <strong>565,00 €</strong></span>
+                <span>📋 Schede: <strong>1.969,00 €</strong></span>
+                <span>💪 Sessioni: <strong>600,00 €</strong></span>
+            </div>
+            <table class="sortable-table">
+                <thead><tr><th>Cliente</th><th>Previsione</th><th>Data Prevista</th><th style="text-align: right;">Importo Stimato</th></tr></thead>
+                <tbody><tr><td>Alessia Agrosì <span class='client-subtotal-inline'>122,00 €</span></td><td title='Scheda Workout'>&#128196; WO da Finire</td><td>02/03/2026</td><td style='text-align: right;'>122,00 €</td></tr>
+<tr style='border-top: 2px solid var(--accent-color);'><td>Alice Ubaldi</td><td title='Sessione Singola'>&#128170; </td><td>22/03/2026</td><td style='text-align: right;'>50,00 €</td></tr>
+<tr><td>Alice Ubaldi</td><td title='Sessione Singola'>&#128170; </td><td>22/03/2026</td><td style='text-align: right;'>50,00 €</td></tr>
+<tr><td>Alice Ubaldi <span class='client-subtotal-inline'>172,00 €</span></td><td title='Scheda Workout'>&#128196; WO</td><td>22/03/2026</td><td style='text-align: right;'>72,00 €</td></tr>
+<tr style='border-top: 2px solid var(--accent-color);'><td>Andrea Durini</td><td title='Alimentazione'>&#127822; Alimentare</td><td>08/03/2026</td><td style='text-align: right;'>45,00 €</td></tr>
+<tr><td>Andrea Durini <span class='client-subtotal-inline'>45,00 €</span></td><td title='Scheda Workout'>&#128196; WO</td><td>15/03/2026</td><td style='text-align: right;'>0,00 €</td></tr>
+<tr style='border-top: 2px solid var(--accent-color);'><td>Bernardino Manini</td><td title='Alimentazione'>&#127822; Alimentare</td><td>15/03/2026</td><td style='text-align: right;'>35,00 €</td></tr>
+<tr><td>Bernardino Manini <span class='client-subtotal-inline'>85,00 €</span></td><td title='Scheda Workout'>&#128196; WO</td><td>15/03/2026</td><td style='text-align: right;'>50,00 €</td></tr>
+<tr style='border-top: 2px solid var(--accent-color);'><td>Brian Grau</td><td title='Scheda Workout'>&#128196; WO</td><td>15/03/2026</td><td style='text-align: right;'>110,00 €</td></tr>
+<tr><td>Brian Grau <span class='client-subtotal-inline'>170,00 €</span></td><td title='Alimentazione'>&#127822; Alimentare</td><td>15/03/2026</td><td style='text-align: right;'>60,00 €</td></tr>
+<tr style='border-top: 2px solid var(--accent-color);'><td>Carla Leone</td><td title='Alimentazione'>&#127822; Alimentare</td><td>01/03/2026</td><td style='text-align: right;'>40,00 €</td></tr>
+<tr><td>Carla Leone <span class='client-subtotal-inline'>90,00 €</span></td><td title='Scheda Workout'>&#128196; WO da Finire</td><td>16/03/2026</td><td style='text-align: right;'>50,00 €</td></tr>
+<tr style='border-top: 2px solid var(--accent-color);'><td>Chiara Piovaticci <span class='client-subtotal-inline'>0,00 €</span></td><td title='Scheda Workout'>&#128196; WO da Finire</td><td>09/03/2026</td><td style='text-align: right;'>0,00 €</td></tr>
+<tr style='border-top: 2px solid var(--accent-color);'><td>Claudia Caligiana <span class='client-subtotal-inline'>60,00 €</span></td><td title='Scheda Workout'>&#128196; WO</td><td>22/03/2026</td><td style='text-align: right;'>60,00 €</td></tr>
+<tr style='border-top: 2px solid var(--accent-color);'><td>Damiano Rossi</td><td title='Scheda Workout'>&#128196; WO</td><td>15/03/2026</td><td style='text-align: right;'>70,00 €</td></tr>
+<tr><td>Damiano Rossi <span class='client-subtotal-inline'>120,00 €</span></td><td title='Sessione Singola'>&#128170; </td><td>15/03/2026</td><td style='text-align: right;'>50,00 €</td></tr>
+<tr style='border-top: 2px solid var(--accent-color);'><td>Elena Manna <span class='client-subtotal-inline'>0,00 €</span></td><td title='Scheda Workout'>&#128196; WO</td><td>15/03/2026</td><td style='text-align: right;'>0,00 €</td></tr>
+<tr style='border-top: 2px solid var(--accent-color);'><td>Elisabetta Furia <span class='client-subtotal-inline'>0,00 €</span></td><td title='Scheda Workout'>&#128196; WO</td><td>22/03/2026</td><td style='text-align: right;'>0,00 €</td></tr>
+<tr style='border-top: 2px solid var(--accent-color);'><td>Emanuele Furia <span class='client-subtotal-inline'>0,00 €</span></td><td title='Scheda Workout'>&#128196; WO</td><td>08/03/2026</td><td style='text-align: right;'>0,00 €</td></tr>
+<tr style='border-top: 2px solid var(--accent-color);'><td>Emma Viali</td><td title='Sessione Singola'>&#128170; </td><td>08/03/2026</td><td style='text-align: right;'>50,00 €</td></tr>
+<tr><td>Emma Viali</td><td title='Scheda Workout'>&#128196; WO</td><td>08/03/2026</td><td style='text-align: right;'>122,00 €</td></tr>
+<tr><td>Emma Viali <span class='client-subtotal-inline'>217,00 €</span></td><td title='Alimentazione'>&#127822; Alimentare</td><td>15/03/2026</td><td style='text-align: right;'>45,00 €</td></tr>
+<tr style='border-top: 2px solid var(--accent-color);'><td>Ernesto Cerquiglini</td><td title='Scheda Workout'>&#128196; WO</td><td>15/03/2026</td><td style='text-align: right;'>50,00 €</td></tr>
+<tr><td>Ernesto Cerquiglini <span class='client-subtotal-inline'>90,00 €</span></td><td title='Alimentazione'>&#127822; Alimentare</td><td>15/03/2026</td><td style='text-align: right;'>40,00 €</td></tr>
+<tr style='border-top: 2px solid var(--accent-color);'><td>Eugenia Falini</td><td title='Scheda Workout'>&#128196; WO</td><td>08/03/2026</td><td style='text-align: right;'>70,00 €</td></tr>
+<tr><td>Eugenia Falini <span class='client-subtotal-inline'>220,00 €</span></td><td title='Sessione Singola'>&#128170; </td><td>08/03/2026</td><td style='text-align: right;'>150,00 €</td></tr>
+<tr style='border-top: 2px solid var(--accent-color);'><td>Franca Balducci</td><td title='Sessione Singola'>&#128170; </td><td>02/03/2026</td><td style='text-align: right;'>50,00 €</td></tr>
+<tr><td>Franca Balducci</td><td title='Alimentazione'>&#127822; Alimentare</td><td>08/03/2026</td><td style='text-align: right;'>45,00 €</td></tr>
+<tr><td>Franca Balducci <span class='client-subtotal-inline'>135,00 €</span></td><td title='Scheda Workout'>&#128196; WO</td><td>15/03/2026</td><td style='text-align: right;'>40,00 €</td></tr>
+<tr style='border-top: 2px solid var(--accent-color);'><td>Francesco De Vitis</td><td title='Scheda Workout'>&#128196; WO da Finire</td><td>09/03/2026</td><td style='text-align: right;'>105,00 €</td></tr>
+<tr><td>Francesco De Vitis <span class='client-subtotal-inline'>150,00 €</span></td><td title='Alimentazione'>&#127822; Alimentare</td><td>29/03/2026</td><td style='text-align: right;'>45,00 €</td></tr>
+<tr style='border-top: 2px solid var(--accent-color);'><td>Francesco Sforza</td><td title='Scheda Workout'>&#128196; WO</td><td>29/03/2026</td><td style='text-align: right;'>80,00 €</td></tr>
+<tr><td>Francesco Sforza <span class='client-subtotal-inline'>120,00 €</span></td><td title='Alimentazione'>&#127822; Alimentare</td><td>29/03/2026</td><td style='text-align: right;'>40,00 €</td></tr>
+<tr style='border-top: 2px solid var(--accent-color);'><td>Gabriele Baccinelli</td><td title='Alimentazione'>&#127822; Alimentare</td><td>15/03/2026</td><td style='text-align: right;'>45,00 €</td></tr>
+<tr><td>Gabriele Baccinelli <span class='client-subtotal-inline'>150,00 €</span></td><td title='Scheda Workout'>&#128196; WO</td><td>22/03/2026</td><td style='text-align: right;'>105,00 €</td></tr>
+<tr style='border-top: 2px solid var(--accent-color);'><td>Gabriele Cappelli</td><td title='Scheda Workout'>&#128196; WO</td><td>15/03/2026</td><td style='text-align: right;'>91,00 €</td></tr>
+<tr><td>Gabriele Cappelli <span class='client-subtotal-inline'>136,00 €</span></td><td title='Alimentazione'>&#127822; Alimentare</td><td>15/03/2026</td><td style='text-align: right;'>45,00 €</td></tr>
+<tr style='border-top: 2px solid var(--accent-color);'><td>Giacomo Berzilli <span class='client-subtotal-inline'>0,00 €</span></td><td title='Scheda Workout'>&#128196; WO da Finire</td><td>02/03/2026</td><td style='text-align: right;'>0,00 €</td></tr>
+<tr style='border-top: 2px solid var(--accent-color);'><td>Gianni Ferranti <span class='client-subtotal-inline'>50,00 €</span></td><td title='Scheda Workout'>&#128196; WO da Finire</td><td>02/03/2026</td><td style='text-align: right;'>50,00 €</td></tr>
+<tr style='border-top: 2px solid var(--accent-color);'><td>Giulietta Bernareggi <span class='client-subtotal-inline'>110,00 €</span></td><td title='Scheda Workout'>&#128196; WO</td><td>08/03/2026</td><td style='text-align: right;'>110,00 €</td></tr>
+<tr style='border-top: 2px solid var(--accent-color);'><td>Jessica Carletti <span class='client-subtotal-inline'>0,00 €</span></td><td title='Scheda Workout'>&#128196; WO</td><td>22/03/2026</td><td style='text-align: right;'>0,00 €</td></tr>
+<tr style='border-top: 2px solid var(--accent-color);'><td>Lorenzo Luzi <span class='client-subtotal-inline'>60,00 €</span></td><td title='Scheda Workout'>&#128196; WO</td><td>08/03/2026</td><td style='text-align: right;'>60,00 €</td></tr>
+<tr style='border-top: 2px solid var(--accent-color);'><td>Luca Broccatelli <span class='client-subtotal-inline'>50,00 €</span></td><td title='Scheda Workout'>&#128196; WO da Finire</td><td>02/03/2026</td><td style='text-align: right;'>50,00 €</td></tr>
+<tr style='border-top: 2px solid var(--accent-color);'><td>Luca Massetti</td><td title='Sessione Singola'>&#128170; </td><td>15/03/2026</td><td style='text-align: right;'>50,00 €</td></tr>
+<tr><td>Luca Massetti <span class='client-subtotal-inline'>122,00 €</span></td><td title='Scheda Workout'>&#128196; WO</td><td>15/03/2026</td><td style='text-align: right;'>72,00 €</td></tr>
+<tr style='border-top: 2px solid var(--accent-color);'><td>Marta Rossetti</td><td title='Sessione Singola'>&#128170; *** PAGATA UNA IN PIu' PER PROSSIMA VOLTA!!</td><td>04/03/2026</td><td style='text-align: right;'>150,00 €</td></tr>
+<tr><td>Marta Rossetti</td><td title='Sessione Singola'>&#128170; </td><td>04/03/2026</td><td style='text-align: right;'>0,00 €</td></tr>
+<tr><td>Marta Rossetti <span class='client-subtotal-inline'>222,00 €</span></td><td title='Scheda Workout'>&#128196; WO da Finire</td><td>16/03/2026</td><td style='text-align: right;'>72,00 €</td></tr>
+<tr style='border-top: 2px solid var(--accent-color);'><td>Martina Salvetti <span class='client-subtotal-inline'>0,00 €</span></td><td title='Scheda Workout'>&#128196; WO</td><td>29/03/2026</td><td style='text-align: right;'>0,00 €</td></tr>
+<tr style='border-top: 2px solid var(--accent-color);'><td>Mattia Panzeri <span class='client-subtotal-inline'>87,00 €</span></td><td title='Scheda Workout'>&#128196; WO</td><td>29/03/2026</td><td style='text-align: right;'>87,00 €</td></tr>
+<tr style='border-top: 2px solid var(--accent-color);'><td>Mauro Manini</td><td title='Scheda Workout'>&#128196; WO</td><td>22/03/2026</td><td style='text-align: right;'>50,00 €</td></tr>
+<tr><td>Mauro Manini <span class='client-subtotal-inline'>85,00 €</span></td><td title='Alimentazione'>&#127822; Alimentare</td><td>22/03/2026</td><td style='text-align: right;'>35,00 €</td></tr>
+<tr style='border-top: 2px solid var(--accent-color);'><td>Michela Dell'Aquila <span class='client-subtotal-inline'>0,00 €</span></td><td title='Scheda Workout'>&#128196; WO da Finire</td><td>09/03/2026</td><td style='text-align: right;'>0,00 €</td></tr>
+<tr style='border-top: 2px solid var(--accent-color);'><td>Michele Delicati <span class='client-subtotal-inline'>0,00 €</span></td><td title='Scheda Workout'>&#128196; WO da Finire</td><td>09/03/2026</td><td style='text-align: right;'>0,00 €</td></tr>
+<tr style='border-top: 2px solid var(--accent-color);'><td>Pasquale Zarrillo <span class='client-subtotal-inline'>70,00 €</span></td><td title='Scheda Workout'>&#128196; WO da Finire</td><td>09/03/2026</td><td style='text-align: right;'>70,00 €</td></tr>
+<tr style='border-top: 2px solid var(--accent-color);'><td>Simone Giombini <span class='client-subtotal-inline'>0,00 €</span></td><td title='Scheda Workout'>&#128196; WO da Finire</td><td>02/03/2026</td><td style='text-align: right;'>0,00 €</td></tr>
+<tr style='border-top: 2px solid var(--accent-color);'><td>Stefania Tantari <span class='client-subtotal-inline'>91,00 €</span></td><td title='Scheda Workout'>&#128196; WO</td><td>15/03/2026</td><td style='text-align: right;'>91,00 €</td></tr>
+<tr style='border-top: 2px solid var(--accent-color);'><td>Tiziano Passetti</td><td title='Alimentazione'>&#127822; Alimentare</td><td>29/03/2026</td><td style='text-align: right;'>45,00 €</td></tr>
+<tr><td>Tiziano Passetti <span class='client-subtotal-inline'>105,00 €</span></td><td title='Scheda Workout'>&#128196; WO</td><td>29/03/2026</td><td style='text-align: right;'>60,00 €</td></tr>
+</tbody>
+            </table>
+        </div>
+    </section>
+
+    <section id="clienti" class="dashboard-section">
+         <h2>👥 Clienti Allenati nel Mese <span class="header-count">25</span></h2>
+         <div class="table-container">
+            <table id="clienti-mese-table" class="sortable-table compact-name-list">
+                <thead><tr><th>Nome</th><th>Cognome</th></tr></thead>
+                <tbody><tr><td>Marco</td><td>Colcelli</td></tr>
+<tr><td>Lorenzo</td><td>Luzi</td></tr>
+<tr><td>Martina</td><td>Salvetti</td></tr>
+<tr><td>Filippo</td><td>Cruccolini</td></tr>
+<tr><td>Simone</td><td>Nodessi</td></tr>
+<tr><td>Stefano</td><td>Gatti</td></tr>
+<tr><td>Carla</td><td>Leone</td></tr>
+<tr><td>Alessandro</td><td>Mariani</td></tr>
+<tr><td>Michela</td><td>Dell'Aquila</td></tr>
+<tr><td>Luca</td><td>Massetti</td></tr>
+<tr><td>Eugenia</td><td>Falini</td></tr>
+<tr><td>Damiano</td><td>Rossi</td></tr>
+<tr><td>Claudia</td><td>Caligiana</td></tr>
+<tr><td>Emanuele</td><td>Furia</td></tr>
+<tr><td>Simone</td><td>Giombini</td></tr>
+<tr><td>Francesco</td><td>Gradi</td></tr>
+<tr><td>Stefano</td><td>Becchetti</td></tr>
+<tr><td>Chiara</td><td>Piovaticci</td></tr>
+<tr><td>Elena</td><td>Manna</td></tr>
+<tr><td>Andrea</td><td>Durini</td></tr>
+<tr><td>Carolina</td><td>Pignatari</td></tr>
+<tr><td>Giacomo</td><td>Berzilli</td></tr>
+<tr><td>Michele</td><td>Delicati</td></tr>
+<tr><td>Elisabetta</td><td>Furia</td></tr>
+<tr><td>Ilvio</td><td>Giannoni</td></tr>
+</tbody>
+            </table>
+         </div>
+    </section>
+    
+    <section id="documenti" class="dashboard-section">
+        <h2>📂 Documenti e Link Utili</h2>
+        <div class="link-list">
+            <a href="C:\Users\visua\Google Drive\Job Personal Trainer\Generici\c\VT Manager\RIEPILOGO SESSIONI.pdf" target="_blank"><span>📄</span> Report Riepilogo Sessioni (PDF)</a>
+            <a href="C:\Users\visua\Google Drive\Job Personal Trainer\Generici\c\VT Manager\MovNoContanti.pdf" target="_blank"><span>📄</span> Report Movimenti non in contanti (PDF)</a>
+            <a href="C:\Users\visua\Google Drive\Job Personal Trainer\Generici\c\VT Manager\TotUniciClientiMese.pdf" target="_blank"><span>📄</span> Report Clienti Unici del Mese (PDF)</a>
+            <a href="C:\Users\visua\Google Drive\Job Personal Trainer\Generici\c\controllo costi e gestione clienti 2026.xls" target="_blank"><span>📊</span> Apri File Contabilità Excel</a>
+            <a href="https://www.appsheet.com/start/de9e2e45-22d9-4988-bbde-d70a7c83882e?platform=desktop#viewStack[0][identifier][Type]=Control&viewStack[0][identifier][Name]=Entrate&appName=MoneyManager-6188286" target="_blank"><span>📱</span> Vai all'AppSheet MoneyManager</a>
+        </div>
+    </section>
+</main>
+    <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+    <script>
+        document.addEventListener('DOMContentLoaded', function() {
+            const formatCurrency = (value) => new Intl.NumberFormat('it-IT', { style: 'currency', currency: 'EUR' }).format(value);
+            const sidebar = document.querySelector('.sidebar');
+            const toggleBtn = document.querySelector('.sidebar-toggle');
+            const overlay = document.querySelector('.overlay');
+            const allNavLinks = document.querySelectorAll('.sidebar-nav .nav-link');
+            function closeSidebar() { sidebar.classList.remove('open'); overlay.classList.remove('active'); }
+            function openSidebar() { sidebar.classList.add('open'); overlay.classList.add('active'); }
+            toggleBtn.addEventListener('click', () => { sidebar.classList.contains('open') ? closeSidebar() : openSidebar(); });
+            overlay.addEventListener('click', closeSidebar);
+            allNavLinks.forEach(link => { link.addEventListener('click', closeSidebar); });
+            const navLinks = document.querySelectorAll('.nav-link');
+            const sections = document.querySelectorAll('.dashboard-section');
+            navLinks.forEach(link => {
+                link.addEventListener('click', (e) => {
+                    e.preventDefault();
+                    const targetId = link.getAttribute('data-target');
+                    navLinks.forEach(l => l.classList.remove('active'));
+                    sections.forEach(s => s.classList.remove('active'));
+                    link.classList.add('active');
+                    document.getElementById(targetId).classList.add('active');
+                    window.scrollTo(0, 0);
+                    initializeChartsForSection(targetId);
+                });
+            });
+
+            document.querySelectorAll('.clickable-kpi').forEach(card => {
+                card.addEventListener('click', () => {
+                    const targetId = card.dataset.target;
+                    const scrollToId = card.dataset.scrollTo;
+
+                    const navLink = document.querySelector(`.nav-link[data-target="${targetId}"]`);
+                    if (navLink) {
+                        navLink.click();
+
+                        if (scrollToId) {
+                            setTimeout(() => {
+                                const elementToScroll = document.getElementById(scrollToId);
+                                if (elementToScroll) {
+                                    elementToScroll.scrollIntoView({ behavior: 'smooth', block: 'start' });
+                                }
+                            }, 100);
+                        }
+                    }
+                });
+            });
+
+            let chartInstances = {};
+            Chart.defaults.plugins.legend.display = false;
+            Chart.defaults.maintainAspectRatio = false;
+            Chart.defaults.responsive = true;
+            function initializeChartsForSection(sectionId) {
+                switch(sectionId) {
+                    case 'panoramica': initRevenueChart(); break;
+                    case 'analisi-sessioni': initWeeklySessionsChart(); initMonthlySessionsChart(); initClientsChart(); break;
+                }
+            }
+            function initRevenueChart() { if (chartInstances.revenue) return; const ctx = document.getElementById('revenueChart').getContext('2d'); chartInstances.revenue = new Chart(ctx, { type: 'doughnut', data: { labels: ['Pacchetti', 'Sessioni', 'Schede', 'Alimentazione', 'Altri Servizi', 'Servizi Online'], datasets: [{ label: 'Ripartizione Ricavi', data: [4576, 340, 1395, 450, 0, 355], backgroundColor: ['#4e73df', '#1cc88a', '#36b9cc', '#f6c23e', '#e74a3b', '#6f42c1'], borderColor: 'var(--card-bg)', borderWidth: 2 }] }, options: { plugins: { legend: { display: true, labels: { color: 'white' } } } } }); }
+            function initWeeklySessionsChart() { if (chartInstances.weeklySessions) return; const ctx = document.getElementById('weeklySessionsChart').getContext('2d'); chartInstances.weeklySessions = new Chart(ctx, { type: 'bar', data: { labels: ['Gen', 'Feb', 'Mar', 'Apr', 'Mag', 'Giu', 'Lug', 'Ago', 'Set', 'Ott', 'Nov', 'Dic'], datasets: [{ type: 'bar', label: 'Media Sessioni Settimanali', data: [30, 29.8, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0], backgroundColor: ['#4e73df', '#e74a3b', 'rgba(78, 115, 223, 0.2)', 'rgba(78, 115, 223, 0.2)', 'rgba(78, 115, 223, 0.2)', 'rgba(78, 115, 223, 0.2)', 'rgba(78, 115, 223, 0.2)', 'rgba(78, 115, 223, 0.2)', 'rgba(78, 115, 223, 0.2)', 'rgba(78, 115, 223, 0.2)', 'rgba(78, 115, 223, 0.2)', 'rgba(78, 115, 223, 0.2)'], order: 2 }, { type: 'line', label: 'Media Annuale', data: [4.6, 4.6, 4.6, 4.6, 4.6, 4.6, 4.6, 4.6, 4.6, 4.6, 4.6, 4.6], borderColor: '#FFFFFF', borderWidth: 2, borderDash: [5, 5], pointRadius: 0, fill: false, order: 1 }] }, options: { plugins: { legend: { display: false, labels: { color: 'white' } } }, scales: { x: { ticks: { color: 'white' }, grid: { display: false } }, y: { ticks: { color: 'white' }, grid: { color: 'var(--border-color)' } } } } }); }
+            function initMonthlySessionsChart() { if (chartInstances.monthlySessions) return; const ctx = document.getElementById('monthlySessionsChart').getContext('2d'); chartInstances.monthlySessions = new Chart(ctx, { type: 'bar', data: { labels: ['Gen', 'Feb', 'Mar', 'Apr', 'Mag', 'Giu', 'Lug', 'Ago', 'Set', 'Ott', 'Nov', 'Dic'], datasets: [{ type: 'bar', label: 'Totale Sessioni Mensili', data: [120, 119, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0], backgroundColor: ['#4e73df', '#e74a3b', 'rgba(78, 115, 223, 0.2)', 'rgba(78, 115, 223, 0.2)', 'rgba(78, 115, 223, 0.2)', 'rgba(78, 115, 223, 0.2)', 'rgba(78, 115, 223, 0.2)', 'rgba(78, 115, 223, 0.2)', 'rgba(78, 115, 223, 0.2)', 'rgba(78, 115, 223, 0.2)', 'rgba(78, 115, 223, 0.2)', 'rgba(78, 115, 223, 0.2)'], order: 2 }, { type: 'line', label: 'Media Mensile Annua', data: [119.5, 119.5, 119.5, 119.5, 119.5, 119.5, 119.5, 119.5, 119.5, 119.5, 119.5, 119.5], borderColor: '#FFFFFF', borderWidth: 2, borderDash: [5, 5], pointRadius: 0, fill: false, order: 1 }] }, options: { plugins: { legend: { display: false, labels: { color: 'white' } } }, scales: { x: { ticks: { color: 'white' }, grid: { display: false } }, y: { ticks: { color: 'white' }, grid: { color: 'var(--border-color)' } } } } }); }
+            function initClientsChart() { if (chartInstances.clients) return; const ctx = document.getElementById('clientsChart').getContext('2d'); chartInstances.clients = new Chart(ctx, { type: 'bar', data: { labels: ['Gen', 'Feb', 'Mar', 'Apr', 'Mag', 'Giu', 'Lug', 'Ago', 'Set', 'Ott', 'Nov', 'Dic'], datasets: [{ type: 'bar', label: 'Clienti Unici Mensili', data: [25, 25, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0], backgroundColor: ['#4e73df', '#4e73df', 'rgba(78, 115, 223, 0.2)', 'rgba(78, 115, 223, 0.2)', 'rgba(78, 115, 223, 0.2)', 'rgba(78, 115, 223, 0.2)', 'rgba(78, 115, 223, 0.2)', 'rgba(78, 115, 223, 0.2)', 'rgba(78, 115, 223, 0.2)', 'rgba(78, 115, 223, 0.2)', 'rgba(78, 115, 223, 0.2)', 'rgba(78, 115, 223, 0.2)'], order: 2 }, { type: 'line', label: 'Media Mensile Annua', data: [4, 4, 4, 4, 4, 4, 4, 4, 4, 4, 4, 4], borderColor: '#FFFFFF', borderWidth: 2, borderDash: [5, 5], pointRadius: 0, fill: false, order: 1 }] }, options: { plugins: { legend: { display: false, labels: { color: 'white' } } }, scales: { x: { ticks: { color: 'white' }, grid: { display: false } }, y: { ticks: { color: 'white' }, grid: { color: 'var(--border-color)' } } } } }); }
+            initializeChartsForSection('panoramica');
+            function makeTablesSortable() { document.querySelectorAll('.sortable-table').forEach(table => { const headers = table.querySelectorAll('thead th'); let sortDirections = Array.from(headers).map(() => ''); headers.forEach((header, index) => { header.addEventListener('click', () => { const isAsc = sortDirections[index] === '' || sortDirections[index] === 'desc'; sortDirections.fill(''); sortDirections[index] = isAsc ? 'asc' : 'desc'; sortTableByColumn(table, index, isAsc); }); }); }); }
+            function sortTableByColumn(table, columnIndex, asc = true) { const tbody = table.querySelector('tbody'); const rows = Array.from(tbody.querySelectorAll('tr')); const dir = asc ? 1 : -1; rows.sort((a, b) => { let aText = a.querySelector(`td:nth-child(${columnIndex + 1})`).textContent.trim(); let bText = b.querySelector(`td:nth-child(${columnIndex + 1})`).textContent.trim(); if (aText.includes('€') || bText.includes('€')) { const aNum = parseFloat(aText.replace(/[^\d,-]/g, '').replace(',', '.')) || 0; const bNum = parseFloat(bText.replace(/[^\d,-]/g, '').replace(',', '.')) || 0; return (aNum - bNum) * dir; } if (aText.match(/^\d{2}\/\d{2}\/\d{4}/)) { const aDate = new Date(aText.split('/').reverse().join('-')); const bDate = new Date(bText.split('/').reverse().join('-')); return (aDate - bDate) * dir; } return aText.localeCompare(bText, undefined, {numeric: true}) * dir; }); tbody.innerHTML = ''; rows.forEach(row => tbody.appendChild(row)); }
+            makeTablesSortable();
+            document.querySelectorAll('.total-calculator').forEach(calc => { const t = calc.querySelector('strong[data-total-value]'), i = calc.querySelector('input'), d = calc.querySelector('.difference'); if(!t||!i||!d) return; const v = parseFloat(t.getAttribute('data-total-value'))||0; i.addEventListener('input', () => { const iv = parseFloat(i.value)||0, diff = v - iv; d.textContent = formatCurrency(diff); d.style.color = diff < 0 ? 'var(--red-color)' : 'var(--green-color)'; }); });
+            document.querySelectorAll('.table-container table tbody').forEach(tbody => { tbody.querySelectorAll('tr').forEach(row => row.classList.add('selectable-row')); tbody.addEventListener('click', function(e) { const row = e.target.closest('tr'); if (row && row.parentElement === this) { row.classList.toggle('highlighted-row'); } }); });
+        });
+    </script>
+</body>
+</html>
