@@ -1,7 +1,7 @@
 const GIOCHI_DATA = [
   {
-    "name": "pepper-prova.html",
-    "path": "Julie/Italiano/pepper-prova.html",
+    "name": "julie-pepper-prova2.html",
+    "path": "Julie/Italiano/julie-pepper-prova2.html",
     "category": "Italiano",
     "updatedAt": 1774962795222
   },
