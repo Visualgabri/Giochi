@@ -1,5 +1,11 @@
 const GIOCHI_DATA = [
   {
+    "name": "Dashboard_Report_febbraio_2026.html",
+    "path": "Julie/Matematica/Dashboard_Report_febbraio_2026.html",
+    "category": "Matematica",
+    "updatedAt": 1775038003059
+  },
+  {
     "name": "julie-pepper-prova2.html",
     "path": "Julie/Italiano/julie-pepper-prova2.html",
     "category": "Italiano",
