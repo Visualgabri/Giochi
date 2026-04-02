@@ -1,5 +1,11 @@
 const GIOCHI_DATA = [
   {
+    "name": "julie-caccia-uova.html",
+    "path": "Julie/Italiano/julie-caccia-uova.html",
+    "category": "Italiano",
+    "updatedAt": 1775133701403
+  },
+  {
     "name": "Dashboard_Report_febbraio_2026.html",
     "path": "Julie/Matematica/Dashboard_Report_febbraio_2026.html",
     "category": "Matematica",
