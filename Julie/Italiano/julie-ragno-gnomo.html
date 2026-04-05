@@ -1,0 +1,225 @@
+<!DOCTYPE html>
+<html lang="it">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Julie - Il Ragno e lo Gnomo 🕷️</title>
+    <link href="https://fonts.googleapis.com/css2?family=Patrick+Hand&family=Fredoka+One&display=swap" rel="stylesheet">
+    <script src="https://cdn.jsdelivr.net/npm/canvas-confetti@1.6.0/dist/confetti.browser.min.js"></script>
+    <style>
+        :root {
+            --bg-page: #e0f2f1;
+            --highlight-text: #00796b;
+            --highlight-bg: #b2dfdb;
+            --primary-color: #00897b;
+            --text-color: #004d40;
+            --border-color: #80cbc4;
+        }
+
+        body {
+            font-family: 'Patrick Hand', cursive;
+            margin: 0;
+            min-height: 100vh;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            background-color: var(--bg-page);
+            user-select: none;
+            padding-bottom: 50px;
+        }
+
+        .container {
+            max-width: 800px;
+            width: 90%;
+            background: #ffffff;
+            padding: 2rem;
+            border-radius: 30px;
+            box-shadow: 0 10px 25px rgba(0,0,0,0.05);
+            margin-top: 20px;
+            text-align: center;
+            border: 5px solid var(--border-color);
+        }
+
+        h1 { 
+            font-family: 'Fredoka One', cursive; 
+            color: var(--primary-color); 
+            font-size: 2.5rem; 
+            margin-bottom: 15px;
+            text-transform: uppercase;
+        }
+
+        .story-box {
+            font-size: 1.9rem;
+            line-height: 1.7;
+            text-align: left;
+            padding: 25px;
+            background: #f9fdfd;
+            border-radius: 20px;
+            border: 2px dashed var(--border-color);
+            margin: 15px 0;
+            white-space: pre-line;
+            color: var(--text-color);
+        }
+
+        .interactive-word {
+            display: inline-block;
+            transition: all 0.2s;
+            position: relative;
+            cursor: pointer;
+            padding: 2px 4px;
+            border-radius: 6px;
+        }
+        
+        .interactive-word:hover {
+            color: var(--highlight-text);
+            background-color: var(--highlight-bg);
+            transform: scale(1.1);
+            z-index: 10;
+        }
+
+        .word-tooltip {
+            position: absolute;
+            bottom: 125%;
+            left: 50%;
+            transform: translateX(-50%);
+            font-size: 3.5rem;
+            background: white;
+            padding: 5px 15px;
+            border-radius: 20px;
+            box-shadow: 0 8px 20px rgba(0,0,0,0.1);
+            opacity: 0;
+            visibility: hidden;
+            transition: 0.3s;
+            z-index: 100;
+            border: 2px solid var(--border-color);
+        }
+
+        .interactive-word:hover .word-tooltip {
+            opacity: 1;
+            visibility: visible;
+        }
+
+        #magic-scene {
+            height: 180px;
+            background: #ffffff;
+            border-radius: 20px;
+            margin: 20px 0;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            font-size: 5rem;
+            position: relative;
+            border: 3px solid var(--border-color);
+            overflow: hidden;
+        }
+
+        .magic-item { position: absolute; animation: bounceIn 0.6s ease-out; }
+        @keyframes bounceIn { 0% { transform: scale(0); } 100% { transform: scale(1); } }
+
+        .stars-container { display: flex; gap: 15px; font-size: 3.5rem; color: #e0f2f1; justify-content: center; margin: 15px 0; }
+        .star { cursor: pointer; transition: 0.3s; }
+        .star.active { color: #00bfa5; transform: scale(1.2); text-shadow: 0 0 15px rgba(0, 191, 165, 0.4); }
+        #msg { font-size: 1.4rem; color: var(--primary-color); font-weight: bold; min-height: 1.5em; }
+    </style>
+</head>
+<body>
+
+    <div class="container">
+        <h1>IL RAGNO E LO GNOMO 🕷️🎅</h1>
+        
+        <div class="story-box">
+            <div id="textDisplay"></div>
+        </div>
+
+        <div id="magic-scene">
+            <span id="base-scene">🌲</span>
+        </div>
+
+        <div class="controls">
+            <div id="msg">Julie, sei pronta a leggere? Tocca la prima stella!</div>
+            <div class="stars-container">
+                <div class="star" onclick="registerRead(1)" id="s1">★</div>
+                <div class="star" onclick="registerRead(2)" id="s2">★</div>
+                <div class="star" onclick="registerRead(3)" id="s3">★</div>
+                <div class="star" onclick="registerRead(4)" id="s4">★</div>
+                <div class="star" onclick="registerRead(5)" id="s5">★</div>
+            </div>
+        </div>
+    </div>
+
+    <script>
+        const dictionary = {
+            "RAGNO": "🕷️", "COMIGNOLO": "🏠", "RAGNATELA": "🕸️", "GNOMO": "🎅",
+            "MIGNOLO": "🤙", "PIGNA": "🌲", "SCRIGNO": "💎", "TESORO": "💰"
+        };
+
+        const storyText = `Un ragno saliva lento lento lungo il comignolo di una casa per raggiungere la sua ragnatela. Uno gnomo lo vide e prese il ragno con il mignolo. Lo mise su una pigna e gli disse: – Qui la tua ragnatela sarà più comoda! Il ragno per ringraziare lo gnomo gli rivelò dove si trovava lo scrigno che conteneva il tesoro.`;
+
+        function buildText() {
+            const display = document.getElementById('textDisplay');
+            display.innerHTML = storyText.split(/\s+/).map(word => {
+                const clean = word.replace(/[.,!'’!?…-]/g, '').toUpperCase();
+                const emoji = dictionary[clean];
+                if (emoji) {
+                    return `<span class="interactive-word">${word}<div class="word-tooltip">${emoji}</div></span>`;
+                }
+                return `<span class="interactive-word">${word}</span>`;
+            }).join(' ');
+        }
+
+        buildText();
+
+        let count = 0;
+        const messages = [
+            "Il ragno sta salendo sul comignolo! 🕷️",
+            "Lo gnomo lo ha preso con il mignolo! 🎅",
+            "Che bella casa nuova su una pigna! 🌲",
+            "Il ragno svela un segreto prezioso... 💎",
+            "HAI TROVATO IL TESORO! BRAVISSIMA JULIE! 🎉💰"
+        ];
+
+        function addMagic(emoji, top, left) {
+            const scene = document.getElementById('magic-scene');
+            const span = document.createElement('span');
+            span.innerText = emoji;
+            span.className = 'magic-item';
+            span.style.top = top + '%';
+            span.style.left = left + '%';
+            scene.appendChild(span);
+        }
+
+        function registerRead(num) {
+            if (num !== count + 1) return;
+            count = num;
+            document.getElementById(`s${count}`).classList.add('active');
+            document.getElementById('msg').innerText = messages[count-1];
+
+            if(count === 1) {
+                addMagic("🕷️", 40, 20); 
+                addMagic("🏠", 20, 70);
+            }
+            if(count === 2) addMagic("🎅", 50, 50);
+            if(count === 3) addMagic("🌲", 15, 30);
+            if(count === 4) addMagic("💎", 65, 80);
+            if(count === 5) {
+                addMagic("💰", 45, 45);
+                confetti({ 
+                    particleCount: 150, 
+                    spread: 70, 
+                    origin: { y: 0.6 },
+                    colors: ['#00897b', '#00bfa5', '#ffd700']
+                });
+            }
+            
+            const audioCtx = new (window.AudioContext || window.webkitAudioContext)();
+            const osc = audioCtx.createOscillator();
+            const gain = audioCtx.createGain();
+            osc.connect(gain);
+            gain.connect(audioCtx.destination);
+            osc.frequency.value = 523.25 + (count * 60);
+            gain.gain.exponentialRampToValueAtTime(0.01, audioCtx.currentTime + 0.3);
+            osc.start(); osc.stop(audioCtx.currentTime + 0.3);
+        }
+    </script>
+</body>
+</html>
