@@ -1,5 +1,11 @@
 const GIOCHI_DATA = [
   {
+    "name": "Julie-avventura.html",
+    "path": "Julie/Italiano/Julie-avventura.html",
+    "category": "Italiano",
+    "updatedAt": 1776170916942
+  },
+  {
     "name": "julie-ragno-gnomo.html",
     "path": "Julie/Italiano/julie-ragno-gnomo.html",
     "category": "Italiano",
