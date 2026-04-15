@@ -1,5 +1,11 @@
 const GIOCHI_DATA = [
   {
+    "name": "julie-scodinzolo.html",
+    "path": "Julie/Italiano/julie-scodinzolo.html",
+    "category": "Italiano",
+    "updatedAt": 1776256739809
+  },
+  {
     "name": "Julie-avventura.html",
     "path": "Julie/Italiano/Julie-avventura.html",
     "category": "Italiano",
