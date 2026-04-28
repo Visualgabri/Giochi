@@ -1,0 +1,245 @@
+<!DOCTYPE html>
+<html lang="it">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Julie - Un Colore Tutto Mio 🦎🎨</title>
+    <link href="https://fonts.googleapis.com/css2?family=Patrick+Hand&family=Fredoka+One&display=swap" rel="stylesheet">
+    <script src="https://cdn.jsdelivr.net/npm/canvas-confetti@1.6.0/dist/confetti.browser.min.js"></script>
+    <style>
+        :root {
+            --bg-page: #f1f8e9; /* Verde chiarissimo */
+            --highlight-text: #2e7d32;
+            --highlight-bg: #c8e6c9;
+            --primary-color: #4caf50;
+            --text-color: #1b5e20;
+            --border-color: #81c784;
+        }
+
+        body {
+            font-family: 'Patrick Hand', cursive;
+            margin: 0;
+            min-height: 100vh;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            background-color: var(--bg-page);
+            user-select: none;
+            padding-bottom: 50px;
+        }
+
+        .container {
+            max-width: 800px;
+            width: 90%;
+            background: #ffffff;
+            padding: 2rem;
+            border-radius: 30px;
+            box-shadow: 0 10px 25px rgba(0,0,0,0.05);
+            margin-top: 20px;
+            text-align: center;
+            border: 5px solid var(--border-color);
+        }
+
+        h1 { 
+            font-family: 'Fredoka One', cursive; 
+            color: var(--primary-color); 
+            font-size: 2.5rem; 
+            margin-bottom: 10px;
+            text-transform: uppercase;
+        }
+
+        .story-box {
+            font-size: 1.8rem;
+            line-height: 1.6;
+            text-align: left;
+            padding: 20px;
+            background: #fdfdfd;
+            border-radius: 20px;
+            border: 2px dashed var(--border-color);
+            margin: 15px 0;
+            white-space: pre-line;
+            color: var(--text-color);
+        }
+
+        .interactive-word {
+            display: inline-block;
+            transition: all 0.2s;
+            position: relative;
+            cursor: pointer;
+            padding: 2px 4px;
+            border-radius: 6px;
+        }
+        
+        .interactive-word:hover {
+            color: var(--highlight-text);
+            background-color: var(--highlight-bg);
+            transform: scale(1.1);
+            z-index: 10;
+        }
+
+        .word-tooltip {
+            position: absolute;
+            bottom: 125%;
+            left: 50%;
+            transform: translateX(-50%);
+            font-size: 3.5rem;
+            background: white;
+            padding: 5px 15px;
+            border-radius: 20px;
+            box-shadow: 0 8px 20px rgba(0,0,0,0.1);
+            opacity: 0;
+            visibility: hidden;
+            transition: 0.3s;
+            z-index: 100;
+            border: 2px solid var(--border-color);
+        }
+
+        .interactive-word:hover .word-tooltip {
+            opacity: 1;
+            visibility: visible;
+        }
+
+        #magic-scene {
+            height: 180px;
+            background: #ffffff;
+            border-radius: 20px;
+            margin: 20px 0;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            font-size: 5rem;
+            position: relative;
+            border: 3px solid var(--border-color);
+            transition: background-color 0.5s;
+            overflow: hidden;
+        }
+
+        .magic-item { position: absolute; animation: bounceIn 0.6s ease-out; }
+        @keyframes bounceIn { 0% { transform: scale(0); } 100% { transform: scale(1); } }
+
+        .stars-container { display: flex; gap: 15px; font-size: 3.5rem; color: #c8e6c9; justify-content: center; margin: 15px 0; }
+        .star { cursor: pointer; transition: 0.3s; }
+        .star.active { color: #4caf50; transform: scale(1.2); text-shadow: 0 0 15px rgba(76, 175, 80, 0.4); }
+        #msg { font-size: 1.4rem; color: var(--primary-color); font-weight: bold; min-height: 1.5em; }
+    </style>
+</head>
+<body>
+
+    <div class="container">
+        <h1>UN COLORE TUTTO MIO 🦎🎨</h1>
+        
+        <div class="story-box">
+            <div id="textDisplay"></div>
+        </div>
+
+        <div id="magic-scene">
+            <span id="base-scene">🍃</span>
+        </div>
+
+        <div class="controls">
+            <div id="msg">Julie, di che colore sarà oggi il camaleonte? Tocca la prima stella!</div>
+            <div class="stars-container">
+                <div class="star" onclick="registerRead(1)" id="s1">★</div>
+                <div class="star" onclick="registerRead(2)" id="s2">★</div>
+                <div class="star" onclick="registerRead(3)" id="s3">★</div>
+                <div class="star" onclick="registerRead(4)" id="s4">★</div>
+                <div class="star" onclick="registerRead(5)" id="s5">★</div>
+            </div>
+        </div>
+    </div>
+
+    <script>
+        const dictionary = {
+            "CAMALEONTE": "🦎", "FOGLIA": "🍃", "VERDE": "🟢", "AUTUNNO": "🍂", 
+            "GIALLA": "🟡", "ROSSA": "🔴", "INVERNO": "❄️", "NERO": "⚫", 
+            "NOTTE": "🌑", "PRIMAVERA": "🌸", "UGUALI": "👬"
+        };
+
+        const storyText = `Un giorno, il camaleonte decide di avere un solo colore, tutto suo. Si arrampica su una foglia verde. L’autunno arriva e la foglia cambia colore: prima è gialla, poi rossa. Anche il camaleonte diventa giallo e poi rosso.
+D’inverno, il camaleonte diventa nero come la notte invernale.
+In primavera, il camaleonte incontra un altro camaleonte e gli racconta la sua storia: è triste perché ha sempre colori diversi, non è mai uguale. L’altro camaleonte dice: – Noi cambiamo colore nello stesso modo: tra me e te non ci sono differenze, siamo sempre uguali!`;
+
+        function buildText() {
+            const display = document.getElementById('textDisplay');
+            display.innerHTML = storyText.split(/\s+/).map(word => {
+                const clean = word.replace(/[.,!'’!?…-]/g, '').toUpperCase();
+                const emoji = dictionary[clean];
+                if (emoji) {
+                    return `<span class="interactive-word">${word}<div class="word-tooltip">${emoji}</div></span>`;
+                }
+                return `<span class="interactive-word">${word}</span>`;
+            }).join(' ');
+        }
+
+        buildText();
+
+        let count = 0;
+        const messages = [
+            "Il camaleonte sulla foglia verde... resterà così? 🍃",
+            "Arriva l'autunno! Tutto diventa giallo e rosso! 🍂",
+            "Brrr, che freddo! Nero come la notte d'inverno. 🌑",
+            "In primavera sbocciano i fiori e nuovi amici! 🌸",
+            "Siamo sempre uguali! Che bella l'amicizia! 🦎🦎🎉"
+        ];
+
+        function addMagic(emoji, top, left) {
+            const scene = document.getElementById('magic-scene');
+            const span = document.createElement('span');
+            span.innerText = emoji;
+            span.className = 'magic-item';
+            span.style.top = top + '%';
+            span.style.left = left + '%';
+            scene.appendChild(span);
+        }
+
+        function registerRead(num) {
+            if (num !== count + 1) return;
+            count = num;
+            const scene = document.getElementById('magic-scene');
+            document.getElementById(`s${count}`).classList.add('active');
+            document.getElementById('msg').innerText = messages[count-1];
+
+            if(count === 1) {
+                scene.style.backgroundColor = "#e8f5e9";
+                addMagic("🦎", 40, 45); 
+                addMagic("🟢", 20, 20);
+            }
+            if(count === 2) {
+                scene.style.backgroundColor = "#fff3e0";
+                addMagic("🍂", 15, 75);
+                addMagic("🟡", 60, 20);
+                addMagic("🔴", 70, 80);
+            }
+            if(count === 3) {
+                scene.style.backgroundColor = "#263238";
+                addMagic("🌑", 20, 45);
+                addMagic("❄️", 65, 45);
+            }
+            if(count === 4) {
+                scene.style.backgroundColor = "#fce4ec";
+                addMagic("🌸", 15, 15);
+                addMagic("🦎", 50, 70); // Il secondo camaleonte
+            }
+            if(count === 5) {
+                scene.style.backgroundColor = "#ffffff";
+                addMagic("👬", 70, 50);
+                confetti({ 
+                    particleCount: 150, 
+                    spread: 70, 
+                    origin: { y: 0.6 },
+                    colors: ['#4caf50', '#ffeb3b', '#f44336', '#2196f3']
+                });
+            }
+            
+            const audioCtx = new (window.AudioContext || window.webkitAudioContext)();
+            const osc = audioCtx.createOscillator();
+            const gain = audioCtx.createGain();
+            osc.connect(gain);
+            gain.connect(audioCtx.destination);
+            osc.frequency.value = 440 + (count * 90);
+            gain.gain.exponentialRampToValueAtTime(0.01, audioCtx.currentTime + 0.3);
+            osc.start(); osc.stop(audioCtx.currentTime + 0.3);
+        }
+    </script>
+</body>
+</html>
