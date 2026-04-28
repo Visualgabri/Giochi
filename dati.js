@@ -1,5 +1,11 @@
 const GIOCHI_DATA = [
   {
+    "name": "julie-camaleonte.html",
+    "path": "Julie/Italiano/julie-camaleonte.html",
+    "category": "Italiano",
+    "updatedAt": 1777382242886
+  },
+  {
     "name": "julie-simone.html",
     "path": "Julie/Italiano/julie-simone.html",
     "category": "Italiano",
