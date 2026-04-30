@@ -1,0 +1,243 @@
+<!DOCTYPE html>
+<html lang="it">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Julie - Elmer l'Elefante 🐘🌈</title>
+    <link href="https://fonts.googleapis.com/css2?family=Patrick+Hand&family=Fredoka+One&display=swap" rel="stylesheet">
+    <script src="https://cdn.jsdelivr.net/npm/canvas-confetti@1.6.0/dist/confetti.browser.min.js"></script>
+    <style>
+        :root {
+            --bg-page: #f9fbe7;
+            --highlight-text: #c2185b;
+            --highlight-bg: #fce4ec;
+            --primary-color: #e91e63;
+            --text-color: #3e2723;
+            --border-color: #ff80ab;
+        }
+
+        body {
+            font-family: 'Patrick Hand', cursive;
+            margin: 0;
+            min-height: 100vh;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            background-color: var(--bg-page);
+            user-select: none;
+            padding-bottom: 50px;
+        }
+
+        .container {
+            max-width: 800px;
+            width: 90%;
+            background: #ffffff;
+            padding: 2rem;
+            border-radius: 30px;
+            box-shadow: 0 10px 25px rgba(0,0,0,0.1);
+            margin-top: 20px;
+            text-align: center;
+            /* Bordo colorato stile Elmer */
+            border: 8px solid;
+            border-image: repeating-linear-gradient(45deg, #f44336, #f44336 20px, #ffeb3b 20px, #ffeb3b 40px, #4caf50 40px, #4caf50 60px, #2196f3 60px, #2196f3 80px) 10;
+        }
+
+        h1 { 
+            font-family: 'Fredoka One', cursive; 
+            color: var(--primary-color); 
+            font-size: 2.5rem; 
+            margin-bottom: 10px;
+            text-transform: uppercase;
+        }
+
+        .story-box {
+            font-size: 1.8rem;
+            line-height: 1.6;
+            text-align: left;
+            padding: 20px;
+            background: #fff;
+            border-radius: 20px;
+            border: 2px dashed var(--border-color);
+            margin: 15px 0;
+            white-space: pre-line;
+            color: var(--text-color);
+        }
+
+        .interactive-word {
+            display: inline-block;
+            transition: all 0.2s;
+            position: relative;
+            cursor: pointer;
+            padding: 2px 4px;
+            border-radius: 6px;
+        }
+        
+        .interactive-word:hover {
+            color: var(--highlight-text);
+            background-color: var(--highlight-bg);
+            transform: scale(1.1);
+            z-index: 10;
+        }
+
+        .word-tooltip {
+            position: absolute;
+            bottom: 125%;
+            left: 50%;
+            transform: translateX(-50%);
+            font-size: 3.5rem;
+            background: white;
+            padding: 5px 15px;
+            border-radius: 20px;
+            box-shadow: 0 8px 20px rgba(0,0,0,0.1);
+            opacity: 0;
+            visibility: hidden;
+            transition: 0.3s;
+            z-index: 100;
+            border: 2px solid var(--border-color);
+        }
+
+        .interactive-word:hover .word-tooltip {
+            opacity: 1;
+            visibility: visible;
+        }
+
+        #magic-scene {
+            height: 180px;
+            background: #fdfdfd;
+            border-radius: 20px;
+            margin: 20px 0;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            font-size: 5.5rem;
+            position: relative;
+            border: 3px solid var(--border-color);
+            overflow: hidden;
+        }
+
+        .magic-item { position: absolute; animation: bounceIn 0.6s ease-out; }
+        @keyframes bounceIn { 0% { transform: scale(0); } 100% { transform: scale(1); } }
+
+        .stars-container { display: flex; gap: 15px; font-size: 3.5rem; color: #fce4ec; justify-content: center; margin: 15px 0; }
+        .star { cursor: pointer; transition: 0.3s; }
+        .star.active { color: #e91e63; transform: scale(1.2); text-shadow: 0 0 15px rgba(233, 30, 99, 0.4); }
+        #msg { font-size: 1.4rem; color: var(--primary-color); font-weight: bold; min-height: 1.5em; }
+    </style>
+</head>
+<body>
+
+    <div class="container">
+        <h1>ELMER 🐘🎨</h1>
+        
+        <div class="story-box">
+            <div id="textDisplay"></div>
+        </div>
+
+        <div id="magic-scene">
+            <span id="base-scene">🌈</span>
+        </div>
+
+        <div class="controls">
+            <div id="msg">Julie, pronta a scoprire Elmer? Tocca la prima stella!</div>
+            <div class="stars-container">
+                <div class="star" onclick="registerRead(1)" id="s1">★</div>
+                <div class="star" onclick="registerRead(2)" id="s2">★</div>
+                <div class="star" onclick="registerRead(3)" id="s3">★</div>
+                <div class="star" onclick="registerRead(4)" id="s4">★</div>
+                <div class="star" onclick="registerRead(5)" id="s5">★</div>
+            </div>
+        </div>
+    </div>
+
+    <script>
+        const dictionary = {
+            "ELEFANTINO": "🐘", "ELMER": "🐘🎨", "ALLEGRIA": "😊", "CORPO": "🐘", 
+            "GRIGIO": "⚪", "ELEFANTI": "🐘🐘🐘", "COLORI": "🎨", "BACCHE": "🫐", 
+            "BRANCO": "🐘🐘🐘", "PROBOSCIDE": "🐘", "RIDERE": "😂", "PIOVERE": "🌧️", 
+            "QUADRETTI": "🏁"
+        };
+
+        const storyText = `L'elefantino Elmer fa sorridere tutti con la sua allegria. Elmer, però, si sente diverso perché il suo corpo non è grigio, come quello degli altri elefanti, ma a quadretti di tanti colori diversi.
+Un giorno, Elmer vede delle bacche grigie. Si strofina sulle bacche, diventa grigio e si unisce al suo branco. Gli elefanti non lo riconoscono più.
+Allora Elmer alza la proboscide, dice "BUUUM!" e scoppia a ridere. Con la sua risata fa sorridere tutti gli elefanti: – Finalmente sei tornato!
+Inizia a piovere. Il grigio sul corpo di Elmer si scioglie e i quadretti colorati prendono il suo posto.
+Da allora, in quel giorno di ogni anno, gli elefanti si dipingono il corpo di tutti i colori, mentre Elmer si colora di... grigio.`;
+
+        function buildText() {
+            const display = document.getElementById('textDisplay');
+            display.innerHTML = storyText.split(/\s+/).map(word => {
+                const clean = word.replace(/[.,!'’!?…-]/g, '').toUpperCase();
+                const emoji = dictionary[clean];
+                if (emoji) {
+                    return `<span class="interactive-word">${word}<div class="word-tooltip">${emoji}</div></span>`;
+                }
+                return `<span class="interactive-word">${word}</span>`;
+            }).join(' ');
+        }
+
+        buildText();
+
+        let count = 0;
+        const messages = [
+            "Elmer è un elefante speciale e coloratissimo! 🎨🌈",
+            "Che trucco! Elmer è diventato grigio come gli altri! ⚪",
+            "BUUUM! Che spavento e quante risate! 😂🐘",
+            "Cade la pioggia e tornano i bellissimi colori! 🌧️✨",
+            "W Elmer! Tutti gli elefanti fanno festa! 🐘🎉"
+        ];
+
+        function addMagic(emoji, top, left) {
+            const scene = document.getElementById('magic-scene');
+            const span = document.createElement('span');
+            span.innerText = emoji;
+            span.className = 'magic-item';
+            span.style.top = top + '%';
+            span.style.left = left + '%';
+            scene.appendChild(span);
+        }
+
+        function registerRead(num) {
+            if (num !== count + 1) return;
+            count = num;
+            document.getElementById(`s${count}`).classList.add('active');
+            document.getElementById('msg').innerText = messages[count-1];
+
+            if(count === 1) {
+                addMagic("🐘", 40, 45); 
+                addMagic("🎨", 20, 20);
+            }
+            if(count === 2) {
+                addMagic("🫐", 15, 75);
+                addMagic("⚪", 65, 20);
+            }
+            if(count === 3) {
+                addMagic("😂", 40, 15);
+                addMagic("💥", 25, 50);
+            }
+            if(count === 4) {
+                addMagic("🌧️", 15, 45);
+                addMagic("🌈", 70, 75);
+            }
+            if(count === 5) {
+                addMagic("🐘", 50, 50);
+                addMagic("🏁", 70, 15);
+                confetti({ 
+                    particleCount: 150, 
+                    spread: 70, 
+                    origin: { y: 0.6 },
+                    colors: ['#f44336', '#ffeb3b', '#4caf50', '#2196f3', '#e91e63']
+                });
+            }
+            
+            const audioCtx = new (window.AudioContext || window.webkitAudioContext)();
+            const osc = audioCtx.createOscillator();
+            const gain = audioCtx.createGain();
+            osc.connect(gain);
+            gain.connect(audioCtx.destination);
+            osc.frequency.value = 523.25 + (count * 75);
+            gain.gain.exponentialRampToValueAtTime(0.01, audioCtx.currentTime + 0.3);
+            osc.start(); osc.stop(audioCtx.currentTime + 0.3);
+        }
+    </script>
+</body>
+</html>
