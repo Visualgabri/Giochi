@@ -1,0 +1,239 @@
+<!DOCTYPE html>
+<html lang="it">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Julie - I Colori di Frida 🎨🌺</title>
+    <link href="https://fonts.googleapis.com/css2?family=Patrick+Hand&family=Fredoka+One&display=swap" rel="stylesheet">
+    <script src="https://cdn.jsdelivr.net/npm/canvas-confetti@1.6.0/dist/confetti.browser.min.js"></script>
+    <style>
+        :root {
+            --bg-page: #fff5f8; /* Rosa chiarissimo */
+            --highlight-text: #c2185b;
+            --highlight-bg: #fce4ec;
+            --primary-color: #e91e63;
+            --text-color: #3e2723;
+            --border-color: #ff80ab;
+        }
+
+        body {
+            font-family: 'Patrick Hand', cursive;
+            margin: 0;
+            min-height: 100vh;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            background-color: var(--bg-page);
+            user-select: none;
+            padding-bottom: 50px;
+        }
+
+        .container {
+            max-width: 800px;
+            width: 90%;
+            background: #ffffff;
+            padding: 2rem;
+            border-radius: 30px;
+            box-shadow: 0 10px 25px rgba(0,0,0,0.1);
+            margin-top: 20px;
+            text-align: center;
+            /* Bordo colorato stile "fiesta" */
+            border: 8px solid;
+            border-image: repeating-linear-gradient(45deg, #ff5252, #ff5252 20px, #ffeb3b 20px, #ffeb3b 40px, #4caf50 40px, #4caf50 60px, #2196f3 60px, #2196f3 80px) 10;
+        }
+
+        h1 { 
+            font-family: 'Fredoka One', cursive; 
+            color: var(--primary-color); 
+            font-size: 2.5rem; 
+            margin-bottom: 10px;
+            text-transform: uppercase;
+            text-shadow: 2px 2px #ffc1e3;
+        }
+
+        .story-box {
+            font-size: 1.8rem;
+            line-height: 1.6;
+            text-align: left;
+            padding: 25px;
+            background: #fff;
+            border-radius: 20px;
+            border: 2px dashed var(--border-color);
+            margin: 15px 0;
+            white-space: pre-line;
+            color: var(--text-color);
+        }
+
+        .interactive-word {
+            display: inline-block;
+            transition: all 0.2s;
+            position: relative;
+            cursor: pointer;
+            padding: 2px 4px;
+            border-radius: 6px;
+        }
+        
+        .interactive-word:hover {
+            color: var(--highlight-text);
+            background-color: var(--highlight-bg);
+            transform: scale(1.1);
+            z-index: 10;
+        }
+
+        .word-tooltip {
+            position: absolute;
+            bottom: 125%;
+            left: 50%;
+            transform: translateX(-50%);
+            font-size: 3.5rem;
+            background: white;
+            padding: 5px 15px;
+            border-radius: 20px;
+            box-shadow: 0 8px 20px rgba(0,0,0,0.1);
+            opacity: 0;
+            visibility: hidden;
+            transition: 0.3s;
+            z-index: 100;
+            border: 2px solid var(--border-color);
+        }
+
+        .interactive-word:hover .word-tooltip {
+            opacity: 1;
+            visibility: visible;
+        }
+
+        #magic-scene {
+            height: 180px;
+            background: #fdfdfd;
+            border-radius: 20px;
+            margin: 20px 0;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            font-size: 5.5rem;
+            position: relative;
+            border: 3px solid var(--border-color);
+            overflow: hidden;
+        }
+
+        .magic-item { position: absolute; animation: bounceIn 0.6s ease-out; }
+        @keyframes bounceIn { 0% { transform: scale(0); } 100% { transform: scale(1); } }
+
+        .stars-container { display: flex; gap: 15px; font-size: 3.5rem; color: #fce4ec; justify-content: center; margin: 15px 0; }
+        .star { cursor: pointer; transition: 0.3s; }
+        .star.active { color: #e91e63; transform: scale(1.2); text-shadow: 0 0 15px rgba(233, 30, 99, 0.4); }
+        #msg { font-size: 1.4rem; color: var(--primary-color); font-weight: bold; min-height: 1.5em; }
+    </style>
+</head>
+<body>
+
+    <div class="container">
+        <h1>I COLORI DI FRIDA 🌺🎨</h1>
+        
+        <div class="story-box">
+            <div id="textDisplay"></div>
+        </div>
+
+        <div id="magic-scene">
+            <span id="base-scene">🇲🇽</span>
+        </div>
+
+        <div class="controls">
+            <div id="msg">Julie, andiamo in Messico con Frida? Tocca la prima stella!</div>
+            <div class="stars-container">
+                <div class="star" onclick="registerRead(1)" id="s1">★</div>
+                <div class="star" onclick="registerRead(2)" id="s2">★</div>
+                <div class="star" onclick="registerRead(3)" id="s3">★</div>
+                <div class="star" onclick="registerRead(4)" id="s4">★</div>
+                <div class="star" onclick="registerRead(5)" id="s5">★</div>
+            </div>
+        </div>
+    </div>
+
+    <script>
+        const dictionary = {
+            "FRIDA": "👩‍🎨", "MESSICO": "🇲🇽", "VESTITI": "👗", "GONNE": "👗", 
+            "COLORI": "🎨", "PITTRICE": "👩‍🎨", "FIORI": "🌸", "ETERNI": "♾️", 
+            "ANIMALI": "🐾", "SCIMMIETTA": "🐒", "FARFALLE": "🦋", "BALLERINE": "🩰"
+        };
+
+        const storyText = `Buongiorno bambini e bambine, mi chiamo Frida e sono nata in Messico. Il Messico è allegro e colorato come i vestiti lunghi e le gonne che amo indossare. Mi piacciono i colori, sono una pittrice. Mi piacciono i fiori e li dipingo perché così li rendo eterni, non potranno appassire. Mi piacciono anche gli animali: ho la mia scimmietta che non mi abbandona mai e saltella sempre qua e là. E poi ci sono loro, le meravigliose farfalle, che volteggiano nell'aria come tante ballerine.`;
+
+        function buildText() {
+            const display = document.getElementById('textDisplay');
+            display.innerHTML = storyText.split(/\s+/).map(word => {
+                const clean = word.replace(/[.,!'’!?…-]/g, '').toUpperCase();
+                const emoji = dictionary[clean];
+                if (emoji) {
+                    return `<span class="interactive-word">${word}<div class="word-tooltip">${emoji}</div></span>`;
+                }
+                return `<span class="interactive-word">${word}</span>`;
+            }).join(' ');
+        }
+
+        buildText();
+
+        let count = 0;
+        const messages = [
+            "Benvenuta in Messico, Julie! È un posto allegro! 🇲🇽",
+            "Che belli i vestiti colorati di Frida! 👗🎨",
+            "Frida dipinge fiori per farli vivere per sempre! 🌸✨",
+            "La scimmietta saltella sempre qua e là! 🐒",
+            "BRAVA JULIE! Le farfalle ballano per te! 🦋🩰🎉"
+        ];
+
+        function addMagic(emoji, top, left) {
+            const scene = document.getElementById('magic-scene');
+            const span = document.createElement('span');
+            span.innerText = emoji;
+            span.className = 'magic-item';
+            span.style.top = top + '%';
+            span.style.left = left + '%';
+            scene.appendChild(span);
+        }
+
+        function registerRead(num) {
+            if (num !== count + 1) return;
+            count = num;
+            document.getElementById(`s${count}`).classList.add('active');
+            document.getElementById('msg').innerText = messages[count-1];
+
+            if(count === 1) {
+                addMagic("🌵", 40, 20); 
+                addMagic("🌞", 15, 80);
+            }
+            if(count === 2) {
+                addMagic("🎨", 60, 75);
+                addMagic("👗", 65, 25);
+            }
+            if(count === 3) {
+                addMagic("🌸", 40, 50);
+                addMagic("🌻", 20, 45);
+            }
+            if(count === 4) {
+                addMagic("🐒", 70, 50);
+                addMagic("🍌", 55, 85);
+            }
+            if(count === 5) {
+                addMagic("🦋", 20, 15);
+                addMagic("🩰", 75, 80);
+                confetti({ 
+                    particleCount: 150, 
+                    spread: 70, 
+                    origin: { y: 0.6 },
+                    colors: ['#ff5252', '#ffeb3b', '#4caf50', '#2196f3', '#e91e63']
+                });
+            }
+            
+            const audioCtx = new (window.AudioContext || window.webkitAudioContext)();
+            const osc = audioCtx.createOscillator();
+            const gain = audioCtx.createGain();
+            osc.connect(gain);
+            gain.connect(audioCtx.destination);
+            osc.frequency.value = 523.25 + (count * 75);
+            gain.gain.exponentialRampToValueAtTime(0.01, audioCtx.currentTime + 0.3);
+            osc.start(); osc.stop(audioCtx.currentTime + 0.3);
+        }
+    </script>
+</body>
+</html>
