@@ -1,5 +1,11 @@
 const GIOCHI_DATA = [
   {
+    "name": "julie-frida.html",
+    "path": "Julie/Italiano/julie-frida.html",
+    "category": "Italiano",
+    "updatedAt": 1777991203194
+  },
+  {
     "name": "julie-colori-emozioni.html",
     "path": "Julie/Italiano/julie-colori-emozioni.html",
     "category": "Italiano",
