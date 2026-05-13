@@ -1,0 +1,272 @@
+<!DOCTYPE html>
+<html lang="it">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Julie - La Scuola Nuova 🏫👦</title>
+    <link href="https://fonts.googleapis.com/css2?family=Patrick+Hand&family=Fredoka+One&display=swap" rel="stylesheet">
+    <script src="https://cdn.jsdelivr.net/npm/canvas-confetti@1.6.0/dist/confetti.browser.min.js"></script>
+    <style>
+        :root {
+            --bg-page: #fdfcf0; 
+            --highlight-text: #2d3436;
+            --highlight-bg: #ffeaa7;
+            --primary-color: #e17055;
+            --text-color: #2d3436;
+            --border-color: #fab1a0;
+        }
+
+        body {
+            font-family: 'Patrick Hand', cursive;
+            margin: 0;
+            min-height: 100vh;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            background-color: var(--bg-page);
+            user-select: none;
+            padding-bottom: 50px;
+        }
+
+        .container {
+            max-width: 850px;
+            width: 90%;
+            background: #ffffff;
+            padding: 2rem;
+            border-radius: 30px;
+            box-shadow: 0 10px 25px rgba(0,0,0,0.05);
+            margin-top: 20px;
+            text-align: center;
+            border: 5px solid var(--border-color);
+        }
+
+        h1 { 
+            font-family: 'Fredoka One', cursive; 
+            color: var(--primary-color); 
+            font-size: 2.2rem; 
+            margin-bottom: 10px;
+            text-transform: uppercase;
+        }
+
+        .story-box {
+            font-size: 1.7rem;
+            line-height: 1.6;
+            text-align: left;
+            padding: 25px;
+            background: #fffafa;
+            border-radius: 20px;
+            border: 2px dashed var(--border-color);
+            margin: 15px 0;
+            white-space: pre-line;
+            color: var(--text-color);
+        }
+
+        .interactive-word {
+            display: inline-block;
+            transition: all 0.2s;
+            position: relative;
+            cursor: pointer;
+            padding: 2px 4px;
+            border-radius: 6px;
+        }
+        
+        .interactive-word:hover {
+            color: #000;
+            background-color: var(--highlight-bg);
+            transform: scale(1.1);
+            z-index: 10;
+        }
+
+        .word-tooltip {
+            position: absolute;
+            bottom: 125%;
+            left: 50%;
+            transform: translateX(-50%);
+            font-size: 3.5rem;
+            background: white;
+            padding: 5px 15px;
+            border-radius: 20px;
+            box-shadow: 0 8px 20px rgba(0,0,0,0.1);
+            opacity: 0;
+            visibility: hidden;
+            transition: 0.3s;
+            z-index: 100;
+            border: 2px solid var(--border-color);
+        }
+
+        .interactive-word:hover .word-tooltip {
+            opacity: 1;
+            visibility: visible;
+        }
+
+        #magic-scene {
+            height: 180px;
+            background: #f9f9f9;
+            border-radius: 20px;
+            margin: 20px 0;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            font-size: 5rem;
+            position: relative;
+            border: 3px solid var(--border-color);
+            transition: background-color 0.8s;
+            overflow: hidden;
+        }
+
+        .magic-item { position: absolute; animation: bounceIn 0.6s ease-out; }
+        @keyframes bounceIn { 0% { transform: scale(0); } 100% { transform: scale(1); } }
+
+        .stars-container { display: flex; gap: 12px; font-size: 3rem; color: #dfe6e9; justify-content: center; margin: 15px 0; }
+        .star { cursor: pointer; transition: 0.3s; }
+        .star.active { color: #fdcb6e; transform: scale(1.2); text-shadow: 0 0 15px rgba(253, 203, 110, 0.5); }
+        #msg { font-size: 1.4rem; color: var(--primary-color); font-weight: bold; min-height: 1.5em; }
+    </style>
+</head>
+<body>
+
+    <div class="container">
+        <h1>LA SCUOLA NUOVA 🏫👦</h1>
+        
+        <div class="story-box">
+            <div id="textDisplay"></div>
+        </div>
+
+        <div id="magic-scene">
+            <span id="base-scene">👦</span>
+        </div>
+
+        <div class="controls">
+            <div id="msg">Julie, leggiamo la storia di Gimmi? Tocca la stella!</div>
+            <div class="stars-container">
+                <div class="star" onclick="registerRead(1)" id="s1">★</div>
+                <div class="star" onclick="registerRead(2)" id="s2">★</div>
+                <div class="star" onclick="registerRead(3)" id="s3">★</div>
+                <div class="star" onclick="registerRead(4)" id="s4">★</div>
+                <div class="star" onclick="registerRead(5)" id="s5">★</div>
+                <div class="star" onclick="registerRead(6)" id="s6">★</div>
+                <div class="star" onclick="registerRead(7)" id="s7">★</div>
+                <div class="star" onclick="registerRead(8)" id="s8">★</div>
+            </div>
+        </div>
+    </div>
+
+    <script>
+        const dictionary = {
+            "GIMMI": "👦", "CASA": "🏠", "SCUOLA": "🏫", "CUORE": "❤️", 
+            "ZAINETTO": "🎒", "TAVOLO": "🪑", "MAESTRA": "👩‍🏫", "TEMPESTA": "⛈️", 
+            "FULMINE": "⚡", "PAURA": "😨", "CLASSE": "👥"
+        };
+
+        const storyText = `Gimmi ha cambiato casa e per la prima volta va a scuola nel nuovo quartiere.
+È emozionato, il cuore gli batte forte.
+Già alle sette del mattino ha lo zainetto sulle spalle e ora gira intorno al tavolo.
+Non vede l’ora di arrivare in classe, ma ha anche un po’ di paura.
+La maestra lo saluta:
+— Buongiorno, come ti chiami?
+— Mi chiamo Gimmi — risponde il bambino. — E tu, come ti chiami?
+— Sono la signora Tempesta — dice la maestra.
+“Tempesta...” pensa Gimmi. “Speriamo che non mi arrivi un fulmine!”.`;
+
+        function buildText() {
+            const display = document.getElementById('textDisplay');
+            display.innerHTML = storyText.split(/\s+/).map(word => {
+                const clean = word.replace(/[.,!'’!?…—"-]/g, '').toUpperCase();
+                const emoji = dictionary[clean];
+                if (emoji) {
+                    return `<span class="interactive-word">${word}<div class="word-tooltip">${emoji}</div></span>`;
+                }
+                return `<span class="interactive-word">${word}</span>`;
+            }).join(' ');
+        }
+
+        buildText();
+
+        let count = 0;
+        const messages = [
+            "Gimmi ha una casa nuova e una nuova scuola! 🏠",
+            "Senti il cuore? Fa bum-bum dall'emozione! ❤️",
+            "Sono solo le sette, ma lo zainetto è già pronto! 🎒",
+            "Gira e rigira intorno al tavolo! 🪑",
+            "Che voglia di andare in classe! Ma che paura! 😨",
+            "Ecco la maestra! 'Buongiorno Gimmi!' 👋",
+            "Si chiama signora Tempesta... arriverà la pioggia? ⛈️",
+            "BRAVISSIMA JULIE! Speriamo non arrivi un fulmine! ⚡🎉"
+        ];
+
+        function addMagic(emoji, top, left) {
+            const scene = document.getElementById('magic-scene');
+            const span = document.createElement('span');
+            span.innerText = emoji;
+            span.className = 'magic-item';
+            span.style.top = top + '%';
+            span.style.left = left + '%';
+            scene.appendChild(span);
+        }
+
+        function registerRead(num) {
+            if (num !== count + 1) return;
+            count = num;
+            const scene = document.getElementById('magic-scene');
+            document.getElementById(`s${count}`).classList.add('active');
+            document.getElementById('msg').innerText = messages[count-1];
+
+            if(count === 1) {
+                scene.style.backgroundColor = "#fff9db";
+                addMagic("🏠", 30, 20); 
+                addMagic("🏫", 60, 70);
+            }
+            if(count === 2) {
+                scene.style.backgroundColor = "#ffdeeb";
+                addMagic("❤️", 50, 50);
+                addMagic("💓", 20, 80);
+            }
+            if(count === 3) {
+                scene.style.backgroundColor = "#e3f2fd";
+                addMagic("🎒", 40, 30);
+                addMagic("⏰", 70, 70);
+            }
+            if(count === 4) {
+                scene.style.backgroundColor = "#e8f5e9";
+                addMagic("🪑", 50, 50);
+                addMagic("🔄", 20, 20);
+            }
+            if(count === 5) {
+                scene.style.backgroundColor = "#fff3e0";
+                addMagic("😨", 30, 75);
+                addMagic("👥", 70, 25);
+            }
+            if(count === 6) {
+                scene.style.backgroundColor = "#f3e5f5";
+                addMagic("👩‍🏫", 40, 50);
+                addMagic("👋", 15, 45);
+            }
+            if(count === 7) {
+                scene.style.backgroundColor = "#eceff1";
+                addMagic("⛈️", 20, 30);
+                addMagic("☁️", 60, 80);
+            }
+            if(count === 8) {
+                scene.style.backgroundColor = "#ffffff";
+                addMagic("⚡", 30, 50);
+                addMagic("👦", 60, 50);
+                confetti({ 
+                    particleCount: 150, 
+                    spread: 70, 
+                    origin: { y: 0.6 },
+                    colors: ['#e17055', '#fdcb6e', '#00cec9']
+                });
+            }
+            
+            const audioCtx = new (window.AudioContext || window.webkitAudioContext)();
+            const osc = audioCtx.createOscillator();
+            const gain = audioCtx.createGain();
+            osc.connect(gain);
+            gain.connect(audioCtx.destination);
+            osc.frequency.value = 500 + (count * 50);
+            gain.gain.exponentialRampToValueAtTime(0.01, audioCtx.currentTime + 0.3);
+            osc.start(); osc.stop(audioCtx.currentTime + 0.3);
+        }
+    </script>
+</body>
+</html>
