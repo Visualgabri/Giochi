@@ -117,10 +117,10 @@
         .magic-item { position: absolute; animation: bounceIn 0.6s ease-out; }
         @keyframes bounceIn { 0% { transform: scale(0); } 100% { transform: scale(1); } }
 
-        .stars-container { display: flex; gap: 12px; font-size: 3rem; color: #dfe6e9; justify-content: center; margin: 15px 0; }
+        .stars-container { display: flex; gap: 15px; font-size: 3.5rem; color: #dfe6e9; justify-content: center; margin: 15px 0; }
         .star { cursor: pointer; transition: 0.3s; }
         .star.active { color: #fdcb6e; transform: scale(1.2); text-shadow: 0 0 15px rgba(253, 203, 110, 0.5); }
-        #msg { font-size: 1.4rem; color: var(--primary-color); font-weight: bold; min-height: 1.5em; }
+        #msg { font-size: 1.5rem; color: var(--primary-color); font-weight: bold; min-height: 1.5em; }
     </style>
 </head>
 <body>
@@ -137,16 +137,13 @@
         </div>
 
         <div class="controls">
-            <div id="msg">Julie, leggiamo la storia di Gimmi? Tocca la stella!</div>
+            <div id="msg">Julie, leggi una parte e tocca la stella!</div>
             <div class="stars-container">
                 <div class="star" onclick="registerRead(1)" id="s1">★</div>
                 <div class="star" onclick="registerRead(2)" id="s2">★</div>
                 <div class="star" onclick="registerRead(3)" id="s3">★</div>
                 <div class="star" onclick="registerRead(4)" id="s4">★</div>
                 <div class="star" onclick="registerRead(5)" id="s5">★</div>
-                <div class="star" onclick="registerRead(6)" id="s6">★</div>
-                <div class="star" onclick="registerRead(7)" id="s7">★</div>
-                <div class="star" onclick="registerRead(8)" id="s8">★</div>
             </div>
         </div>
     </div>
@@ -184,14 +181,11 @@ La maestra lo saluta:
 
         let count = 0;
         const messages = [
-            "Gimmi ha una casa nuova e una nuova scuola! 🏠",
-            "Senti il cuore? Fa bum-bum dall'emozione! ❤️",
-            "Sono solo le sette, ma lo zainetto è già pronto! 🎒",
-            "Gira e rigira intorno al tavolo! 🪑",
-            "Che voglia di andare in classe! Ma che paura! 😨",
-            "Ecco la maestra! 'Buongiorno Gimmi!' 👋",
-            "Si chiama signora Tempesta... arriverà la pioggia? ⛈️",
-            "BRAVISSIMA JULIE! Speriamo non arrivi un fulmine! ⚡🎉"
+            "Casa nuova e scuola nuova! Che avventura! 🏠🏫",
+            "Zainetto pronto e tanta emozione! ❤️🎒",
+            "Gira intorno al tavolo... forza Gimmi! 🪑✨",
+            "Buongiorno Signora Tempesta! 👋⛈️",
+            "BRAVISSIMA JULIE! Hai letto tutto! Niente fulmini oggi! ⚡🎉"
         ];
 
         function addMagic(emoji, top, left) {
@@ -205,7 +199,9 @@ La maestra lo saluta:
         }
 
         function registerRead(num) {
+            // Se clicchi la stella sbagliata, non succede nulla (deve andare in ordine 1,2,3,4,5)
             if (num !== count + 1) return;
+            
             count = num;
             const scene = document.getElementById('magic-scene');
             document.getElementById(`s${count}`).classList.add('active');
@@ -218,38 +214,23 @@ La maestra lo saluta:
             }
             if(count === 2) {
                 scene.style.backgroundColor = "#ffdeeb";
-                addMagic("❤️", 50, 50);
-                addMagic("💓", 20, 80);
+                addMagic("❤️", 40, 50);
+                addMagic("🎒", 70, 20);
             }
             if(count === 3) {
-                scene.style.backgroundColor = "#e3f2fd";
-                addMagic("🎒", 40, 30);
-                addMagic("⏰", 70, 70);
-            }
-            if(count === 4) {
                 scene.style.backgroundColor = "#e8f5e9";
                 addMagic("🪑", 50, 50);
                 addMagic("🔄", 20, 20);
             }
-            if(count === 5) {
-                scene.style.backgroundColor = "#fff3e0";
-                addMagic("😨", 30, 75);
-                addMagic("👥", 70, 25);
-            }
-            if(count === 6) {
-                scene.style.backgroundColor = "#f3e5f5";
-                addMagic("👩‍🏫", 40, 50);
-                addMagic("👋", 15, 45);
-            }
-            if(count === 7) {
+            if(count === 4) {
                 scene.style.backgroundColor = "#eceff1";
-                addMagic("⛈️", 20, 30);
-                addMagic("☁️", 60, 80);
+                addMagic("👩‍🏫", 40, 50);
+                addMagic("⛈️", 20, 75);
             }
-            if(count === 8) {
+            if(count === 5) {
                 scene.style.backgroundColor = "#ffffff";
                 addMagic("⚡", 30, 50);
-                addMagic("👦", 60, 50);
+                addMagic("🌈", 65, 50);
                 confetti({ 
                     particleCount: 150, 
                     spread: 70, 
@@ -258,14 +239,15 @@ La maestra lo saluta:
                 });
             }
             
+            // Effetto sonoro "Pop"
             const audioCtx = new (window.AudioContext || window.webkitAudioContext)();
             const osc = audioCtx.createOscillator();
             const gain = audioCtx.createGain();
             osc.connect(gain);
             gain.connect(audioCtx.destination);
-            osc.frequency.value = 500 + (count * 50);
-            gain.gain.exponentialRampToValueAtTime(0.01, audioCtx.currentTime + 0.3);
-            osc.start(); osc.stop(audioCtx.currentTime + 0.3);
+            osc.frequency.value = 500 + (count * 80);
+            gain.gain.exponentialRampToValueAtTime(0.01, audioCtx.currentTime + 0.2);
+            osc.start(); osc.stop(audioCtx.currentTime + 0.2);
         }
     </script>
 </body>
