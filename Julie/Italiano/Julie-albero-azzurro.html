@@ -1,0 +1,259 @@
+<!DOCTYPE html>
+<html lang="it">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Julie - L'Albero Azzurro 🌳💙</title>
+    <link href="https://fonts.googleapis.com/css2?family=Patrick+Hand&family=Fredoka+One&display=swap" rel="stylesheet">
+    <script src="https://cdn.jsdelivr.net/npm/canvas-confetti@1.6.0/dist/confetti.browser.min.js"></script>
+    <style>
+        :root {
+            --bg-page: #e0f7fa; 
+            --highlight-text: #006064;
+            --highlight-bg: #b2ebf2;
+            --primary-color: #00838f;
+            --text-color: #263238;
+            --border-color: #4dd0e1;
+        }
+
+        body {
+            font-family: 'Patrick Hand', cursive;
+            margin: 0;
+            min-height: 100vh;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            background-color: var(--bg-page);
+            user-select: none;
+            padding-bottom: 50px;
+        }
+
+        .container {
+            max-width: 850px;
+            width: 90%;
+            background: #ffffff;
+            padding: 2rem;
+            border-radius: 30px;
+            box-shadow: 0 10px 25px rgba(0,0,0,0.05);
+            margin-top: 20px;
+            text-align: center;
+            border: 5px solid var(--border-color);
+        }
+
+        h1 { 
+            font-family: 'Fredoka One', cursive; 
+            color: var(--primary-color); 
+            font-size: 2.2rem; 
+            margin-bottom: 10px;
+            text-transform: uppercase;
+        }
+
+        .story-box {
+            font-size: 1.7rem;
+            line-height: 1.6;
+            text-align: left;
+            padding: 25px;
+            background: #f1fbfc;
+            border-radius: 20px;
+            border: 2px dashed var(--border-color);
+            margin: 15px 0;
+            white-space: pre-line;
+            color: var(--text-color);
+        }
+
+        .interactive-word {
+            display: inline-block;
+            transition: all 0.2s;
+            position: relative;
+            cursor: pointer;
+            padding: 2px 4px;
+            border-radius: 6px;
+        }
+        
+        .interactive-word:hover {
+            color: #000;
+            background-color: var(--highlight-bg);
+            transform: scale(1.1);
+            z-index: 10;
+        }
+
+        .word-tooltip {
+            position: absolute;
+            bottom: 125%;
+            left: 50%;
+            transform: translateX(-50%);
+            font-size: 3.5rem;
+            background: white;
+            padding: 5px 15px;
+            border-radius: 20px;
+            box-shadow: 0 8px 20px rgba(0,0,0,0.1);
+            opacity: 0;
+            visibility: hidden;
+            transition: 0.3s;
+            z-index: 100;
+            border: 2px solid var(--border-color);
+        }
+
+        .interactive-word:hover .word-tooltip {
+            opacity: 1;
+            visibility: visible;
+        }
+
+        #magic-scene {
+            height: 180px;
+            background: #f9f9f9;
+            border-radius: 20px;
+            margin: 20px 0;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            font-size: 5rem;
+            position: relative;
+            border: 3px solid var(--border-color);
+            transition: background-color 0.8s;
+            overflow: hidden;
+        }
+
+        .magic-item { position: absolute; animation: bounceIn 0.6s ease-out; }
+        @keyframes bounceIn { 0% { transform: scale(0); } 100% { transform: scale(1); } }
+
+        .stars-container { display: flex; gap: 15px; font-size: 3.5rem; color: #b0bec5; justify-content: center; margin: 15px 0; }
+        .star { cursor: pointer; transition: 0.3s; }
+        .star.active { color: #fbc02d; transform: scale(1.2); text-shadow: 0 0 15px rgba(251, 192, 45, 0.6); }
+        #msg { font-size: 1.5rem; color: var(--primary-color); font-weight: bold; min-height: 1.5em; }
+        
+        .rimpiazzare { color: #e91e63; font-weight: bold; }
+    </style>
+</head>
+<body>
+
+    <div class="container">
+        <h1>L'ALBERO AZZURRO 🌳💙</h1>
+        
+        <div class="story-box">
+            <div id="textDisplay"></div>
+        </div>
+
+        <div id="magic-scene">
+            <span id="base-scene">🌳</span>
+        </div>
+
+        <div class="controls">
+            <div id="msg">Julie, leggi una parte e tocca la stella!</div>
+            <div class="stars-container">
+                <div class="star" onclick="registerRead(1)" id="s1">★</div>
+                <div class="star" onclick="registerRead(2)" id="s2">★</div>
+                <div class="star" onclick="registerRead(3)" id="s3">★</div>
+                <div class="star" onclick="registerRead(4)" id="s4">★</div>
+                <div class="star" onclick="registerRead(5)" id="s5">★</div>
+            </div>
+        </div>
+    </div>
+
+    <script>
+        const dictionary = {
+            "ALBERO": "🌳", "AZZURRO": "💙", "CITTÀ": "🏙️", "RE": "👑", 
+            "PALAZZO": "🏰", "STRADE": "🛣️", "RAMI": "🌿", "INCHINARSI": "🙇", 
+            "RIDERE": "😂", "SOVRANO": "😡", "STATUA": "🗿", "FORESTA": "🌲"
+        };
+
+        const storyText = `C'era una volta un gigantesco albero azzurro al centro di una città.
+Tutti gli volevano bene.
+Solo il re lo odiava, perché l'albero era più amato del Palazzo Reale.
+Per attraversare la città, il re doveva scegliere le strade sgombre di rami, ma non era facile trovarle. Così una volta, per passare, fu costretto a inchinarsi, e questo fece ridere la gente.
+Il sovrano, furioso, ordinò di rimpiazzare l'albero azzurro con una statua del re. Ma i rami tagliati pian piano crebbero e ciascuno divenne a sua volta un albero azzurro.
+Oggi l'intera città è una bella foresta.`;
+
+        function buildText() {
+            const display = document.getElementById('textDisplay');
+            display.innerHTML = storyText.split(/\s+/).map(word => {
+                const clean = word.replace(/[.,!'’!?…—"-]/g, '').toUpperCase();
+                const emoji = dictionary[clean];
+                
+                // Manteniamo il colore rosa scuro per la parola "rimpiazzare" come nel libro
+                let extraClass = clean === "RIMPIAZZARE" ? " rimpiazzare" : "";
+                
+                if (emoji) {
+                    return `<span class="interactive-word${extraClass}">${word}<div class="word-tooltip">${emoji}</div></span>`;
+                }
+                return `<span class="interactive-word${extraClass}">${word}</span>`;
+            }).join(' ');
+        }
+
+        buildText();
+
+        let count = 0;
+        const messages = [
+            "Un albero azzurro gigante in mezzo alla città! 🏙️💙",
+            "Il re è invidioso dell'albero! 👑🏰",
+            "Il re si inchina per passare e tutti ridono! 😂🙇",
+            "Il re si arrabbia e vuole una statua al suo posto! 😡🗿",
+            "BRAVISSIMA JULIE! Ora tutta la città è una magica foresta azzurra! 🌲🎉"
+        ];
+
+        function addMagic(emoji, top, left) {
+            const scene = document.getElementById('magic-scene');
+            const span = document.createElement('span');
+            span.innerText = emoji;
+            span.className = 'magic-item';
+            span.style.top = top + '%';
+            span.style.left = left + '%';
+            scene.appendChild(span);
+        }
+
+        function registerRead(num) {
+            // Progressione rigida da 1 a 5
+            if (num !== count + 1) return;
+            
+            count = num;
+            const scene = document.getElementById('magic-scene');
+            document.getElementById(`s${count}`).classList.add('active');
+            document.getElementById('msg').innerText = messages[count-1];
+
+            if(count === 1) {
+                scene.style.backgroundColor = "#e1f5fe";
+                addMagic("🏙️", 30, 20); 
+                addMagic("💙", 60, 70);
+            }
+            if(count === 2) {
+                scene.style.backgroundColor = "#fff3e0";
+                addMagic("👑", 20, 50);
+                addMagic("🏰", 60, 20);
+            }
+            if(count === 3) {
+                scene.style.backgroundColor = "#fce4ec";
+                addMagic("🙇", 50, 40);
+                addMagic("😂", 30, 70);
+            }
+            if(count === 4) {
+                scene.style.backgroundColor = "#ffebee";
+                addMagic("😡", 20, 30);
+                addMagic("🗿", 50, 60);
+            }
+            if(count === 5) {
+                scene.style.backgroundColor = "#e8f5e9";
+                addMagic("🌲", 30, 20);
+                addMagic("🌲", 60, 40);
+                addMagic("🌲", 40, 80);
+                addMagic("💙", 20, 50);
+                confetti({ 
+                    particleCount: 150, 
+                    spread: 80, 
+                    origin: { y: 0.6 },
+                    colors: ['#00838f', '#4dd0e1', '#81c784']
+                });
+            }
+            
+            // Effetto sonoro "Pop" in crescendo
+            const audioCtx = new (window.AudioContext || window.webkitAudioContext)();
+            const osc = audioCtx.createOscillator();
+            const gain = audioCtx.createGain();
+            osc.connect(gain);
+            gain.connect(audioCtx.destination);
+            osc.frequency.value = 400 + (count * 100);
+            gain.gain.exponentialRampToValueAtTime(0.01, audioCtx.currentTime + 0.2);
+            osc.start(); osc.stop(audioCtx.currentTime + 0.2);
+        }
+    </script>
+</body>
+</html>
