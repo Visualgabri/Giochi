@@ -1,0 +1,263 @@
+<!DOCTYPE html>
+<html lang="it">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Julie - Il Lupo che voleva cambiare colore 🐺🎨</title>
+    <link href="https://fonts.googleapis.com/css2?family=Patrick+Hand&family=Fredoka+One&display=swap" rel="stylesheet">
+    <script src="https://cdn.jsdelivr.net/npm/canvas-confetti@1.6.0/dist/confetti.browser.min.js"></script>
+    <style>
+        :root {
+            --bg-page: #f0f4f8; 
+            --highlight-text: #2d3436;
+            --highlight-bg: #dfe6e9;
+            --primary-color: #636e72;
+            --text-color: #2d3436;
+            --border-color: #b2bec3;
+        }
+
+        body {
+            font-family: 'Patrick Hand', cursive;
+            margin: 0;
+            min-height: 100vh;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            background-color: var(--bg-page);
+            user-select: none;
+            padding-bottom: 50px;
+        }
+
+        .container {
+            max-width: 850px;
+            width: 90%;
+            background: #ffffff;
+            padding: 2rem;
+            border-radius: 30px;
+            box-shadow: 0 10px 25px rgba(0,0,0,0.05);
+            margin-top: 20px;
+            text-align: center;
+            border: 5px solid var(--border-color);
+        }
+
+        h1 { 
+            font-family: 'Fredoka One', cursive; 
+            color: var(--primary-color); 
+            font-size: 2.2rem; 
+            margin-bottom: 10px;
+            text-transform: uppercase;
+        }
+
+        .story-box {
+            font-size: 1.7rem;
+            line-height: 1.6;
+            text-align: left;
+            padding: 25px;
+            background: #fafafa;
+            border-radius: 20px;
+            border: 2px dashed var(--border-color);
+            margin: 15px 0;
+            white-space: pre-line;
+            color: var(--text-color);
+        }
+
+        .interactive-word {
+            display: inline-block;
+            transition: all 0.2s;
+            position: relative;
+            cursor: pointer;
+            padding: 2px 4px;
+            border-radius: 6px;
+        }
+        
+        .interactive-word:hover {
+            color: #000;
+            background-color: var(--highlight-bg);
+            transform: scale(1.1);
+            z-index: 10;
+        }
+
+        .word-tooltip {
+            position: absolute;
+            bottom: 125%;
+            left: 50%;
+            transform: translateX(-50%);
+            font-size: 3.5rem;
+            background: white;
+            padding: 5px 15px;
+            border-radius: 20px;
+            box-shadow: 0 8px 20px rgba(0,0,0,0.1);
+            opacity: 0;
+            visibility: hidden;
+            transition: 0.3s;
+            z-index: 100;
+            border: 2px solid var(--border-color);
+        }
+
+        .interactive-word:hover .word-tooltip {
+            opacity: 1;
+            visibility: visible;
+        }
+
+        #magic-scene {
+            height: 180px;
+            background: #eee;
+            border-radius: 20px;
+            margin: 20px 0;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            font-size: 5rem;
+            position: relative;
+            border: 3px solid var(--border-color);
+            transition: background-color 0.8s;
+            overflow: hidden;
+        }
+
+        .magic-item { position: absolute; animation: bounceIn 0.6s ease-out; }
+        @keyframes bounceIn { 0% { transform: scale(0); } 100% { transform: scale(1); } }
+
+        .stars-container { display: flex; gap: 12px; font-size: 3rem; color: #dfe6e9; justify-content: center; margin: 15px 0; }
+        .star { cursor: pointer; transition: 0.3s; }
+        .star.active { color: #f1c40f; transform: scale(1.2); text-shadow: 0 0 15px rgba(241, 196, 15, 0.5); }
+        #msg { font-size: 1.4rem; color: var(--primary-color); font-weight: bold; min-height: 1.5em; }
+    </style>
+</head>
+<body>
+
+    <div class="container">
+        <h1>IL LUPO CHE VOLEVA CAMBIARE COLORE 🐺🎨</h1>
+        
+        <div class="story-box">
+            <div id="textDisplay"></div>
+        </div>
+
+        <div id="magic-scene">
+            <span id="base-scene">🐺</span>
+        </div>
+
+        <div class="controls">
+            <div id="msg">Julie, aiutiamo il lupo a trovare il suo colore? Tocca la stella!</div>
+            <div class="stars-container">
+                <div class="star" onclick="registerRead(1)" id="s1">★</div>
+                <div class="star" onclick="registerRead(2)" id="s2">★</div>
+                <div class="star" onclick="registerRead(3)" id="s3">★</div>
+                <div class="star" onclick="registerRead(4)" id="s4">★</div>
+                <div class="star" onclick="registerRead(5)" id="s5">★</div>
+                <div class="star" onclick="registerRead(6)" id="s6">★</div>
+                <div class="star" onclick="registerRead(7)" id="s7">★</div>
+                <div class="star" onclick="registerRead(8)" id="s8">★</div>
+            </div>
+        </div>
+    </div>
+
+    <script>
+        const dictionary = {
+            "LUPO": "🐺", "VERDE": "🟢", "RANA": "🐸", "ROSSO": "🔴", 
+            "ROSA": "🌸", "BLU": "🔵", "ARANCIONE": "🟠", "MARRONE": "🟤", 
+            "PAVONI": "🦚", "MULTICOLORE": "🌈", "SPECCHIO": "🪞"
+        };
+
+        const storyText = `C'era una volta un enorme lupo nero che non amava il suo colore. Gli sembrava triste. 
+Lunedì provò il verde. Immerse la zampa in un barattolo di vernice verde e se la spalmò su tutto il corpo. Il lupo si guardò allo specchio e non si piacque: – Sembro un'enorme rana.
+Il martedì il lupo si infilò un maglione di lana rosso, si guardò allo specchio ed esclamò: – Che razza di idea, sembro Babbo Natale!
+Il mercoledì provò il rosa e non funzionò.
+Il giovedì il lupo si fece un bagno ghiacciato e per il freddo uscì tutto blu.
+Il venerdì provò l'arancione; il sabato si rotolò in una pozzanghera e quando fu marrone si guardò allo specchio e disse: – Non assomiglio più a nulla, in più ho il prurito.
+Domenica il lupo andò a caccia di pavoni. Ne trovò uno che dormiva, prese alcune piume e, dopo essersele messe addosso, si piacque molto. Ma poi ci ripensò.
+"Non va bene per niente, non voglio essere né verde né rosso né rosa né blu né arancione né marrone o multicolore... Alla fin fine sono un lupo".`;
+
+        function buildText() {
+            const display = document.getElementById('textDisplay');
+            display.innerHTML = storyText.split(/\s+/).map(word => {
+                const clean = word.replace(/[.,!'’!?…-]/g, '').toUpperCase();
+                const emoji = dictionary[clean];
+                if (emoji) {
+                    return `<span class="interactive-word">${word}<div class="word-tooltip">${emoji}</div></span>`;
+                }
+                return `<span class="interactive-word">${word}</span>`;
+            }).join(' ');
+        }
+
+        buildText();
+
+        let count = 0;
+        const messages = [
+            "Lunedì: il lupo sembra una rana verde! 🐸🟢",
+            "Martedì: sembra Babbo Natale col maglione rosso! 🎅🔴",
+            "Mercoledì: tutto rosa, ma proprio non va! 🌸",
+            "Giovedì: brrr, un bagno ghiacciato per diventare blu! ❄️🔵",
+            "Venerdì: arancione! Sabato: marrone come il fango! 🟠🟤",
+            "Domenica: con le piume di pavone è multicolore! 🦚🌈",
+            "Aspetta... ma il lupo non vuole essere di nessun colore!",
+            "BRAVISSIMA JULIE! Il lupo è felice di essere solo un lupo! 🐺🎉"
+        ];
+
+        function addMagic(emoji, top, left) {
+            const scene = document.getElementById('magic-scene');
+            const span = document.createElement('span');
+            span.innerText = emoji;
+            span.className = 'magic-item';
+            span.style.top = top + '%';
+            span.style.left = left + '%';
+            scene.appendChild(span);
+        }
+
+        function registerRead(num) {
+            if (num !== count + 1) return;
+            count = num;
+            const scene = document.getElementById('magic-scene');
+            document.getElementById(`s${count}`).classList.add('active');
+            document.getElementById('msg').innerText = messages[count-1];
+
+            if(count === 1) {
+                scene.style.backgroundColor = "#c8e6c9";
+                addMagic("🐸", 30, 20); 
+                addMagic("🟢", 60, 70);
+            }
+            if(count === 2) {
+                scene.style.backgroundColor = "#ffcdd2";
+                addMagic("🎅", 20, 75);
+                addMagic("🔴", 70, 30);
+            }
+            if(count === 3) {
+                scene.style.backgroundColor = "#f8bbd0";
+                addMagic("🌸", 50, 50);
+            }
+            if(count === 4) {
+                scene.style.backgroundColor = "#bbdefb";
+                addMagic("❄️", 20, 20);
+                addMagic("🔵", 70, 75);
+            }
+            if(count === 5) {
+                scene.style.backgroundColor = "#ffe0b2";
+                addMagic("🟠", 20, 80);
+                addMagic("🟤", 75, 20);
+            }
+            if(count === 6) {
+                scene.style.backgroundColor = "#f3e5f5";
+                addMagic("🦚", 40, 50);
+                addMagic("🌈", 15, 45);
+            }
+            if(count === 7) {
+                scene.style.backgroundColor = "#cfd8dc";
+                addMagic("🪞", 50, 20);
+            }
+            if(count === 8) {
+                scene.style.backgroundColor = "#ffffff";
+                addMagic("🐺", 50, 50);
+                confetti({ particleCount: 150, spread: 70, origin: { y: 0.6 } });
+            }
+            
+            const audioCtx = new (window.AudioContext || window.webkitAudioContext)();
+            const osc = audioCtx.createOscillator();
+            const gain = audioCtx.createGain();
+            osc.connect(gain);
+            gain.connect(audioCtx.destination);
+            osc.frequency.value = 440 + (count * 60);
+            gain.gain.exponentialRampToValueAtTime(0.01, audioCtx.currentTime + 0.3);
+            osc.start(); osc.stop(audioCtx.currentTime + 0.3);
+        }
+    </script>
+</body>
+</html>

@@ -1,0 +1,231 @@
+<!DOCTYPE html>
+<html lang="it">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Julie - Che Avventura! 🌉</title>
+    <link href="https://fonts.googleapis.com/css2?family=Patrick+Hand&family=Fredoka+One&display=swap" rel="stylesheet">
+    <script src="https://cdn.jsdelivr.net/npm/canvas-confetti@1.6.0/dist/confetti.browser.min.js"></script>
+    <style>
+        :root {
+            --bg-page: #e0f7fa; /* Azzurro acqua chiaro */
+            --highlight-text: #00796b;
+            --highlight-bg: #b2dfdb;
+            --primary-color: #0288d1;
+            --text-color: #01579b;
+            --border-color: #4fc3f7;
+        }
+
+        body {
+            font-family: 'Patrick Hand', cursive;
+            margin: 0;
+            min-height: 100vh;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            background-color: var(--bg-page);
+            user-select: none;
+            padding-bottom: 50px;
+        }
+
+        .container {
+            max-width: 800px;
+            width: 90%;
+            background: #ffffff;
+            padding: 2rem;
+            border-radius: 30px;
+            box-shadow: 0 10px 25px rgba(0,0,0,0.05);
+            margin-top: 20px;
+            text-align: center;
+            border: 5px solid var(--border-color);
+        }
+
+        h1 { 
+            font-family: 'Fredoka One', cursive; 
+            color: var(--primary-color); 
+            font-size: 2.5rem; 
+            margin-bottom: 10px;
+            text-transform: uppercase;
+        }
+
+        .story-box {
+            font-size: 1.8rem;
+            line-height: 1.6;
+            text-align: left;
+            padding: 20px;
+            background: #f1faff;
+            border-radius: 20px;
+            border: 2px dashed var(--border-color);
+            margin: 15px 0;
+            white-space: pre-line;
+            color: var(--text-color);
+        }
+
+        .interactive-word {
+            display: inline-block;
+            transition: all 0.2s;
+            position: relative;
+            cursor: pointer;
+            padding: 2px 4px;
+            border-radius: 6px;
+        }
+        
+        .interactive-word:hover {
+            color: var(--highlight-text);
+            background-color: var(--highlight-bg);
+            transform: scale(1.1);
+            z-index: 10;
+        }
+
+        .word-tooltip {
+            position: absolute;
+            bottom: 125%;
+            left: 50%;
+            transform: translateX(-50%);
+            font-size: 3.5rem;
+            background: white;
+            padding: 5px 15px;
+            border-radius: 20px;
+            box-shadow: 0 8px 20px rgba(0,0,0,0.1);
+            opacity: 0;
+            visibility: hidden;
+            transition: 0.3s;
+            z-index: 100;
+            border: 2px solid var(--border-color);
+        }
+
+        .interactive-word:hover .word-tooltip {
+            opacity: 1;
+            visibility: visible;
+        }
+
+        #magic-scene {
+            height: 180px;
+            background: #ffffff;
+            border-radius: 20px;
+            margin: 20px 0;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            font-size: 5rem;
+            position: relative;
+            border: 3px solid var(--border-color);
+            overflow: hidden;
+        }
+
+        .magic-item { position: absolute; animation: bounceIn 0.6s ease-out; }
+        @keyframes bounceIn { 0% { transform: scale(0); } 100% { transform: scale(1); } }
+
+        .stars-container { display: flex; gap: 15px; font-size: 3.5rem; color: #b3e5fc; justify-content: center; margin: 15px 0; }
+        .star { cursor: pointer; transition: 0.3s; }
+        .star.active { color: #0288d1; transform: scale(1.2); text-shadow: 0 0 15px rgba(2, 136, 209, 0.4); }
+        #msg { font-size: 1.4rem; color: var(--primary-color); font-weight: bold; min-height: 1.5em; }
+    </style>
+</head>
+<body>
+
+    <div class="container">
+        <h1>CHE AVVENTURA! 🛤️🌉</h1>
+        
+        <div class="story-box">
+            <div id="textDisplay"></div>
+        </div>
+
+        <div id="magic-scene">
+            <span id="base-scene">💧</span>
+        </div>
+
+        <div class="controls">
+            <div id="msg">Julie, pronta per l'avventura sul ponte? Tocca la prima stella!</div>
+            <div class="stars-container">
+                <div class="star" onclick="registerRead(1)" id="s1">★</div>
+                <div class="star" onclick="registerRead(2)" id="s2">★</div>
+                <div class="star" onclick="registerRead(3)" id="s3">★</div>
+                <div class="star" onclick="registerRead(4)" id="s4">★</div>
+                <div class="star" onclick="registerRead(5)" id="s5">★</div>
+            </div>
+        </div>
+    </div>
+
+    <script>
+        const dictionary = {
+            "TORRENTE": "🌊", "PONTE": "🌉", "LEGNO": "🪵", "FUNI": "🪢",
+            "CADERE": "⚠️", "PIEDI": "👣", "PAPERA": "🦆", "EQUILIBRIO": "⚖️"
+        };
+
+        const storyText = `Eravamo tutti in fila davanti a un torrente sul quale era gettato un ponte di legno e di funi intrecciate. Noi dovevamo attraversarlo.
+- La prima cosa da ricordare - ha cominciato Simbad, - è che qui si può veramente cadere.
+La seconda è che, per attraversare, bisogna camminare con i piedi a papera.
+Poi Simbad mi ha detto: - Tocca a te, Valentina.
+Dopo di me è partita Ottilia.
+- Trema tutto! - ha detto Ottilia.
+Ottilia ha urlato e io ho quasi perso l'equilibrio. Sono finita seduta sul ponte, ma sono riuscita ad arrivare dall'altra parte.`;
+
+        function buildText() {
+            const display = document.getElementById('textDisplay');
+            display.innerHTML = storyText.split(/\s+/).map(word => {
+                const clean = word.replace(/[.,!'’!?…-]/g, '').toUpperCase();
+                const emoji = dictionary[clean];
+                if (emoji) {
+                    return `<span class="interactive-word">${word}<div class="word-tooltip">${emoji}</div></span>`;
+                }
+                return `<span class="interactive-word">${word}</span>`;
+            }).join(' ');
+        }
+
+        buildText();
+
+        let count = 0;
+        const messages = [
+            "Guarda che bel ponte di legno e funi! 🪵🪢",
+            "Attenta Valentina, non bisogna cadere! ⚠️",
+            "Camminiamo con i piedi a papera... qua qua! 🦆👣",
+            "Oh no, trema tutto! Tieni l'equilibrio! ⚖️",
+            "CE L'HAI FATTA! Sei arrivata dall'altra parte! 🌉🎉"
+        ];
+
+        function addMagic(emoji, top, left) {
+            const scene = document.getElementById('magic-scene');
+            const span = document.createElement('span');
+            span.innerText = emoji;
+            span.className = 'magic-item';
+            span.style.top = top + '%';
+            span.style.left = left + '%';
+            scene.appendChild(span);
+        }
+
+        function registerRead(num) {
+            if (num !== count + 1) return;
+            count = num;
+            document.getElementById(`s${count}`).classList.add('active');
+            document.getElementById('msg').innerText = messages[count-1];
+
+            if(count === 1) {
+                addMagic("🌊", 60, 50); 
+                addMagic("🌉", 30, 50);
+            }
+            if(count === 2) addMagic("⚠️", 20, 20);
+            if(count === 3) addMagic("🦆", 70, 20);
+            if(count === 4) addMagic("⚖️", 20, 80);
+            if(count === 5) {
+                addMagic("✨", 50, 50);
+                confetti({ 
+                    particleCount: 150, 
+                    spread: 70, 
+                    origin: { y: 0.6 },
+                    colors: ['#0288d1', '#4fc3f7', '#ffffff']
+                });
+            }
+            
+            const audioCtx = new (window.AudioContext || window.webkitAudioContext)();
+            const osc = audioCtx.createOscillator();
+            const gain = audioCtx.createGain();
+            osc.connect(gain);
+            gain.connect(audioCtx.destination);
+            osc.frequency.value = 440 + (count * 100);
+            gain.gain.exponentialRampToValueAtTime(0.01, audioCtx.currentTime + 0.3);
+            osc.start(); osc.stop(audioCtx.currentTime + 0.3);
+        }
+    </script>
+</body>
+</html>

@@ -1,0 +1,234 @@
+<!DOCTYPE html>
+<html lang="it">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Julie - Caccia alle Uova 🐰🥚</title>
+    <link href="https://fonts.googleapis.com/css2?family=Patrick+Hand&family=Fredoka+One&display=swap" rel="stylesheet">
+    <script src="https://cdn.jsdelivr.net/npm/canvas-confetti@1.6.0/dist/confetti.browser.min.js"></script>
+    <style>
+        :root {
+            --bg-page: #fdf2f8; /* Rosa chiarissimo */
+            --highlight-text: #be185d;
+            --highlight-bg: #fce7f3;
+            --primary-color: #db2777;
+            --text-color: #431407;
+            --border-color: #f9a8d4;
+        }
+
+        body {
+            font-family: 'Patrick Hand', cursive;
+            margin: 0;
+            min-height: 100vh;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            background-color: var(--bg-page);
+            user-select: none;
+            padding-bottom: 50px;
+        }
+
+        .container {
+            max-width: 800px;
+            width: 90%;
+            background: #ffffff;
+            padding: 2rem;
+            border-radius: 30px;
+            box-shadow: 0 10px 25px rgba(0,0,0,0.05);
+            margin-top: 20px;
+            text-align: center;
+            border: 5px solid var(--border-color);
+        }
+
+        h1 { 
+            font-family: 'Fredoka One', cursive; 
+            color: var(--primary-color); 
+            font-size: 2.5rem; 
+            margin-bottom: 15px; 
+            letter-spacing: 2px;
+        }
+
+        .story-box {
+            font-size: 1.8rem;
+            line-height: 1.6;
+            text-align: left;
+            padding: 20px;
+            background: #fff9fb;
+            border-radius: 20px;
+            border: 2px solid #fbcfe8;
+            margin: 15px 0;
+            white-space: pre-line;
+            color: var(--text-color);
+        }
+
+        .interactive-word {
+            display: inline-block;
+            transition: all 0.2s;
+            position: relative;
+            cursor: pointer;
+            padding: 2px 4px;
+            border-radius: 6px;
+        }
+        
+        .interactive-word:hover {
+            color: var(--highlight-text);
+            background-color: var(--highlight-bg);
+            transform: scale(1.1);
+            z-index: 10;
+        }
+
+        .word-tooltip {
+            position: absolute;
+            bottom: 125%;
+            left: 50%;
+            transform: translateX(-50%);
+            font-size: 3.5rem;
+            background: white;
+            padding: 5px 15px;
+            border-radius: 20px;
+            box-shadow: 0 8px 20px rgba(0,0,0,0.1);
+            opacity: 0;
+            visibility: hidden;
+            transition: 0.3s;
+            z-index: 100;
+            border: 2px solid var(--border-color);
+        }
+
+        .interactive-word:hover .word-tooltip {
+            opacity: 1;
+            visibility: visible;
+        }
+
+        #magic-scene {
+            height: 200px;
+            background: #f0fdf4; /* Prato chiaro */
+            border-radius: 20px;
+            margin: 20px 0;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            font-size: 5rem;
+            position: relative;
+            border: 3px solid #bbf7d0;
+            overflow: hidden;
+        }
+
+        .magic-item { position: absolute; animation: bounceIn 0.6s ease-out; }
+        @keyframes bounceIn { 0% { transform: scale(0); } 100% { transform: scale(1); } }
+
+        .stars-container { display: flex; gap: 15px; font-size: 3.5rem; color: #fce7f3; justify-content: center; margin: 15px 0; }
+        .star { cursor: pointer; transition: 0.3s; }
+        .star.active { color: #f472b6; transform: scale(1.2); text-shadow: 0 0 15px rgba(244, 114, 182, 0.5); }
+        #msg { font-size: 1.4rem; color: var(--primary-color); font-weight: bold; min-height: 1.5em; }
+    </style>
+</head>
+<body>
+
+    <div class="container">
+        <h1>CACCIA ALLE UOVA 🥚🐰</h1>
+        
+        <div class="story-box">
+            <div id="textDisplay"></div>
+        </div>
+
+        <div id="magic-scene">
+            <span id="base-scene">🌿</span>
+        </div>
+
+        <div class="controls">
+            <div id="msg">Aiuta il coniglio Tim a trovare i suoi amici!</div>
+            <div class="stars-container">
+                <div class="star" onclick="registerRead(1)" id="s1">★</div>
+                <div class="star" onclick="registerRead(2)" id="s2">★</div>
+                <div class="star" onclick="registerRead(3)" id="s3">★</div>
+                <div class="star" onclick="registerRead(4)" id="s4">★</div>
+                <div class="star" onclick="registerRead(5)" id="s5">★</div>
+            </div>
+        </div>
+    </div>
+
+    <script>
+        const dictionary = {
+            "UOVA": "🥚", "CIOCCOLATO": "🍫", "CONIGLIO": "🐰", "TIM": "🐰",
+            "TALPA": "🦔", "TEA": "🦔", "VOLPE": "🦊", "ZOE": "🦊",
+            "LUMACA": "🐌", "TERESA": "🐌", "RANA": "🐸", "LULÙ": "🐸",
+            "ALBERO": "🌳", "SIEPE": "🌿", "RAMO": "🌲", "PRATO": "🌱"
+        };
+
+        const storyText = `Le uova di cioccolato erano state nascoste nel prato. Tutto era pronto per la caccia alle uova. Il coniglio Tim era felice, con il suo cestino in mano non vedeva l’ora di iniziare.
+- Tre, due, uno ... via! - urlò la talpa Tea.
+Il coniglietto e i suoi amici corsero a cercare le uova nell’erba.
+Tim vide un uovo a righe dietro ad un albero, ma la volpe Zoe fu più veloce e lo prese prima di lui.
+Poi, vide un uovo con i cuori vicino ad una siepe fiorita, ma la lumaca Teresa arrivò prima di lui.
+Infine, vide un uovo a fiori sopra un ramo, ma la rana Lulù fece un salto e lo prese.
+Così Tim rimase senza nulla.
+Allora i suoi amici divisero le uova di cioccolato con lui e le mangiarono insieme.`;
+
+        function buildText() {
+            const display = document.getElementById('textDisplay');
+            display.innerHTML = storyText.split(/\s+/).map(word => {
+                const clean = word.replace(/[.,!'’!?…-]/g, '').toUpperCase();
+                const emoji = dictionary[clean];
+                if (emoji) {
+                    return `<span class="interactive-word">${word}<div class="word-tooltip">${emoji}</div></span>`;
+                }
+                return `<span class="interactive-word">${word}</span>`;
+            }).join(' ');
+        }
+
+        buildText();
+
+        let count = 0;
+        const messages = [
+            "Evviva! La caccia alle uova è iniziata! 🥚",
+            "La volpe Zoe è stata velocissima! 🦊",
+            "La lumaca Teresa ha trovato l'uovo con i cuori! 🐌❤️",
+            "Che salto ha fatto la rana Lulù! 🐸",
+            "Tutti insieme! Che buona la cioccolata! 🍫🎉"
+        ];
+
+        function addMagic(emoji, top, left) {
+            const scene = document.getElementById('magic-scene');
+            const span = document.createElement('span');
+            span.innerText = emoji;
+            span.className = 'magic-item';
+            span.style.top = top + '%';
+            span.style.left = left + '%';
+            scene.appendChild(span);
+        }
+
+        function registerRead(num) {
+            if (num !== count + 1) return;
+            count = num;
+            document.getElementById(`s${count}`).classList.add('active');
+            document.getElementById('msg').innerText = messages[count-1];
+
+            if(count === 1) {
+                addMagic("🐰", 40, 45); 
+                addMagic("🦔", 60, 15);
+            }
+            if(count === 2) addMagic("🦊", 20, 70);
+            if(count === 3) addMagic("🐌", 70, 75);
+            if(count === 4) addMagic("🐸", 15, 20);
+            if(count === 5) {
+                addMagic("🍫", 50, 50);
+                confetti({ 
+                    particleCount: 150, 
+                    spread: 70, 
+                    origin: { y: 0.6 },
+                    colors: ['#db2777', '#f472b6', '#fbbf24']
+                });
+            }
+            
+            const audioCtx = new (window.AudioContext || window.webkitAudioContext)();
+            const osc = audioCtx.createOscillator();
+            const gain = audioCtx.createGain();
+            osc.connect(gain);
+            gain.connect(audioCtx.destination);
+            osc.frequency.value = 523.25 + (count * 80);
+            gain.gain.exponentialRampToValueAtTime(0.01, audioCtx.currentTime + 0.3);
+            osc.start(); osc.stop(audioCtx.currentTime + 0.3);
+        }
+    </script>
+</body>
+</html>

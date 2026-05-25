@@ -1,9 +1,99 @@
 const GIOCHI_DATA = [
   {
-    "name": "julie-pepper-prova.html",
-    "path": "Julie/Italiano/julie-pepper-prova.html",
+    "name": "Julie-albero-azzurro.html",
+    "path": "Julie/Italiano/Julie-albero-azzurro.html",
     "category": "Italiano",
-    "updatedAt": 1774962795222
+    "updatedAt": 1779444955000
+  },
+  {
+    "name": "julie-gimmi (1).html",
+    "path": "Julie/Italiano/julie-gimmi (1).html",
+    "category": "Italiano",
+    "updatedAt": 1778679818114
+  },
+  {
+    "name": "julie-gimmi.html",
+    "path": "Julie/Italiano/julie-gimmi.html",
+    "category": "Italiano",
+    "updatedAt": 1778679520845
+  },
+  {
+    "name": "julie-lupo.html",
+    "path": "Julie/Italiano/julie-lupo.html",
+    "category": "Italiano",
+    "updatedAt": 1778077697082
+  },
+  {
+    "name": "julie-frida.html",
+    "path": "Julie/Italiano/julie-frida.html",
+    "category": "Italiano",
+    "updatedAt": 1777991203194
+  },
+  {
+    "name": "julie-colori-emozioni.html",
+    "path": "Julie/Italiano/julie-colori-emozioni.html",
+    "category": "Italiano",
+    "updatedAt": 1777553125672
+  },
+  {
+    "name": "julie-elmer.html",
+    "path": "Julie/Italiano/julie-elmer.html",
+    "category": "Italiano",
+    "updatedAt": 1777553125555
+  },
+  {
+    "name": "julie-camaleonte.html",
+    "path": "Julie/Italiano/julie-camaleonte.html",
+    "category": "Italiano",
+    "updatedAt": 1777382242886
+  },
+  {
+    "name": "julie-simone.html",
+    "path": "Julie/Italiano/julie-simone.html",
+    "category": "Italiano",
+    "updatedAt": 1776688625157
+  },
+  {
+    "name": "julie-mago-charlie.html",
+    "path": "Julie/Italiano/julie-mago-charlie.html",
+    "category": "Italiano",
+    "updatedAt": 1776583691735
+  },
+  {
+    "name": "julie-scodinzolo.html",
+    "path": "Julie/Italiano/julie-scodinzolo.html",
+    "category": "Italiano",
+    "updatedAt": 1776256739809
+  },
+  {
+    "name": "Julie-avventura.html",
+    "path": "Julie/Italiano/Julie-avventura.html",
+    "category": "Italiano",
+    "updatedAt": 1776170916942
+  },
+  {
+    "name": "julie-ragno-gnomo.html",
+    "path": "Julie/Italiano/julie-ragno-gnomo.html",
+    "category": "Italiano",
+    "updatedAt": 1775395703094
+  },
+  {
+    "name": "julie-caccia-uova.html",
+    "path": "Julie/Italiano/julie-caccia-uova.html",
+    "category": "Italiano",
+    "updatedAt": 1775133701403
+  },
+  {
+    "name": "Dashboard_Report_febbraio_2026.html",
+    "path": "Julie/Matematica/Dashboard_Report_febbraio_2026.html",
+    "category": "Matematica",
+    "updatedAt": 1775038003059
+  },
+  {
+    "name": "julie-pepper-prova2.html",
+    "path": "Julie/Italiano/julie-pepper-prova2.html",
+    "category": "Italiano",
+    "updatedAt": 1775032453148.8596
   },
   {
     "name": "julie-ahmed.html",
