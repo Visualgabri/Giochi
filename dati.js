@@ -24,12 +24,6 @@ const GIOCHI_DATA = [
     "updatedAt": 1786263628596.5215
   },
   {
-    "name": "vacanze_julie.html",
-    "path": "Julie/Italiano/vacanze_julie.html",
-    "category": "Italiano",
-    "updatedAt": 1786263628596.0215
-  },
-  {
     "name": "pepper-prova.html",
     "path": "Julie/Italiano/pepper-prova.html",
     "category": "Italiano",
