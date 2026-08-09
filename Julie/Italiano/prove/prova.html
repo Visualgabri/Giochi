@@ -1,0 +1,455 @@
+<!DOCTYPE html>
+<html lang="it">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Julie - L'Albero Azzurro 🌳💙</title>
+    <link href="https://fonts.googleapis.com/css2?family=Patrick+Hand&family=Fredoka+One&display=swap" rel="stylesheet">
+    <script src="https://cdn.jsdelivr.net/npm/canvas-confetti@1.6.0/dist/confetti.browser.min.js"></script>
+    <style>
+        :root {
+            --bg-page: #e0f7fa; 
+            --highlight-text: #006064;
+            --highlight-bg: #b2ebf2;
+            --primary-color: #00838f;
+            --text-color: #263238;
+            --border-color: #4dd0e1;
+            --quiz-bg: #fff8e1;
+            --quiz-border: #ffca28;
+        }
+
+        body {
+            font-family: 'Patrick Hand', cursive;
+            margin: 0;
+            min-height: 100vh;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            background-color: var(--bg-page);
+            user-select: none;
+            padding-bottom: 50px;
+        }
+
+        .container {
+            max-width: 850px;
+            width: 90%;
+            background: #ffffff;
+            padding: 2rem;
+            border-radius: 30px;
+            box-shadow: 0 10px 25px rgba(0,0,0,0.05);
+            margin-top: 20px;
+            text-align: center;
+            border: 5px solid var(--border-color);
+        }
+
+        h1 { 
+            font-family: 'Fredoka One', cursive; 
+            color: var(--primary-color); 
+            font-size: 2.2rem; 
+            margin-bottom: 5px;
+            text-transform: uppercase;
+        }
+
+        /* TRACCIATORE DELLE 5 LETTURE */
+        #read-tracker {
+            display: flex;
+            justify-content: center;
+            gap: 10px;
+            margin-bottom: 20px;
+            padding: 10px;
+            background: #f5f5f5;
+            border-radius: 15px;
+            border: 2px solid #e0e0e0;
+        }
+
+        .trophy {
+            font-size: 2.5rem;
+            filter: grayscale(100%);
+            opacity: 0.3;
+            transition: all 0.5s cubic-bezier(0.175, 0.885, 0.32, 1.275);
+        }
+
+        .trophy.earned {
+            filter: grayscale(0%);
+            opacity: 1;
+            transform: scale(1.2);
+            text-shadow: 0 0 15px rgba(255, 215, 0, 0.8);
+        }
+
+        #msg { 
+            font-size: 1.6rem; 
+            color: #d32f2f; 
+            font-weight: bold; 
+            min-height: 2em; 
+            background: #ffebee;
+            padding: 10px;
+            border-radius: 15px;
+            margin-bottom: 15px;
+            border: 2px dashed #ef9a9a;
+            transition: 0.3s;
+        }
+
+        .story-box {
+            font-size: 1.7rem;
+            line-height: 1.6;
+            text-align: left;
+            padding: 25px;
+            background: #f1fbfc;
+            border-radius: 20px;
+            border: 2px dashed var(--border-color);
+            margin: 15px 0;
+            white-space: pre-line;
+            color: var(--text-color);
+        }
+
+        .story-part {
+            margin-bottom: 15px;
+            animation: fadeIn 0.8s ease-in;
+        }
+
+        @keyframes fadeIn {
+            from { opacity: 0; transform: translateY(10px); }
+            to { opacity: 1; transform: translateY(0); }
+        }
+
+        .interactive-word {
+            display: inline-block;
+            transition: all 0.2s;
+            position: relative;
+            cursor: pointer;
+            padding: 2px 4px;
+            border-radius: 6px;
+        }
+        
+        .interactive-word:hover {
+            color: #000;
+            background-color: var(--highlight-bg);
+            transform: scale(1.1);
+            z-index: 10;
+        }
+
+        .word-tooltip {
+            position: absolute;
+            bottom: 125%;
+            left: 50%;
+            transform: translateX(-50%);
+            font-size: 3.5rem;
+            background: white;
+            padding: 5px 15px;
+            border-radius: 20px;
+            box-shadow: 0 8px 20px rgba(0,0,0,0.1);
+            opacity: 0;
+            visibility: hidden;
+            transition: 0.3s;
+            z-index: 100;
+            border: 2px solid var(--border-color);
+        }
+
+        .interactive-word:hover .word-tooltip {
+            opacity: 1;
+            visibility: visible;
+        }
+
+        .rimpiazzare { color: #e91e63; font-weight: bold; }
+
+        #magic-scene {
+            height: 180px;
+            background: #f9f9f9;
+            border-radius: 20px;
+            margin: 20px 0;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            font-size: 5rem;
+            position: relative;
+            border: 3px solid var(--border-color);
+            transition: background-color 0.8s;
+            overflow: hidden;
+        }
+
+        .magic-item { position: absolute; animation: bounceIn 0.6s ease-out; }
+        @keyframes bounceIn { 0% { transform: scale(0); } 100% { transform: scale(1); } }
+
+        .stars-container { display: flex; gap: 15px; font-size: 3.5rem; color: #b0bec5; justify-content: center; margin: 15px 0; }
+        .star { cursor: pointer; transition: 0.3s; }
+        .star.active { color: #fbc02d; transform: scale(1.2); text-shadow: 0 0 15px rgba(251, 192, 45, 0.6); }
+        .star.disabled { pointer-events: none; opacity: 0.5; }
+
+        /* PULSANTE PROSSIMA LETTURA */
+        #next-read-btn {
+            display: none;
+            width: 100%;
+            background: #4caf50;
+            color: white;
+            font-family: 'Fredoka One', cursive;
+            font-size: 1.8rem;
+            padding: 15px;
+            border: none;
+            border-radius: 15px;
+            cursor: pointer;
+            margin-top: 20px;
+            box-shadow: 0 5px 15px rgba(76, 175, 80, 0.4);
+            animation: bounceIn 0.5s ease-in-out;
+            text-transform: uppercase;
+        }
+
+        #next-read-btn:hover { background: #43a047; transform: scale(1.02); }
+
+        /* SEZIONE QUIZ */
+        #quiz-section {
+            display: none;
+            background: var(--quiz-bg);
+            border: 4px solid var(--quiz-border);
+            border-radius: 20px;
+            padding: 20px;
+            margin-top: 25px;
+            text-align: left;
+            animation: fadeIn 1s ease-in;
+        }
+
+        #quiz-section h2 { margin-top: 0; color: #f57f17; font-family: 'Fredoka One', cursive; text-align: center; }
+        .quiz-question { font-size: 1.5rem; margin-bottom: 15px; font-weight: bold; color: #3e2723; }
+        .quiz-btn {
+            display: block; width: 100%; background: white; border: 2px solid var(--quiz-border);
+            border-radius: 12px; padding: 12px; font-size: 1.4rem; font-family: 'Patrick Hand', cursive;
+            margin-bottom: 10px; cursor: pointer; transition: 0.2s; text-align: left;
+        }
+        .quiz-btn:hover { background: #fffde7; transform: scale(1.02); }
+        .quiz-btn.correct { background: #c8e6c9; border-color: #388e3c; color: #1b5e20; }
+        .quiz-btn.wrong { background: #ffccbc; border-color: #d32f2f; color: #b71c1c; }
+        .feedback { font-size: 1.3rem; font-weight: bold; min-height: 30px; text-align: center; }
+    </style>
+</head>
+<body>
+
+    <div class="container">
+        <h1>L'ALBERO AZZURRO 🌳💙</h1>
+        
+        <!-- Tracciatore Visivo delle 5 Letture -->
+        <div id="read-tracker">
+            <span class="trophy" id="trophy-1">🏆</span>
+            <span class="trophy" id="trophy-2">🏆</span>
+            <span class="trophy" id="trophy-3">🏆</span>
+            <span class="trophy" id="trophy-4">🏆</span>
+            <span class="trophy" id="trophy-5">🏆</span>
+        </div>
+        
+        <div id="msg">Lettura 1! Leggi la prima frase e tocca la stella numero 1.</div>
+
+        <div class="story-box" id="textDisplay"></div>
+
+        <div id="magic-scene">
+            <span id="base-scene">🌳</span>
+        </div>
+
+        <div class="controls">
+            <div class="stars-container" id="stars-container">
+                <div class="star" onclick="registerRead(1)" id="s1">★</div>
+                <div class="star disabled" onclick="registerRead(2)" id="s2">★</div>
+                <div class="star disabled" onclick="registerRead(3)" id="s3">★</div>
+                <div class="star disabled" onclick="registerRead(4)" id="s4">★</div>
+                <div class="star disabled" onclick="registerRead(5)" id="s5">★</div>
+            </div>
+            
+            <!-- Pulsante che appare tra una lettura e l'altra -->
+            <button id="next-read-btn" onclick="startNextRead()">Inizia la Lettura 2 ▶️</button>
+        </div>
+
+        <div id="quiz-section">
+            <h2>GIOCO FINALE 🎯</h2>
+            <div class="quiz-question">CHI odiava l'albero azzurro?</div>
+            <button class="quiz-btn" onclick="checkAnswer(this, 1, false)">Tutta la gente della città 🧑‍🤝‍🧑</button>
+            <button class="quiz-btn" onclick="checkAnswer(this, 1, true)">Solo il re 👑</button>
+            <div id="feedback-1" class="feedback"></div>
+
+            <div class="quiz-question" style="margin-top: 15px;">COSA succede alla fine?</div>
+            <button class="quiz-btn" onclick="checkAnswer(this, 2, true)">La città diventa una bella foresta azzurra 🌲💙</button>
+            <button class="quiz-btn" onclick="checkAnswer(this, 2, false)">La statua del re diventa di legno 🗿</button>
+            <div id="feedback-2" class="feedback"></div>
+        </div>
+    </div>
+
+    <script>
+        const dictionary = {
+            "ALBERO": "🌳", "AZZURRO": "💙", "CITTÀ": "🏙️", "RE": "👑", 
+            "PALAZZO": "🏰", "STRADE": "🛣️", "RAMI": "🌿", "INCHINARSI": "🙇", 
+            "RIDERE": "😂", "SOVRANO": "😡", "STATUA": "🗿", "FORESTA": "🌲"
+        };
+
+        const storyParts = [
+            "C'era una volta un gigantesco albero azzurro al centro di una città. Tutti gli volevano bene.",
+            "Solo il re lo odiava, perché l'albero era più amato del Palazzo Reale.",
+            "Per attraversare la città, il re doveva scegliere le strade sgombre di rami, ma non era facile trovarle. Così una volta, per passare, fu costretto a inchinarsi, e questo fece ridere la gente.",
+            "Il sovrano, furioso, ordinò di rimpiazzare l'albero azzurro con una statua del re. Ma i rami tagliati pian piano crebbero e ciascuno divenne a sua volta un albero azzurro.",
+            "Oggi l'intera città è una bella foresta."
+        ];
+
+        let count = 0;
+        let currentReadCycle = 1;
+        const maxReads = 5;
+
+        const stepInstructions = [
+            "Bravissima! Un albero azzurro gigante! 🏙️💙<br>Ora leggi il pezzo nuovo e tocca la stella 2.",
+            "Oh no, il re è invidioso! 👑<br>Leggi cosa succede adesso e tocca la stella 3.",
+            "Tutti ridono del re! 😂<br>Leggi il prossimo pezzetto e tocca la stella 4.",
+            "Il re si è arrabbiato tantissimo! 😡<br>Leggi l'ultima frase e tocca la stella 5."
+        ];
+
+        function renderStoryPart(index) {
+            const display = document.getElementById('textDisplay');
+            const newPart = document.createElement('div');
+            newPart.className = 'story-part';
+
+            const htmlWords = storyParts[index].split(/\s+/).map(word => {
+                const clean = word.replace(/[.,!'’!?…—"-]/g, '').toUpperCase();
+                const emoji = dictionary[clean];
+                let extraClass = clean === "RIMPIAZZARE" ? " rimpiazzare" : "";
+                
+                if (emoji) {
+                    return `<span class="interactive-word${extraClass}">${word}<div class="word-tooltip">${emoji}</div></span>`;
+                }
+                return `<span class="interactive-word${extraClass}">${word}</span>`;
+            }).join(' ');
+
+            newPart.innerHTML = htmlWords;
+            display.appendChild(newPart);
+        }
+
+        renderStoryPart(0);
+
+        function addMagic(emoji, top, left) {
+            const scene = document.getElementById('magic-scene');
+            const span = document.createElement('span');
+            span.innerText = emoji;
+            span.className = 'magic-item';
+            span.style.top = top + '%';
+            span.style.left = left + '%';
+            scene.appendChild(span);
+        }
+
+        function playSound(frequency) {
+            const audioCtx = new (window.AudioContext || window.webkitAudioContext)();
+            const osc = audioCtx.createOscillator();
+            const gain = audioCtx.createGain();
+            osc.connect(gain);
+            gain.connect(audioCtx.destination);
+            osc.frequency.value = frequency;
+            gain.gain.exponentialRampToValueAtTime(0.01, audioCtx.currentTime + 0.2);
+            osc.start(); osc.stop(audioCtx.currentTime + 0.2);
+        }
+
+        function registerRead(num) {
+            if (num !== count + 1) return; 
+            
+            count = num;
+            const scene = document.getElementById('magic-scene');
+            
+            document.getElementById(`s${count}`).classList.add('active');
+            if (count < 5) document.getElementById(`s${count+1}`).classList.remove('disabled');
+            
+            if (count < 5) {
+                document.getElementById('msg').innerHTML = stepInstructions[count-1];
+                renderStoryPart(count);
+            }
+
+            // Magie visive della scena
+            if(count === 1) { scene.style.backgroundColor = "#e1f5fe"; addMagic("🏙️", 30, 20); addMagic("💙", 60, 70); }
+            if(count === 2) { scene.style.backgroundColor = "#fff3e0"; addMagic("👑", 20, 50); addMagic("🏰", 60, 20); }
+            if(count === 3) { scene.style.backgroundColor = "#fce4ec"; addMagic("🙇", 50, 40); addMagic("😂", 30, 70); }
+            if(count === 4) { scene.style.backgroundColor = "#ffebee"; addMagic("😡", 20, 30); addMagic("🗿", 50, 60); }
+            
+            if(count === 5) {
+                scene.style.backgroundColor = "#e8f5e9";
+                addMagic("🌲", 30, 20); addMagic("🌲", 60, 40); addMagic("💙", 20, 50);
+                
+                // Illumina il trofeo della lettura corrente
+                document.getElementById(`trophy-${currentReadCycle}`).classList.add('earned');
+                
+                document.getElementById('stars-container').style.display = 'none';
+
+                if (currentReadCycle < maxReads) {
+                    // SE NON È L'ULTIMA LETTURA: Piccolo premio e pulsante per riavviare
+                    confetti({ particleCount: 50, spread: 60, origin: { y: 0.7 } });
+                    document.getElementById('msg').innerHTML = `Bravissima! Hai completato la lettura ${currentReadCycle} su ${maxReads}! 🏆`;
+                    
+                    const nextBtn = document.getElementById('next-read-btn');
+                    nextBtn.innerText = `Inizia la Lettura ${currentReadCycle + 1} ▶️`;
+                    nextBtn.style.display = 'block';
+                } else {
+                    // SE È L'ULTIMA LETTURA: Mega premio e Quiz
+                    document.getElementById('msg').innerHTML = `INCREDIBILE JULIE! 🎉 Hai letto la storia ${maxReads} volte! Ora fai il gioco finale.`;
+                    document.getElementById('msg').style.background = "#e8f5e9";
+                    document.getElementById('msg').style.borderColor = "#4caf50";
+                    document.getElementById('msg').style.color = "#2e7d32";
+
+                    // MEGA FESTA CORIANDOLI
+                    let duration = 3000;
+                    let end = Date.now() + duration;
+                    (function frame() {
+                        confetti({ particleCount: 5, angle: 60, spread: 55, origin: { x: 0 }, colors: ['#00838f', '#ffca28'] });
+                        confetti({ particleCount: 5, angle: 120, spread: 55, origin: { x: 1 }, colors: ['#00838f', '#ffca28'] });
+                        if (Date.now() < end) requestAnimationFrame(frame);
+                    }());
+
+                    setTimeout(() => {
+                        document.getElementById('quiz-section').style.display = 'block';
+                        window.scrollTo({ top: document.body.scrollHeight, behavior: 'smooth' });
+                    }, 2500);
+                }
+            }
+            
+            playSound(400 + (count * 100));
+        }
+
+        // FUNZIONE PER RESETTARE IL LOOP
+        function startNextRead() {
+            currentReadCycle++;
+            count = 0;
+
+            // Reset Testo e Scena
+            document.getElementById('textDisplay').innerHTML = '';
+            document.getElementById('magic-scene').innerHTML = '<span id="base-scene">🌳</span>';
+            document.getElementById('magic-scene').style.backgroundColor = "#f9f9f9";
+
+            // Reset Stelle
+            document.getElementById('stars-container').style.display = 'flex';
+            for(let i=1; i<=5; i++) {
+                let star = document.getElementById(`s${i}`);
+                star.className = 'star';
+                if (i > 1) star.classList.add('disabled');
+            }
+
+            // Reset Controlli
+            document.getElementById('next-read-btn').style.display = 'none';
+            document.getElementById('msg').innerHTML = `Lettura ${currentReadCycle}! Leggi la prima frase e tocca la stella numero 1.`;
+            
+            // Riparti dalla prima frase
+            renderStoryPart(0);
+            window.scrollTo({ top: 0, behavior: 'smooth' });
+            playSound(300);
+        }
+
+        function checkAnswer(btn, questionNum, isCorrect) {
+            const feedback = document.getElementById(`feedback-${questionNum}`);
+            const siblings = btn.parentElement.querySelectorAll(`button[onclick*="${questionNum}"]`);
+            siblings.forEach(b => b.style.pointerEvents = 'none');
+
+            if (isCorrect) {
+                btn.classList.add('correct');
+                feedback.innerHTML = "✨ Esatto! Bravissima!";
+                feedback.style.color = "#2e7d32";
+                confetti({ particleCount: 50, spread: 40, origin: { y: 0.8 } });
+            } else {
+                btn.classList.add('wrong');
+                feedback.innerHTML = "Ops! Riprova.";
+                feedback.style.color = "#c62828";
+                setTimeout(() => {
+                    btn.classList.remove('wrong');
+                    feedback.innerHTML = "";
+                    siblings.forEach(b => b.style.pointerEvents = 'auto');
+                }, 2000);
+            }
+        }
+    </script>
+</body>
+</html>

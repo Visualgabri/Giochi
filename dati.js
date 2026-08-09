@@ -1,8 +1,26 @@
 const GIOCHI_DATA = [
   {
-    "name": "vacanze_julie.html",
-    "path": "Julie/Italiano/vacanze_julie.html",
+    "name": "vacanze-julie.html",
+    "path": "Julie/Italiano/vacanze-julie.html",
     "category": "Italiano",
+    "updatedAt": 1786263087202.6113
+  },
+  {
+    "name": "vacanze-Julie.html",
+    "path": "Julie/Italiano/prove/vacanze-Julie.html",
+    "category": "prove",
+    "updatedAt": 1786262858879.229
+  },
+  {
+    "name": "prova.html",
+    "path": "Julie/Italiano/prove/prova.html",
+    "category": "prove",
+    "updatedAt": 1786262447338.063
+  },
+  {
+    "name": "vacanze_julie_canc.html",
+    "path": "Julie/Italiano/prove/vacanze_julie_canc.html",
+    "category": "prove",
     "updatedAt": 1779873352698.3823
   },
   {

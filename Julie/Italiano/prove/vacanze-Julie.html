@@ -1,0 +1,963 @@
+<!DOCTYPE html>
+<html lang="it">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Julie - Le Vacanze Scientifiche Magiche 🚀🔬</title>
+    <link href="https://fonts.googleapis.com/css2?family=Patrick+Hand&family=Fredoka+One&display=swap" rel="stylesheet">
+    <script src="https://cdn.jsdelivr.net/npm/canvas-confetti@1.6.0/dist/confetti.browser.min.js"></script>
+    <style>
+        :root {
+            --bg-page: #e0f7fa; 
+            --primary: #00838f;
+            --secondary: #00bcd4;
+            --highlight-bg: #b2ebf2;
+            --text-color: #263238;
+            --border-color: #4dd0e1;
+            --quiz-bg: #fff8e1;
+            --quiz-border: #ffca28;
+            --badge-bg: #fff3e0;
+            --badge-border: #ff9800;
+        }
+
+        body {
+            font-family: 'Patrick Hand', cursive;
+            margin: 0;
+            min-height: 100vh;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            background-color: var(--bg-page);
+            user-select: none;
+            padding-bottom: 50px;
+        }
+
+        /* HEADER E TABELLONE SEGNAPUNTI */
+        .score-board {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            background: var(--badge-bg);
+            border: 3px solid var(--badge-border);
+            border-radius: 20px;
+            padding: 10px 25px;
+            margin-top: 15px;
+            width: 85%;
+            max-width: 800px;
+            box-shadow: 0 5px 15px rgba(0,0,0,0.08);
+        }
+
+        .score-item {
+            font-size: 1.6rem;
+            font-weight: bold;
+            color: #e65100;
+            font-family: 'Fredoka One', cursive;
+        }
+
+        /* DASHBOARD - MAPPA DELLE 20 STORIE */
+        #dashboard {
+            max-width: 900px;
+            width: 90%;
+            margin-top: 15px;
+            text-align: center;
+        }
+
+        h1 { 
+            font-family: 'Fredoka One', cursive; 
+            color: var(--primary); 
+            font-size: 2.3rem; 
+            margin: 5px 0;
+            text-transform: uppercase;
+            text-shadow: 2px 2px 0px white;
+        }
+
+        .grid-container {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(180px, 1fr));
+            gap: 15px;
+            margin-top: 20px;
+        }
+
+        .level-card {
+            background: white;
+            border-radius: 20px;
+            padding: 15px;
+            border: 4px solid var(--border-color);
+            cursor: pointer;
+            transition: all 0.2s;
+            box-shadow: 0 6px 12px rgba(0,0,0,0.05);
+            text-align: center;
+        }
+
+        .level-card:hover {
+            transform: translateY(-5px) scale(1.03);
+            box-shadow: 0 10px 18px rgba(0,0,0,0.12);
+            background: #f1fbfc;
+        }
+
+        .level-card .emoji { font-size: 3.2rem; margin-bottom: 5px; }
+        .level-card .title { font-family: 'Fredoka One', cursive; font-size: 1.2rem; color: var(--primary); }
+        .level-card .badge-status { font-size: 1rem; color: #4caf50; font-weight: bold; margin-top: 5px; }
+
+        /* VISTA DELLA STORIA */
+        #story-view {
+            display: none;
+            max-width: 850px;
+            width: 90%;
+            background: #ffffff;
+            padding: 1.5rem;
+            border-radius: 30px;
+            box-shadow: 0 10px 25px rgba(0,0,0,0.05);
+            margin-top: 15px;
+            text-align: center;
+            border: 5px solid var(--border-color);
+        }
+
+        .btn-back {
+            background: var(--primary);
+            color: white;
+            border: none;
+            padding: 8px 18px;
+            font-size: 1.2rem;
+            border-radius: 15px;
+            cursor: pointer;
+            font-family: 'Fredoka One', cursive;
+            float: left;
+            transition: 0.2s;
+        }
+
+        .btn-back:hover { background: #006064; transform: scale(1.05); }
+
+        /* TRACCIATORE DELLE 3 LETTURE COMPLETA */
+        #read-tracker {
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            gap: 20px;
+            margin: 15px 0;
+            padding: 10px;
+            background: #f5f5f5;
+            border-radius: 15px;
+            border: 2px solid #e0e0e0;
+            clear: both;
+        }
+
+        .trophy-box {
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            font-size: 1rem;
+            font-weight: bold;
+            color: #757575;
+        }
+
+        .trophy {
+            font-size: 2.5rem;
+            filter: grayscale(100%);
+            opacity: 0.3;
+            transition: all 0.5s cubic-bezier(0.175, 0.885, 0.32, 1.275);
+        }
+
+        .trophy.earned {
+            filter: grayscale(0%);
+            opacity: 1;
+            transform: scale(1.2);
+            text-shadow: 0 0 15px rgba(255, 215, 0, 0.8);
+        }
+
+        #msg { 
+            font-size: 1.5rem; 
+            color: #d32f2f; 
+            font-weight: bold; 
+            min-height: 2em; 
+            background: #ffebee;
+            padding: 10px;
+            border-radius: 15px;
+            margin-bottom: 15px;
+            border: 2px dashed #ef9a9a;
+            transition: 0.3s;
+        }
+
+        .story-box {
+            font-size: 1.7rem;
+            line-height: 1.6;
+            text-align: left;
+            padding: 20px;
+            background: #f1fbfc;
+            border-radius: 20px;
+            border: 2px dashed var(--border-color);
+            margin: 15px 0;
+            white-space: pre-line;
+            color: var(--text-color);
+        }
+
+        .story-part {
+            margin-bottom: 12px;
+            animation: fadeIn 0.8s ease-in;
+        }
+
+        @keyframes fadeIn {
+            from { opacity: 0; transform: translateY(10px); }
+            to { opacity: 1; transform: translateY(0); }
+        }
+
+        /* PAROLE INTERATTIVE */
+        .interactive-word {
+            display: inline-block;
+            transition: all 0.2s;
+            position: relative;
+            cursor: pointer;
+            padding: 2px 4px;
+            border-radius: 6px;
+        }
+        
+        .interactive-word:hover, .interactive-word.active-touch {
+            color: #000;
+            background-color: var(--highlight-bg);
+            transform: scale(1.1);
+            z-index: 10;
+        }
+
+        .word-tooltip {
+            position: absolute;
+            bottom: 125%;
+            left: 50%;
+            transform: translateX(-50%);
+            font-size: 3.2rem;
+            background: white;
+            padding: 5px 15px;
+            border-radius: 20px;
+            box-shadow: 0 8px 20px rgba(0,0,0,0.1);
+            opacity: 0;
+            visibility: hidden;
+            transition: 0.3s;
+            z-index: 100;
+            border: 2px solid var(--border-color);
+            pointer-events: none;
+        }
+
+        .interactive-word:hover .word-tooltip, .interactive-word.active-touch .word-tooltip {
+            opacity: 1;
+            visibility: visible;
+        }
+
+        /* SCENA MAGICA */
+        #magic-scene {
+            height: 160px;
+            background: #f9f9f9;
+            border-radius: 20px;
+            margin: 15px 0;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            font-size: 4.5rem;
+            position: relative;
+            border: 3px solid var(--border-color);
+            transition: background-color 0.8s;
+            overflow: hidden;
+        }
+
+        .magic-item { position: absolute; animation: bounceIn 0.6s ease-out; }
+        @keyframes bounceIn { 0% { transform: scale(0); } 100% { transform: scale(1); } }
+
+        /* STELLINE */
+        .stars-container { display: flex; gap: 15px; font-size: 3.5rem; color: #b0bec5; justify-content: center; margin: 15px 0; }
+        .star { cursor: pointer; transition: 0.3s; }
+        .star.active { color: #fbc02d; transform: scale(1.2); text-shadow: 0 0 15px rgba(251, 192, 45, 0.6); }
+        .star.disabled { pointer-events: none; opacity: 0.3; }
+
+        /* PULSANTE PROSSIMA LETTURA */
+        #next-read-btn {
+            display: none;
+            width: 100%;
+            background: #4caf50;
+            color: white;
+            font-family: 'Fredoka One', cursive;
+            font-size: 1.8rem;
+            padding: 15px;
+            border: none;
+            border-radius: 15px;
+            cursor: pointer;
+            margin-top: 15px;
+            box-shadow: 0 5px 15px rgba(76, 175, 80, 0.4);
+            animation: bounceIn 0.5s ease-in-out;
+            text-transform: uppercase;
+        }
+
+        #next-read-btn:hover { background: #43a047; transform: scale(1.02); }
+
+        /* QUIZ */
+        #quiz-section {
+            display: none;
+            background: var(--quiz-bg);
+            border: 4px solid var(--quiz-border);
+            border-radius: 20px;
+            padding: 20px;
+            margin-top: 25px;
+            text-align: left;
+            animation: fadeIn 1s ease-in;
+        }
+
+        #quiz-section h2 { margin-top: 0; color: #f57f17; font-family: 'Fredoka One', cursive; text-align: center; }
+        .quiz-question { font-size: 1.5rem; margin-bottom: 12px; font-weight: bold; color: #3e2723; }
+        .quiz-btn {
+            display: block; width: 100%; background: white; border: 2px solid var(--quiz-border);
+            border-radius: 12px; padding: 12px; font-size: 1.4rem; font-family: 'Patrick Hand', cursive;
+            margin-bottom: 10px; cursor: pointer; transition: 0.2s; text-align: left;
+        }
+        .quiz-btn:hover { background: #fffde7; transform: scale(1.01); }
+        .quiz-btn.correct { background: #c8e6c9; border-color: #388e3c; color: #1b5e20; }
+        .quiz-btn.wrong { background: #ffccbc; border-color: #d32f2f; color: #b71c1c; }
+        .feedback { font-size: 1.3rem; font-weight: bold; min-height: 25px; text-align: center; }
+    </style>
+</head>
+<body>
+
+    <!-- BARRA DEL PUNTEGGIO E STEMMA -->
+    <div class="score-board">
+        <div class="score-item" id="score-display">⭐ Punti: 0</div>
+        <div class="score-item" id="badge-display">🎖️ Grado: Scienziata Junior</div>
+    </div>
+
+    <!-- DASHBOARD STORIE -->
+    <div id="dashboard">
+        <h1>🚀 LA SCIENZA DI JULIE 🔬</h1>
+        <p style="font-size: 1.4rem; color: #006064; margin: 0;">Scegli una storia, leggila 3 volte e vinci le coppe!</p>
+        <div class="grid-container" id="levels-grid"></div>
+    </div>
+
+    <!-- VISTA DELLA STORIA -->
+    <div id="story-view">
+        <button class="btn-back" onclick="goHome()">⬅ Mappa</button>
+        <h1 id="story-title" style="margin-top:0;"></h1>
+        
+        <!-- TRACCIATORE DELLE 3 LETTURE OBBLIGATORIE -->
+        <div id="read-tracker">
+            <div class="trophy-box">
+                <span class="trophy" id="trophy-1">🏆</span>
+                <span>Lettura 1</span>
+            </div>
+            <div class="trophy-box">
+                <span class="trophy" id="trophy-2">🏆</span>
+                <span>Lettura 2</span>
+            </div>
+            <div class="trophy-box">
+                <span class="trophy" id="trophy-3">🏆</span>
+                <span>Lettura 3</span>
+            </div>
+        </div>
+        
+        <div id="msg">Lettura 1 su 3! Leggi la prima frase e tocca la stella numero 1.</div>
+
+        <div class="story-box" id="textDisplay" onclick="clearTouch(event)"></div>
+
+        <div id="magic-scene">
+            <span id="base-scene">✨</span>
+        </div>
+
+        <div class="controls">
+            <div class="stars-container" id="stars-container">
+                <div class="star" onclick="registerRead(1)" id="s1">★</div>
+                <div class="star disabled" onclick="registerRead(2)" id="s2">★</div>
+                <div class="star disabled" onclick="registerRead(3)" id="s3">★</div>
+                <div class="star disabled" onclick="registerRead(4)" id="s4">★</div>
+                <div class="star disabled" onclick="registerRead(5)" id="s5">★</div>
+            </div>
+
+            <button id="next-read-btn" onclick="startNextReadCycle()">Inizia la Lettura ▶️</button>
+        </div>
+
+        <!-- SEZIONE QUIZ FINALE (Dopo 3 letture) -->
+        <div id="quiz-section">
+            <h2>GIOCO FINALE 🎯</h2>
+            <div id="quiz-container"></div>
+        </div>
+    </div>
+
+    <script>
+        // TUTTE E 20 LE STORIE SCIENTIFICHE (Accorciate a 5 frasi)
+        const storiesData = [
+            {
+                title: "L'UOMO SULLA LUNA 🌕", icon: "🚀",
+                sentences: [
+                    "La Luna brilla grande nel cielo di notte.",
+                    "Un giorno un vero razzo è partito dalla Terra.",
+                    "Un astronauta coraggioso è sceso sulla Luna.",
+                    "Ha fatto un bel salto leggero nello spazio.",
+                    "Infine ha piantato una bandiera speciale!"
+                ],
+                dict: { "LUNA": "🌕", "CIELO": "🌌", "NOTTE": "🌃", "RAZZO": "🚀", "TERRA": "🌍", "ASTRONAUTA": "👨‍🚀", "BANDIERA": "🚩" },
+                magic: ["🌕", "🚀", "👨‍🚀", "👣", "🚩"], colors: ["#2d3436", "#0984e3", "#dfe6e9", "#b2bec3", "#e3f2fd"],
+                quiz: [
+                    { q: "CHI è andato sulla Luna?", options: [ {t: "Un astronauta 👨‍🚀", c: true}, {t: "Un gattino 🐱", c: false} ] },
+                    { q: "COSA ha piantato sulla Luna?", options: [ {t: "Un albero 🌳", c: false}, {t: "Una bandiera 🚩", c: true} ] }
+                ]
+            },
+            {
+                title: "IL SEGRETO DELLE API 🐝", icon: "🍯",
+                sentences: [
+                    "Le api volano allegre sui fiori colorati.",
+                    "Raccolgono il nettare dolce con la bocca.",
+                    "Portano il cibo dentro il loro alveare.",
+                    "L'ape regina è la mamma di tutte.",
+                    "Insieme preparano il miele da mangiare!"
+                ],
+                dict: { "API": "🐝", "FIORI": "🌸", "NETTARE": "💧", "ALVEARE": "🍯", "REGINA": "👑", "MIELE": "🍯" },
+                magic: ["🐝", "🌸", "💧", "👑", "🍯"], colors: ["#fff200", "#ffcccc", "#c7ecee", "#f6e58d", "#fffde7"],
+                quiz: [
+                    { q: "COSA raccolgono le api dai fiori?", options: [ {t: "Il nettare dolce 💧", c: true}, {t: "I sassi 🪨", c: false} ] },
+                    { q: "COSA preparano di buono?", options: [ {t: "La pizza 🍕", c: false}, {t: "Il miele 🍯", c: true} ] }
+                ]
+            },
+            {
+                title: "I DINOSAURI CON LE PIUME 🦖", icon: "🦕",
+                sentences: [
+                    "Tanto tempo fa la Terra era dei dinosauri.",
+                    "Alcuni erano grandi, altri veloci e piccoli.",
+                    "Gli scienziati hanno scoperto un bel segreto.",
+                    "Tanti dinosauri feroci avevano le piume!",
+                    "Oggi gli uccelli sono i loro cuginetti."
+                ],
+                dict: { "TERRA": "🌍", "DINOSAURI": "🦖", "SCIENTIATI": "👩‍🔬", "PIUME": "🪶", "UCCELLI": "🦅" },
+                magic: ["🌍", "🦖", "🦴", "🪶", "🦅"], colors: ["#badc58", "#6ab04c", "#dff9fb", "#ffbe76", "#e8f5e9"],
+                quiz: [
+                    { q: "COSA avevano tanti dinosauri?", options: [ {t: "Le piume 🪶", c: true}, {t: "I cappelli 🎩", c: false} ] },
+                    { q: "CHI sono i loro cugini oggi?", options: [ {t: "I pesci 🐟", c: false}, {t: "Gli uccelli 🦅", c: true} ] }
+                ]
+            },
+            {
+                title: "IL VIAGGIO DELL'ACQUA 💧", icon: "🌧️",
+                sentences: [
+                    "Il Sole scalda l'acqua del mare azzurro.",
+                    "L'acqua sale nel cielo e diventa vapore.",
+                    "Lassù fa freddo e nascono le nuvole.",
+                    "Quando le nuvole sono piene cade la pioggia.",
+                    "L'acqua torna nel mare e il viaggio ricomincia!"
+                ],
+                dict: { "SOLE": "☀️", "ACQUA": "💧", "MARE": "🌊", "CIELO": "☁️", "NUVOLE": "🌥️", "PIOGGIA": "🌧️" },
+                magic: ["☀️", "💨", "☁️", "🌧️", "🌊"], colors: ["#fbc531", "#dcdde1", "#718093", "#0097e6", "#e1f5fe"],
+                quiz: [
+                    { q: "CHI scalda l'acqua del mare?", options: [ {t: "Il Sole ☀️", c: true}, {t: "La Luna 🌕", c: false} ] },
+                    { q: "COSA cade dalle nuvole?", options: [ {t: "La pioggia 🌧️", c: true}, {t: "Le caramelle 🍬", c: false} ] }
+                ]
+            },
+            {
+                title: "COME PARLANO GLI ALBERI 🌳", icon: "🍄",
+                sentences: [
+                    "Nel bosco gli alberi sembrano tutti fermi.",
+                    "Ma sotto terra hanno lunghe radici collegate.",
+                    "Usano i funghi per creare una rete segreta.",
+                    "Attraverso la rete si mandano il cibo.",
+                    "Così gli alberi grandi aiutano i piccoli!"
+                ],
+                dict: { "BOSCO": "🌲", "ALBERI": "🌳", "TERRA": "🟤", "RADICI": "🌱", "FUNGHI": "🍄" },
+                magic: ["🌲", "🌱", "🍄", "✉️", "❤️"], colors: ["#78e08f", "#b8e994", "#fad390", "#e55039", "#e8f5e9"],
+                quiz: [
+                    { q: "COSA usano gli alberi sotto terra?", options: [ {t: "I telefoni 📱", c: false}, {t: "Radici e funghi 🌱🍄", c: true} ] },
+                    { q: "CHI aiutano gli alberi grandi?", options: [ {t: "Gli alberi piccoli 👶", c: true}, {t: "Le automobili 🚗", c: false} ] }
+                ]
+            },
+            {
+                title: "IL TRUCCO DEL CAMALEONTE 🦎", icon: "🎨",
+                sentences: [
+                    "Il camaleonte è un rettile con occhi grandi.",
+                    "Cambia il suo colore per far vedere come sta.",
+                    "Se è felice diventa di colori vivaci.",
+                    "Ha una lingua lunghissima come una fionda.",
+                    "Con la lingua acchiappa gli insetti al volo!"
+                ],
+                dict: { "CAMALEONTE": "🦎", "OCCHI": "👀", "COLORE": "🎨", "LINGUA": "👅", "INSETTI": "🪲" },
+                magic: ["👀", "🎨", "☀️", "👅", "🪲"], colors: ["#b8e994", "#f8c291", "#ff7979", "#30336b", "#f6e58d"],
+                quiz: [
+                    { q: "COSA cambia il camaleonte?", options: [ {t: "Il suo colore 🎨", c: true}, {t: "Le scarpe 👟", c: false} ] },
+                    { q: "COM'È la sua lingua?", options: [ {t: "Corta 🤏", c: false}, {t: "Lunghissima 👅", c: true} ] }
+                ]
+            },
+            {
+                title: "IL CUORE DELLA TERRA 🌋", icon: "🔥",
+                sentences: [
+                    "Molto sotto i piedi la Terra è caldissima.",
+                    "C'è una roccia fusa che sembra fuoco.",
+                    "A volte questa roccia esce dal vulcano.",
+                    "Quando esce prende il nome di lava rossa.",
+                    "Raffreddandosi la lava diventa roccia dura!"
+                ],
+                dict: { "TERRA": "🌍", "FUOCO": "🔥", "VULCANO": "🌋", "LAVA": "🔴", "ROCCIA": "🪨" },
+                magic: ["🌍", "🟠", "🌋", "🔥", "🪨"], colors: ["#c8d6e5", "#ff9f43", "#ee5253", "#ff6b6b", "#576574"],
+                quiz: [
+                    { q: "DA DOVE esce la lava?", options: [ {t: "Dal vulcano 🌋", c: true}, {t: "Dal frigorifero 🧊", c: false} ] },
+                    { q: "COSA diventa la lava quando si raffredda?", options: [ {t: "Neve ❄️", c: false}, {t: "Roccia dura 🪨", c: true} ] }
+                ]
+            },
+            {
+                title: "LA MAGIA DELLA FARFALLA 🦋", icon: "🐛",
+                sentences: [
+                    "La farfalla nasce da un uovo minuscolo.",
+                    "Dall'uovo esce un bruco affamato di foglie.",
+                    "Poi il bruco si chiude nella crisalide.",
+                    "Lì dentro avvengono magie meravigliose.",
+                    "Infine vola via come una farfalla colorata!"
+                ],
+                dict: { "FARFALLA": "🦋", "UOVO": "🥚", "BRUCO": "🐛", "FOGLIE": "🍃", "CRISALIDE": "🪺" },
+                magic: ["🥚", "🐛", "🍃", "🪺", "🦋"], colors: ["#b8e994", "#78e08f", "#d1ccc0", "#2f3640", "#ff9ff3"],
+                quiz: [
+                    { q: "COSA nasce dall'uovo?", options: [ {t: "Un bruco affamato 🐛", c: true}, {t: "Un cagnolino 🐶", c: false} ] },
+                    { q: "DOVE si chiude il bruco per trasformarsi?", options: [ {t: "Nella crisalide 🪺", c: true}, {t: "In uno scatolone 📦", c: false} ] }
+                ]
+            },
+            {
+                title: "LE STELLE CADENTI 🌠", icon: "🌠",
+                sentences: [
+                    "Di notte in estate vediamo luci veloci nel cielo.",
+                    "Le chiamiamo stelle cadenti ma sono rocce spaziali.",
+                    "Quando entrano nell'aria iniziano a brillare.",
+                    "Lasciano una scia luminosa e bellissima.",
+                    "Vedi una scia e puoi esprimere un desiderio!"
+                ],
+                dict: { "NOTTE": "🌌", "CIELO": "🌠", "STELLE": "⭐", "ROCCE": "🪨", "DESIDERIO": "🪄" },
+                magic: ["🌌", "✨", "🪨", "🌠", "🪄"], colors: ["#192a56", "#273c75", "#353b48", "#718093", "#f5f6fa"],
+                quiz: [
+                    { q: "QUANDO si vedono le stelle cadenti?", options: [ {t: "Di notte in estate 🌌", c: true}, {t: "Di mattina presto 🌅", c: false} ] },
+                    { q: "COSA puoi fare quando ne vedi una?", options: [ {t: "Esprimere un desiderio 🪄", c: true}, {t: "Andare a dormire 😴", c: false} ] }
+                ]
+            },
+            {
+                title: "IL BALLO DEI GIRASOLI 🌻", icon: "🌻",
+                sentences: [
+                    "I girasoli sono fiori grandi e gialli.",
+                    "Amano tantissimo la luce calda del Sole.",
+                    "Di giorno girano la testa verso il Sole.",
+                    "Al centro hanno tanti semi neri e buoni.",
+                    "Gli uccellini ne vanno matti e li mangiano!"
+                ],
+                dict: { "GIRASOLI": "🌻", "FIORI": "🌼", "SOLE": "☀️", "SEMI": "⚫", "UCCELLINI": "🐦" },
+                magic: ["🌻", "🌅", "☀️", "🌼", "🐦"], colors: ["#fbc531", "#e1b12c", "#ff9f43", "#f39c12", "#e67e22"],
+                quiz: [
+                    { q: "COSA seguono i girasoli durante il giorno?", options: [ {t: "La Luna 🌕", c: false}, {t: "Il Sole ☀️", c: true} ] },
+                    { q: "CHI mangia i semi di girasole?", options: [ {t: "Gli uccellini 🐦", c: true}, {t: "I pesci 🐟", c: false} ] }
+                ]
+            },
+            {
+                title: "I DENTI DELLO SQUALO 🦈", icon: "🦈",
+                sentences: [
+                    "Lo squalo è un pesce grande del mare.",
+                    "Ha la bocca piena di denti affilati.",
+                    "Se perde un dente ne cresce subito un altro.",
+                    "Non ha ossa dure ma una cartillagine morbida.",
+                    "Per questo nuota veloce e senza rumore!"
+                ],
+                dict: { "SQUALO": "🦈", "PESCE": "🐟", "MARE": "🌊", "DENTI": "🦷", "NUOTA": "🏊" },
+                magic: ["🌊", "🐟", "👄", "🦷", "🦈"], colors: ["#487eb0", "#40739e", "#dcdde1", "#718093", "#2f3640"],
+                quiz: [
+                    { q: "COSA succede se uno squalo perde un dente?", options: [ {t: "Ne cresce uno nuovo 🦷", c: true}, {t: "Rimane senza denti 👄", c: false} ] },
+                    { q: "DOVE vive lo squalo?", options: [ {t: "Nel mare 🌊", c: true}, {t: "Sugli alberi 🌳", c: false} ] }
+                ]
+            },
+            {
+                title: "IL SONNO DEI DELFINI 🐬", icon: "🐬",
+                sentences: [
+                    "I delfini sono animali marini molto intelligenti.",
+                    "Salgono a galla per respirare l'aria bella.",
+                    "Quando dormono spengono metà del cervello.",
+                    "Tengono un occhio aperto per la sicurezza.",
+                    "Adorano fare grandi salti fuori dall'acqua!"
+                ],
+                dict: { "DELFINI": "🐬", "ARIA": "🌬️", "CERVELLO": "🧠", "OCCHIO": "👁️", "ACQUA": "💧" },
+                magic: ["🐬", "🌬️", "😴", "👁️", "🌊"], colors: ["#00a8ff", "#0097e6", "#48dbfb", "#0abde3", "#c7ecee"],
+                quiz: [
+                    { q: "COME dormono i delfini?", options: [ {t: "Con un occhio aperto 👁️", c: true}, {t: "Sotto la coperta 🛏️", c: false} ] },
+                    { q: "COSA amano fare?", options: [ {t: "Grandi salti nell'acqua 🐬", c: true}, {t: "Volare sugli aerei ✈️", c: false} ] }
+                ]
+            },
+            {
+                title: "IL GHIACCIO MAGICO 🧊", icon: "🧊",
+                sentences: [
+                    "Se metti un cubetto di ghiaccio galleggia.",
+                    "L'acqua congelata diventa più leggera.",
+                    "Grazie a questo gli orsi camminano sul ghiaccio.",
+                    "Anche i grandi iceberg non affondano mai.",
+                    "Il ghiaccio protegge i pesci sotto il mare!"
+                ],
+                dict: { "GHIACCIO": "🧊", "ACQUA": "💧", "ORSI": "🐻‍❄️", "ICEBERG": "🏔️", "PESCI": "🐟" },
+                magic: ["🧊", "💧", "🐻‍❄️", "🏔️", "🐟"], colors: ["#dff9fb", "#c7ecee", "#81ecec", "#00cec9", "#00b894"],
+                quiz: [
+                    { q: "COSA fa il ghiaccio nell'acqua?", options: [ {t: "Galleggia 🧊", c: true}, {t: "Va a fuoco 🔥", c: false} ] },
+                    { q: "CHI ci cammina sopra?", options: [ {t: "Gli orsi polari 🐻‍❄️", c: true}, {t: "Le scimmiette 🐒", c: false} ] }
+                ]
+            },
+            {
+                title: "IL COLORE DEL CIELO ☀️", icon: "🌤️",
+                sentences: [
+                    "La luce del Sole sembra trasparente.",
+                    "In realtà contiene tutti i colori dell'arcobaleno.",
+                    "Nell'aria il colore blu rimbalza forte.",
+                    "Per questo di giorno il cielo è blu.",
+                    "Al tramonto invece diventa rosso e arancione!"
+                ],
+                dict: { "LUCE": "🔦", "SOLE": "☀️", "ARCOBALENO": "🌈", "CIELO": "🌤️", "TRAMONTO": "🌇" },
+                magic: ["☀️", "🌈", "💨", "🔵", "🌇"], colors: ["#f9ca24", "#f6e58d", "#dff9fb", "#7ed6df", "#22a6b3"],
+                quiz: [
+                    { q: "DI CHE COLORE è il cielo di giorno?", options: [ {t: "Blu 🔵", c: true}, {t: "Verde 🟢", c: false} ] },
+                    { q: "COSA c'è dentro la luce del Sole?", options: [ {t: "I colori dell'arcobaleno 🌈", c: true}, {t: "La cioccolata 🍫", c: false} ] }
+                ]
+            },
+            {
+                title: "LO SCHELETRO SEGRETO 🦴", icon: "🦴",
+                sentences: [
+                    "Dentro il nostro corpo ci sono tante ossa.",
+                    "Tutte le ossa insieme formano lo scheletro.",
+                    "Lo scheletro ci tiene in piedi fortissimi.",
+                    "Protegge il nostro cuore e il cervello.",
+                    "Mangia latticini e fai sport per rinforzarlo!"
+                ],
+                dict: { "OSSA": "🦴", "SCHELETRO": "💀", "CUORE": "❤️", "CERVELLO": "🧠", "SPORT": "⚽" },
+                magic: ["🦴", "💀", "❤️", "🧠", "🥛"], colors: ["#ffda79", "#f7f1e3", "#d1ccc0", "#ff5252", "#34ace0"],
+                quiz: [
+                    { q: "COSA forma l'insieme delle nostre ossa?", options: [ {t: "Lo scheletro 💀", c: true}, {t: "Un vestito 👗", c: false} ] },
+                    { q: "COSA proteggono le ossa?", options: [ {t: "Cuore e cervello ❤️🧠", c: true}, {t: "Le scarpe 👟", c: false} ] }
+                ]
+            },
+            {
+                title: "IL VIAGGIO DEI SEMI 🌱", icon: "🌬️",
+                sentences: [
+                    "I semi delle piante devono viaggiare.",
+                    "Alcuni volano leggeri spinti dal vento.",
+                    "Altri si attaccano al pelo dei cani.",
+                    "Il seme di cocco galleggia sul mare.",
+                    "Così nascono nuove piante bellissime!"
+                ],
+                dict: { "SEMI": "🌱", "PIANTE": "🪴", "VENTO": "🌬️", "CANO": "🐕", "COCCO": "🥥" },
+                magic: ["🌱", "🌬️", "🐕", "🥥", "🪴"], colors: ["#33d9b2", "#218c74", "#b33939", "#ffb142", "#ff5252"],
+                quiz: [
+                    { q: "CHI aiuta alcuni semi a volare?", options: [ {t: "Il vento 🌬️", c: true}, {t: "L'automobile 🚗", c: false} ] },
+                    { q: "QUALE seme galleggia sul mare?", options: [ {t: "Il cocco 🥥", c: true}, {t: "La mela 🍎", c: false} ] }
+                ]
+            },
+            {
+                title: "LA BUSSOLA DEGLI UCCELLI 🦆", icon: "🧭",
+                sentences: [
+                    "Prima dell'inverno gli uccelli viaggiano al caldo.",
+                    "Volano insieme formando una V nel cielo.",
+                    "Hanno una bussola magica dentro la testa.",
+                    "Usano anche le stelle per non perdersi.",
+                    "In primavera tornano felici nel loro nido!"
+                ],
+                dict: { "UCCELLI": "🦆", "CIELO": "🌌", "BUSSOLA": "🧭", "STELLE": "⭐", "NIDO": "🪺" },
+                magic: ["❄️", "🦆", "🧭", "⭐", "🪺"], colors: ["#d1d8e0", "#a5b1c2", "#fd9644", "#fa8231", "#2bcbba"],
+                quiz: [
+                    { q: "COSA formano gli uccelli nel cielo?", options: [ {t: "Una lettera V 🦆", c: true}, {t: "Un cerchio ⭕", c: false} ] },
+                    { q: "COSA usano di notte per orientarsi?", options: [ {t: "Le stelle ⭐", c: true}, {t: "La torcia 🔦", c: false} ] }
+                ]
+            },
+            {
+                title: "QUANDO GLI ALBERI DORMONO 🍂", icon: "🍁",
+                sentences: [
+                    "In autunno fa più freddo e c'è meno sole.",
+                    "Gli alberi lasciamo cadere le loro foglie.",
+                    "Le foglie diventano gialle, rosse e arancioni.",
+                    "Formano un morbido tappeto sul terreno.",
+                    "In inverno l'albero riposa e dorme felice!"
+                ],
+                dict: { "AUTUNNO": "🍂", "FREDDO": "🥶", "ALBERI": "🌳", "FOGLIE": "🍁", "INVERNO": "⛄" },
+                magic: ["🍂", "🌳", "🍁", "🪆", "⛄"], colors: ["#ffb142", "#cc8e35", "#ff793f", "#d1ccc0", "#33d9b2"],
+                quiz: [
+                    { q: "IN QUALE stagione cadono le foglie?", options: [ {t: "In autunno 🍂", c: true}, {t: "In estate ☀️", c: false} ] },
+                    { q: "COSA fa l'albero in inverno?", options: [ {t: "Riposa e dorme 😴", c: true}, {t: "Va a ballare 💃", c: false} ] }
+                ]
+            },
+            {
+                title: "I CASTELLI SOTTOMARINI 🪸", icon: "🪸",
+                sentences: [
+                    "Nel mare ci sono le barriere coralline.",
+                    "I coralli sono tanti piccolissimi animali.",
+                    "Costruiscono grandi castelli sotto l'acqua.",
+                    "Lì vivono pesci e tartarughe felici.",
+                    "Dobbiamo proteggere il mare pulito!"
+                ],
+                dict: { "MARE": "🌊", "CORALLI": "🪸", "CASTELLI": "🏰", "PESCI": "🐠", "TARTARUGHE": "🐢" },
+                magic: ["🌊", "🪸", "🏰", "🐠", "🐢"], colors: ["#34ace0", "#227093", "#ff5252", "#b33939", "#ffb8b8"],
+                quiz: [
+                    { q: "COSA sono i coralli?", options: [ {t: "Piccoli animali 🪸", c: true}, {t: "Sassi finti 🪨", c: false} ] },
+                    { q: "CHI vive nei castelli di corallo?", options: [ {t: "Pesci e tartarughe 🐠🐢", c: true}, {t: "Gatti e cani 🐶", c: false} ] }
+                ]
+            },
+            {
+                title: "I ROBOT CHE IMPARANO 🤖", icon: "💻",
+                sentences: [
+                    "I computer sono macchine molto veloci.",
+                    "I programmatori scrivono regole nel codice.",
+                    "Oggi ci sono programmi che imparano da soli.",
+                    "Possono inventare storie e disegnare.",
+                    "Ma avranno sempre bisogno degli umani!"
+                ],
+                dict: { "COMPUTER": "💻", "ROBOT": "🤖", "CODICE": "🔢", "STORIE": "📖", "UMANI": "🙋‍♀️" },
+                magic: ["💻", "👨‍💻", "🔢", "🤖", "✨"], colors: ["#d1d8e0", "#a5b1c2", "#4b6584", "#20bf6b", "#0fb9b1"],
+                quiz: [
+                    { q: "COSA usano i computer per funzionare?", options: [ {t: "Il codice 🔢", c: true}, {t: "La farina 🌾", c: false} ] },
+                    { q: "DI CHI avranno sempre bisogno i robot?", options: [ {t: "Degli umani 🙋‍♀️", c: true}, {t: "Nessuno ❌", c: false} ] }
+                ]
+            }
+        ];
+
+        let currentStoryIndex = 0;
+        let sentenceCount = 0;
+        let currentReadCycle = 1; // Richieste 3 letture!
+        let totalScore = 0;
+        const maxReads = 3;
+
+        const stepInstructions = [
+            "Bravissima! Ora leggi la frase 2 e tocca la stella 2.",
+            "Ottimo! Leggi la frase 3 e tocca la stella 3.",
+            "Stai andando benissimo! Leggi la frase 4 e tocca la stella 4.",
+            "Ci sei quasi! Leggi la frase 5 e tocca la stella 5."
+        ];
+
+        function initDashboard() {
+            const grid = document.getElementById('levels-grid');
+            grid.innerHTML = '';
+            storiesData.forEach((story, idx) => {
+                const card = document.createElement('div');
+                card.className = 'level-card';
+                card.onclick = () => loadStory(idx);
+                card.innerHTML = `
+                    <div class="emoji">${story.icon}</div>
+                    <div class="title">${story.title}</div>
+                `;
+                grid.appendChild(card);
+            });
+            updateScoreDisplay();
+        }
+
+        function updateScoreDisplay() {
+            document.getElementById('score-display').innerText = `⭐ Punti: ${totalScore}`;
+            let badge = "Scienziata Junior 🐣";
+            if (totalScore >= 300) badge = "Esploratrice 🧭";
+            if (totalScore >= 700) badge = "Super Scienziata 🔬";
+            if (totalScore >= 1200) badge = "Campionessa Stellare 🌟";
+            document.getElementById('badge-display').innerText = `🎖️ Grado: ${badge}`;
+        }
+
+        function loadStory(index) {
+            currentStoryIndex = index;
+            sentenceCount = 0;
+            currentReadCycle = 1;
+
+            const story = storiesData[index];
+
+            document.getElementById('dashboard').style.display = 'none';
+            document.getElementById('story-view').style.display = 'block';
+            document.getElementById('story-title').innerText = story.title;
+
+            // Reset Trofei Letture
+            for (let i = 1; i <= 3; i++) {
+                document.getElementById(`trophy-${i}`).classList.remove('earned');
+            }
+
+            // Reset UI
+            setupReadCycle();
+            buildQuiz(story.quiz);
+        }
+
+        function setupReadCycle() {
+            sentenceCount = 0;
+            document.getElementById('textDisplay').innerHTML = '';
+            document.getElementById('magic-scene').innerHTML = '<span id="base-scene">✨</span>';
+            document.getElementById('magic-scene').style.backgroundColor = "#f9f9f9";
+            document.getElementById('stars-container').style.display = 'flex';
+            document.getElementById('next-read-btn').style.display = 'none';
+            document.getElementById('quiz-section').style.display = 'none';
+
+            document.getElementById('msg').innerHTML = `Lettura ${currentReadCycle} di 3! Leggi la prima frase e tocca la stella 1.`;
+            document.getElementById('msg').style.background = "#ffebee";
+            document.getElementById('msg').style.borderColor = "#ef9a9a";
+            document.getElementById('msg').style.color = "#d32f2f";
+
+            // Reset Stelle
+            for (let i = 1; i <= 5; i++) {
+                let star = document.getElementById(`s${i}`);
+                star.className = 'star';
+                if (i > 1) star.classList.add('disabled');
+            }
+
+            renderStoryPart(0);
+        }
+
+        function renderStoryPart(index) {
+            const story = storiesData[currentStoryIndex];
+            const display = document.getElementById('textDisplay');
+            const newPart = document.createElement('div');
+            newPart.className = 'story-part';
+
+            const htmlWords = story.sentences[index].split(/\s+/).map(word => {
+                const clean = word.replace(/[.,!'’!?…—"-]/g, '').toUpperCase();
+                const emoji = story.dict[clean];
+                
+                if (emoji) {
+                    return `<span class="interactive-word" onclick="toggleTouch(this, event)">${word}<div class="word-tooltip">${emoji}</div></span>`;
+                }
+                return `<span class="interactive-word" onclick="toggleTouch(this, event)">${word}</span>`;
+            }).join(' ');
+
+            newPart.innerHTML = htmlWords;
+            display.appendChild(newPart);
+        }
+
+        function toggleTouch(el, event) {
+            event.stopPropagation();
+            document.querySelectorAll('.interactive-word').forEach(w => w.classList.remove('active-touch'));
+            el.classList.add('active-touch');
+        }
+
+        function clearTouch(event) {
+            if (!event.target.classList.contains('interactive-word')) {
+                document.querySelectorAll('.interactive-word').forEach(w => w.classList.remove('active-touch'));
+            }
+        }
+
+        function addMagic(emoji, top, left) {
+            const scene = document.getElementById('magic-scene');
+            const span = document.createElement('span');
+            span.innerText = emoji;
+            span.className = 'magic-item';
+            span.style.top = top + '%';
+            span.style.left = left + '%';
+            scene.appendChild(span);
+        }
+
+        function playSound(frequency) {
+            const audioCtx = new (window.AudioContext || window.webkitAudioContext)();
+            const osc = audioCtx.createOscillator();
+            const gain = audioCtx.createGain();
+            osc.connect(gain);
+            gain.connect(audioCtx.destination);
+            osc.frequency.value = frequency;
+            gain.gain.exponentialRampToValueAtTime(0.01, audioCtx.currentTime + 0.2);
+            osc.start(); osc.stop(audioCtx.currentTime + 0.2);
+        }
+
+        function registerRead(num) {
+            if (num !== sentenceCount + 1) return; 
+            
+            sentenceCount = num;
+            const story = storiesData[currentStoryIndex];
+            const scene = document.getElementById('magic-scene');
+            
+            document.getElementById(`s${sentenceCount}`).classList.add('active');
+
+            if (sentenceCount < 5) {
+                document.getElementById(`s${sentenceCount+1}`).classList.remove('disabled');
+                document.getElementById('msg').innerHTML = stepInstructions[sentenceCount-1];
+                renderStoryPart(sentenceCount);
+            }
+
+            // Aggiungi magia visiva
+            scene.style.backgroundColor = story.colors[sentenceCount-1];
+            addMagic(story.magic[sentenceCount-1], 20 + Math.random()*40, 15 + Math.random()*60);
+
+            // Fine di UNA lettura completa (5 stelle)
+            if(sentenceCount === 5) {
+                document.getElementById(`trophy-${currentReadCycle}`).classList.add('earned');
+                document.getElementById('stars-container').style.display = 'none';
+
+                totalScore += 50; // Punti per ogni lettura completata
+                updateScoreDisplay();
+
+                if (currentReadCycle < maxReads) {
+                    confetti({ particleCount: 50, spread: 60, origin: { y: 0.7 } });
+                    document.getElementById('msg').innerHTML = `Bravissima! Hai completato la lettura ${currentReadCycle} di ${maxReads}! 🎉 (+50 Punti)`;
+                    document.getElementById('msg').style.background = "#e8f5e9";
+                    document.getElementById('msg').style.borderColor = "#4caf50";
+                    document.getElementById('msg').style.color = "#2e7d32";
+
+                    const nextBtn = document.getElementById('next-read-btn');
+                    nextBtn.innerText = `Inizia la Lettura ${currentReadCycle + 1} ▶️`;
+                    nextBtn.style.display = 'block';
+                } else {
+                    // Completate tutte e 3 le letture!
+                    document.getElementById('msg').innerHTML = `COMPLIMENTI JULIE! 🏆 Hai letto la storia 3 volte! Ora gioca al Quiz Finale!`;
+                    document.getElementById('msg').style.background = "#e8f5e9";
+                    document.getElementById('msg').style.borderColor = "#4caf50";
+                    document.getElementById('msg').style.color = "#2e7d32";
+
+                    confetti({ particleCount: 120, spread: 80, origin: { y: 0.6 } });
+
+                    setTimeout(() => {
+                        document.getElementById('quiz-section').style.display = 'block';
+                        window.scrollTo({ top: document.body.scrollHeight, behavior: 'smooth' });
+                    }, 1200);
+                }
+            }
+            
+            playSound(400 + (sentenceCount * 100));
+        }
+
+        function startNextReadCycle() {
+            currentReadCycle++;
+            setupReadCycle();
+            window.scrollTo({ top: 0, behavior: 'smooth' });
+            playSound(300);
+        }
+
+        function buildQuiz(quizData) {
+            const container = document.getElementById('quiz-container');
+            container.innerHTML = '';
+            
+            quizData.forEach((qObj, qIndex) => {
+                const qDiv = document.createElement('div');
+                qDiv.style.marginBottom = "20px";
+                qDiv.innerHTML = `<div class="quiz-question">${qObj.q}</div>`;
+                
+                qObj.options.forEach(opt => {
+                    const btn = document.createElement('button');
+                    btn.className = 'quiz-btn';
+                    btn.innerText = opt.t;
+                    btn.onclick = () => checkAnswer(btn, qIndex + 1, opt.c);
+                    qDiv.appendChild(btn);
+                });
+
+                const fb = document.createElement('div');
+                fb.id = `feedback-${qIndex + 1}`;
+                fb.className = 'feedback';
+                qDiv.appendChild(fb);
+
+                container.appendChild(qDiv);
+            });
+        }
+
+        function checkAnswer(btn, questionNum, isCorrect) {
+            const feedback = document.getElementById(`feedback-${questionNum}`);
+            const siblings = btn.parentElement.querySelectorAll('.quiz-btn');
+            siblings.forEach(b => b.style.pointerEvents = 'none');
+
+            if (isCorrect) {
+                btn.classList.add('correct');
+                feedback.innerHTML = "✨ Esatto! Bravissima! (+20 Punti)";
+                feedback.style.color = "#2e7d32";
+                
+                totalScore += 20;
+                updateScoreDisplay();
+
+                confetti({ particleCount: 50, spread: 40, origin: { y: 0.8 } });
+            } else {
+                btn.classList.add('wrong');
+                feedback.innerHTML = "Ops! Riprova.";
+                feedback.style.color = "#c62828";
+                setTimeout(() => {
+                    btn.classList.remove('wrong');
+                    feedback.innerHTML = "";
+                    siblings.forEach(b => b.style.pointerEvents = 'auto');
+                }, 1800);
+            }
+        }
+
+        function goHome() {
+            document.getElementById('story-view').style.display = 'none';
+            document.getElementById('dashboard').style.display = 'block';
+            initDashboard();
+        }
+
+        // Avvio iniziale
+        initDashboard();
+    </script>
+</body>
+</html>
