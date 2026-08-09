@@ -1,39 +1,63 @@
 const GIOCHI_DATA = [
   {
+    "name": "prenotazioneGoogle.html",
+    "path": "prenotazioneGoogle.html",
+    "category": "Vari",
+    "updatedAt": 1786263284671
+  },
+  {
+    "name": "index2.html",
+    "path": "index2.html",
+    "category": "Vari",
+    "updatedAt": 1786263284670
+  },
+  {
+    "name": "indexOld.html",
+    "path": "indexOld.html",
+    "category": "Vari",
+    "updatedAt": 1786263284670
+  },
+  {
+    "name": "prova.html",
+    "path": "Palestra 2026/prova.html",
+    "category": "Palestra 2026",
+    "updatedAt": 1786263284668
+  },
+  {
+    "name": "Dashboard_Report_febbraio_2026.html",
+    "path": "Julie/Matematica/Dashboard_Report_febbraio_2026.html",
+    "category": "Matematica",
+    "updatedAt": 1786263284668
+  },
+  {
     "name": "vacanze-julie.html",
     "path": "Julie/Italiano/vacanze-julie.html",
     "category": "Italiano",
-    "updatedAt": 1786263087202
+    "updatedAt": 1786263284667
   },
   {
     "name": "vacanze-Julie.html",
     "path": "Julie/Italiano/prove/vacanze-Julie.html",
     "category": "prove",
-    "updatedAt": 1786262858879
+    "updatedAt": 1786263284667
+  },
+  {
+    "name": "pepper-prova.html",
+    "path": "Julie/Italiano/pepper-prova.html",
+    "category": "Italiano",
+    "updatedAt": 1786263284666
   },
   {
     "name": "prova.html",
     "path": "Julie/Italiano/prove/prova.html",
     "category": "prove",
-    "updatedAt": 1786262447338
-  },
-  {
-    "name": "vacanze_julie_canc.html",
-    "path": "Julie/Italiano/prove/vacanze_julie_canc.html",
-    "category": "prove",
-    "updatedAt": 1779873352698
+    "updatedAt": 1786263284666
   },
   {
     "name": "Julie-albero-azzurro.html",
     "path": "Julie/Italiano/Julie-albero-azzurro.html",
     "category": "Italiano",
     "updatedAt": 1779444955000
-  },
-  {
-    "name": "julie-gimmi.html",
-    "path": "Julie/Italiano/julie-gimmi.html",
-    "category": "Italiano",
-    "updatedAt": 1778679818114
   },
   {
     "name": "julie-gimmi.html",
@@ -108,12 +132,6 @@ const GIOCHI_DATA = [
     "updatedAt": 1775133701403
   },
   {
-    "name": "Dashboard_Report_febbraio_2026.html",
-    "path": "Julie/Matematica/Dashboard_Report_febbraio_2026.html",
-    "category": "Matematica",
-    "updatedAt": 1775038003059
-  },
-  {
     "name": "julie-pepper-prova2.html",
     "path": "Julie/Italiano/julie-pepper-prova2.html",
     "category": "Italiano",
@@ -154,18 +172,6 @@ const GIOCHI_DATA = [
     "path": "Julie/Matematica/julie-obiettivo9.html",
     "category": "Matematica",
     "updatedAt": 1773693022707
-  },
-  {
-    "name": "index2.html",
-    "path": "index2.html",
-    "category": "Vari",
-    "updatedAt": 1773568105663
-  },
-  {
-    "name": "indexOld.html",
-    "path": "indexOld.html",
-    "category": "Vari",
-    "updatedAt": 1773568099647
   },
   {
     "name": "julie-amici-numeri-avanzato.html",
@@ -264,12 +270,6 @@ const GIOCHI_DATA = [
     "updatedAt": 1770367860776
   },
   {
-    "name": "prova.html",
-    "path": "Palestra 2026/prova.html",
-    "category": "Palestra 2026",
-    "updatedAt": 1770275667052
-  },
-  {
     "name": "sifda-numeri-succ-prec.html",
     "path": "Julie/Matematica/sifda-numeri-succ-prec.html",
     "category": "Matematica",
@@ -322,12 +322,6 @@ const GIOCHI_DATA = [
     "path": "Chris/chris-dino-spiderman.html",
     "category": "Chris",
     "updatedAt": 1768759161816
-  },
-  {
-    "name": "prenotazioneGoogle.html",
-    "path": "prenotazioneGoogle.html",
-    "category": "Vari",
-    "updatedAt": 1768758594050
   },
   {
     "name": "Babbo-Natale-Giroscopio.html",
