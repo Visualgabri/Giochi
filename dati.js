@@ -1,5 +1,41 @@
 const GIOCHI_DATA = [
   {
+    "name": "chris_cinematic_3d_BULO.html",
+    "path": "Chris/chris_cinematic_3d_BULO.html",
+    "category": "Chris",
+    "updatedAt": 1791924643878
+  },
+  {
+    "name": "chris_cinematic_3d.html",
+    "path": "Chris/chris_cinematic_3d.html",
+    "category": "Chris",
+    "updatedAt": 1791663737143
+  },
+  {
+    "name": "chris_supereroi_3d_flash.html",
+    "path": "Chris/chris_supereroi_3d_flash.html",
+    "category": "Chris",
+    "updatedAt": 1791577712931
+  },
+  {
+    "name": "chris_supereroi_3d.html",
+    "path": "Chris/chris_supereroi_3d.html",
+    "category": "Chris",
+    "updatedAt": 1791576054231
+  },
+  {
+    "name": "chris_avventura_stellare_deluxe.html",
+    "path": "Chris/chris_avventura_stellare_deluxe.html",
+    "category": "Chris",
+    "updatedAt": 1791574796110
+  },
+  {
+    "name": "chris_famiglia_magica.html",
+    "path": "Chris/chris_famiglia_magica.html",
+    "category": "Chris",
+    "updatedAt": 1791574509374
+  },
+  {
     "name": "prenotazioneGoogle.html",
     "path": "prenotazioneGoogle.html",
     "category": "Vari",
