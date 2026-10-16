@@ -1,0 +1,262 @@
+<!DOCTYPE html>
+<html lang="it">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Julie - Un Nuovo Amico ⚽👫</title>
+    <link href="https://fonts.googleapis.com/css2?family=Patrick+Hand&family=Fredoka+One&display=swap" rel="stylesheet">
+    <script src="https://cdn.jsdelivr.net/npm/canvas-confetti@1.6.0/dist/confetti.browser.min.js"></script>
+    <style>
+        :root {
+            --bg-page: #f0fdf4; 
+            --highlight-text: #14532d;
+            --highlight-bg: #dcfce7;
+            --primary-color: #16a34a;
+            --text-color: #1f2937;
+            --border-color: #86efac;
+        }
+
+        body {
+            font-family: 'Patrick Hand', cursive;
+            margin: 0;
+            min-height: 100vh;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            background-color: var(--bg-page);
+            user-select: none;
+            padding-bottom: 50px;
+        }
+
+        .container {
+            max-width: 850px;
+            width: 90%;
+            background: #ffffff;
+            padding: 2rem;
+            border-radius: 30px;
+            box-shadow: 0 10px 25px rgba(0,0,0,0.05);
+            margin-top: 20px;
+            text-align: center;
+            border: 5px solid var(--border-color);
+        }
+
+        h1 { 
+            font-family: 'Fredoka One', cursive; 
+            color: var(--primary-color); 
+            font-size: 2.2rem; 
+            margin-bottom: 10px;
+            text-transform: uppercase;
+            padding: 0 10px;
+        }
+
+        .story-box {
+            font-size: 1.7rem;
+            line-height: 1.6;
+            text-align: left;
+            padding: 25px;
+            background: #f8fafc;
+            border-radius: 20px;
+            border: 2px dashed var(--border-color);
+            margin: 15px 0;
+            white-space: pre-line;
+            color: var(--text-color);
+        }
+
+        .interactive-word {
+            display: inline-block;
+            transition: all 0.2s;
+            position: relative;
+            cursor: pointer;
+            padding: 2px 4px;
+            border-radius: 6px;
+        }
+        
+        .interactive-word:hover {
+            color: #000;
+            background-color: var(--highlight-bg);
+            transform: scale(1.1);
+            z-index: 10;
+        }
+
+        .word-tooltip {
+            position: absolute;
+            bottom: 125%;
+            left: 50%;
+            transform: translateX(-50%);
+            font-size: 3.5rem;
+            background: white;
+            padding: 5px 15px;
+            border-radius: 20px;
+            box-shadow: 0 8px 20px rgba(0,0,0,0.1);
+            opacity: 0;
+            visibility: hidden;
+            transition: 0.3s;
+            z-index: 100;
+            border: 2px solid var(--border-color);
+        }
+
+        .interactive-word:hover .word-tooltip {
+            opacity: 1;
+            visibility: visible;
+        }
+
+        #magic-scene {
+            height: 180px;
+            background: #f9f9f9;
+            border-radius: 20px;
+            margin: 20px 0;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            font-size: 5rem;
+            position: relative;
+            border: 3px solid var(--border-color);
+            transition: background-color 0.8s;
+            overflow: hidden;
+        }
+
+        .magic-item { position: absolute; animation: bounceIn 0.6s ease-out; }
+        @keyframes bounceIn { 0% { transform: scale(0); } 100% { transform: scale(1); } }
+
+        .stars-container { display: flex; gap: 15px; font-size: 3.5rem; color: #cbd5e1; justify-content: center; margin: 15px 0; }
+        .star { cursor: pointer; transition: 0.3s; }
+        .star.active { color: #f59e0b; transform: scale(1.2); text-shadow: 0 0 15px rgba(245, 158, 11, 0.5); }
+        #msg { font-size: 1.5rem; color: var(--primary-color); font-weight: bold; min-height: 1.5em; padding: 0 10px;}
+    </style>
+</head>
+<body>
+
+    <div class="container">
+        <h1>UN NUOVO AMICO ⚽👫</h1>
+        
+        <div class="story-box">
+            <div id="textDisplay"></div>
+        </div>
+
+        <div id="magic-scene">
+            <span id="base-scene">⚽</span>
+        </div>
+
+        <div class="controls">
+            <div id="msg">Julie, leggi una parte e tocca la stella!</div>
+            <div class="stars-container">
+                <div class="star" onclick="registerRead(1)" id="s1">★</div>
+                <div class="star" onclick="registerRead(2)" id="s2">★</div>
+                <div class="star" onclick="registerRead(3)" id="s3">★</div>
+                <div class="star" onclick="registerRead(4)" id="s4">★</div>
+                <div class="star" onclick="registerRead(5)" id="s5">★</div>
+            </div>
+        </div>
+    </div>
+
+    <script>
+        const dictionary = {
+            "BAMBINA": "👧", "GIARDINI": "🌳", "RAGAZZI": "👦", "RAGAZZINO": "👦",
+            "PALLONE": "⚽", "PALLA": "⚽", "GIOCATORE": "🏃", "CORRERE": "🏃‍♀️",
+            "CALCI": "🦶", "PARTITA": "🏟️", "FIATONE": "😮‍💨", "MARGHERITA": "🌼",
+            "MACELLO": "🌪️", "ALDO": "👦", "AMICO": "🤝"
+        };
+
+        const storyText = `Da bambina andavo sempre a giocare ai giardini pubblici e chiedevo ai gruppetti di ragazzi: - Posso giocare con voi?
+- No, tu no!
+Finché, un giorno, un ragazzino più grande venne da me e chiese: - Sai giocare a pallone? Siamo quattro contro cinque, ci serve un giocatore in più.
+Non sapevo niente di pallone. Ma se ci giocavano tutti, non doveva essere così difficile.
+- Sono bravissima! - risposi.
+E cominciai a correre dietro la palla, tirando calci qua e là.
+Alla fine della partita il ragazzino si avvicinò: - Come ti chiami? - domandò, ancora con il fiatone.
+- Margherita.
+- Va bene, Margherita. Da oggi giochi con noi. A pallone sei un macello, però almeno sei simpatica. Comunque, io mi chiamo Aldo.
+Aldo fu il mio primo vero amico.`;
+
+        function buildText() {
+            const display = document.getElementById('textDisplay');
+            display.innerHTML = storyText.split(/\s+/).map(word => {
+                const clean = word.replace(/[.,!'’!?…—"()\-:]/g, '').toUpperCase();
+                const emoji = dictionary[clean];
+                
+                if (emoji) {
+                    return `<span class="interactive-word">${word}<div class="word-tooltip">${emoji}</div></span>`;
+                }
+                return `<span class="interactive-word">${word}</span>`;
+            }).join(' ');
+        }
+
+        buildText();
+
+        let count = 0;
+        const messages = [
+            "Margherita voleva giocare ai giardini, ma le dicevano di no! 🌳👧",
+            "Un ragazzino le chiede se sa giocare a pallone... ⚽👦",
+            "Lei dice di sì e corre a tirare calci alla palla! 🏃‍♀️🦶",
+            "A pallone è un macello, ma è molto simpatica! 🌪️🌼",
+            "BRAVISSIMA JULIE! Aldo diventa il suo primo vero amico! 🤝🎉"
+        ];
+
+        function addMagic(emoji, top, left) {
+            const scene = document.getElementById('magic-scene');
+            const span = document.createElement('span');
+            span.innerText = emoji;
+            span.className = 'magic-item';
+            span.style.top = top + '%';
+            span.style.left = left + '%';
+            scene.appendChild(span);
+        }
+
+        function registerRead(num) {
+            if (num !== count + 1) return;
+            
+            count = num;
+            const scene = document.getElementById('magic-scene');
+            document.getElementById(`s${count}`).classList.add('active');
+            document.getElementById('msg').innerText = messages[count-1];
+
+            if(count === 1) {
+                scene.style.backgroundColor = "#e0f2fe";
+                addMagic("🌳", 30, 20); 
+                addMagic("👧", 60, 50);
+                addMagic("🚫", 20, 70);
+            }
+            if(count === 2) {
+                scene.style.backgroundColor = "#fef08a";
+                addMagic("👦", 40, 20);
+                addMagic("⚽", 60, 50);
+                addMagic("❓", 30, 75);
+            }
+            if(count === 3) {
+                scene.style.backgroundColor = "#dcfce7";
+                addMagic("🏃‍♀️", 50, 40);
+                addMagic("⚽", 30, 60);
+                addMagic("🦶", 60, 70);
+            }
+            if(count === 4) {
+                scene.style.backgroundColor = "#fce7f3";
+                addMagic("🌪️", 30, 20);
+                addMagic("🌼", 60, 50);
+                addMagic("😄", 20, 80);
+            }
+            if(count === 5) {
+                scene.style.backgroundColor = "#ffffff";
+                addMagic("👦", 50, 30);
+                addMagic("🤝", 40, 50);
+                addMagic("👧", 50, 70);
+                addMagic("⚽", 70, 50);
+                confetti({ 
+                    particleCount: 150, 
+                    spread: 80, 
+                    origin: { y: 0.6 },
+                    colors: ['#16a34a', '#f59e0b', '#3b82f6']
+                });
+            }
+            
+            const audioCtx = new (window.AudioContext || window.webkitAudioContext)();
+            const osc = audioCtx.createOscillator();
+            const gain = audioCtx.createGain();
+            osc.connect(gain);
+            gain.connect(audioCtx.destination);
+            osc.frequency.value = 400 + (count * 80);
+            gain.gain.exponentialRampToValueAtTime(0.01, audioCtx.currentTime + 0.2);
+            osc.start(); osc.stop(audioCtx.currentTime + 0.2);
+        }
+    </script>
+</body>
+</html>

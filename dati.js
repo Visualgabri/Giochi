@@ -1,5 +1,17 @@
 const GIOCHI_DATA = [
   {
+    "name": "nuovo_amico.html",
+    "path": "Julie/Italiano/nuovo_amico.html",
+    "category": "Italiano",
+    "updatedAt": 1792179306053.2078
+  },
+  {
+    "name": "julie-scambio.html",
+    "path": "Julie/Italiano/julie-scambio.html",
+    "category": "Italiano",
+    "updatedAt": 1791982123464
+  },
+  {
     "name": "chris_cinematic_3d_BULO.html",
     "path": "Chris/chris_cinematic_3d_BULO.html",
     "category": "Chris",
