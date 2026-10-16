@@ -1,5 +1,23 @@
 const GIOCHI_DATA = [
   {
+    "name": "Julie_Un_Nuovo_Amico_3D.html",
+    "path": "Julie/Italiano/Julie_Un_Nuovo_Amico_3D.html",
+    "category": "Italiano",
+    "updatedAt": 1792180454479
+  },
+  {
+    "name": "nuovo_amico_3d_fix.html",
+    "path": "Julie/Italiano/nuovo_amico_3d_fix.html",
+    "category": "Italiano",
+    "updatedAt": 1792180207806
+  },
+  {
+    "name": "nuovo_amico_3d.html",
+    "path": "Julie/Italiano/nuovo_amico_3d.html",
+    "category": "Italiano",
+    "updatedAt": 1792179584815
+  },
+  {
     "name": "nuovo_amico.html",
     "path": "Julie/Italiano/nuovo_amico.html",
     "category": "Italiano",
