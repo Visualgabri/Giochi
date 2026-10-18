@@ -1,5 +1,11 @@
 const GIOCHI_DATA = [
   {
+    "name": "Julie_Avventura_Sottrazioni_3D.html",
+    "path": "Julie/Matematica/Julie_Avventura_Sottrazioni_3D.html",
+    "category": "Matematica",
+    "updatedAt": 1792352149045
+  },
+  {
     "name": "Julie_Un_Nuovo_Amico_3D.html",
     "path": "Julie/Italiano/Julie_Un_Nuovo_Amico_3D.html",
     "category": "Italiano",
