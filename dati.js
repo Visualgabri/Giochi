@@ -1,5 +1,11 @@
 const GIOCHI_DATA = [
   {
+    "name": "Anna_Furiosa_Avventura_3D_Julie-2.html",
+    "path": "Julie/Italiano/Anna_Furiosa_Avventura_3D_Julie-2.html",
+    "category": "Italiano",
+    "updatedAt": 1792417523421
+  },
+  {
     "name": "zero_gravity_roma_avventura_5_livelli.html",
     "path": "Chris/zero_gravity_roma_avventura_5_livelli.html",
     "category": "Chris",
