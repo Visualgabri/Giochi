@@ -1,5 +1,11 @@
 const GIOCHI_DATA = [
   {
+    "name": "Senza_Amici_Avventura_3D_Julie.html",
+    "path": "Julie/Italiano/Senza_Amici_Avventura_3D_Julie.html",
+    "category": "Italiano",
+    "updatedAt": 1792587676415
+  },
+  {
     "name": "Anna_Furiosa_Avventura_3D_Julie-2.html",
     "path": "Julie/Italiano/Anna_Furiosa_Avventura_3D_Julie-2.html",
     "category": "Italiano",
