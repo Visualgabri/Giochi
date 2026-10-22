@@ -1,5 +1,11 @@
 const GIOCHI_DATA = [
   {
+    "name": "Insieme_e_piu_bello_Julie_3D.html",
+    "path": "Julie/Italiano/Insieme_e_piu_bello_Julie_3D.html",
+    "category": "Italiano",
+    "updatedAt": 1792673915425
+  },
+  {
     "name": "Senza_Amici_Avventura_3D_Julie.html",
     "path": "Julie/Italiano/Senza_Amici_Avventura_3D_Julie.html",
     "category": "Italiano",
