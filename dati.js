@@ -1,5 +1,11 @@
 const GIOCHI_DATA = [
   {
+    "name": "Fortunata_Julie_3D.html",
+    "path": "Julie/Italiano/Fortunata_Julie_3D.html",
+    "category": "Italiano",
+    "updatedAt": 1792864745957
+  },
+  {
     "name": "Insieme_e_piu_bello_Julie_3D.html",
     "path": "Julie/Italiano/Insieme_e_piu_bello_Julie_3D.html",
     "category": "Italiano",
