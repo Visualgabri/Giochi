@@ -1,5 +1,29 @@
 const GIOCHI_DATA = [
   {
+    "name": "Sorrisi_contagiosi_Julie_3D.html",
+    "path": "Julie/Italiano/Sorrisi_contagiosi_Julie_3D.html",
+    "category": "Italiano",
+    "updatedAt": 1792869749421
+  },
+  {
+    "name": "La_cosa_pi_importante_Julie_3D.html",
+    "path": "Julie/Italiano/La_cosa_pi_importante_Julie_3D.html",
+    "category": "Italiano",
+    "updatedAt": 1792869746709
+  },
+  {
+    "name": "Il_trasloco_Julie_3D.html",
+    "path": "Julie/Italiano/Il_trasloco_Julie_3D.html",
+    "category": "Italiano",
+    "updatedAt": 1792869743622
+  },
+  {
+    "name": "Un_amico_speciale_Julie_3D.html",
+    "path": "Julie/Italiano/Un_amico_speciale_Julie_3D.html",
+    "category": "Italiano",
+    "updatedAt": 1792869740414
+  },
+  {
     "name": "Fortunata_Julie_3D.html",
     "path": "Julie/Italiano/Fortunata_Julie_3D.html",
     "category": "Italiano",
