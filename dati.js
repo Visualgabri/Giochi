@@ -1,5 +1,95 @@
 const GIOCHI_DATA = [
   {
+    "name": "Magica_stagione_Julie_3D.html",
+    "path": "Julie/Italiano/Magica_stagione_Julie_3D.html",
+    "category": "Italiano",
+    "updatedAt": 1793553669339
+  },
+  {
+    "name": "Giochi_in_autunno_Julie_3D.html",
+    "path": "Julie/Italiano/Giochi_in_autunno_Julie_3D.html",
+    "category": "Italiano",
+    "updatedAt": 1793553664640
+  },
+  {
+    "name": "Sorrisi_contagiosi_Julie_3D.html",
+    "path": "Julie/Italiano/Sorrisi_contagiosi_Julie_3D.html",
+    "category": "Italiano",
+    "updatedAt": 1792869749421
+  },
+  {
+    "name": "La_cosa_pi_importante_Julie_3D.html",
+    "path": "Julie/Italiano/La_cosa_pi_importante_Julie_3D.html",
+    "category": "Italiano",
+    "updatedAt": 1792869746709
+  },
+  {
+    "name": "Il_trasloco_Julie_3D.html",
+    "path": "Julie/Italiano/Il_trasloco_Julie_3D.html",
+    "category": "Italiano",
+    "updatedAt": 1792869743622
+  },
+  {
+    "name": "Un_amico_speciale_Julie_3D.html",
+    "path": "Julie/Italiano/Un_amico_speciale_Julie_3D.html",
+    "category": "Italiano",
+    "updatedAt": 1792869740414
+  },
+  {
+    "name": "Fortunata_Julie_3D.html",
+    "path": "Julie/Italiano/Fortunata_Julie_3D.html",
+    "category": "Italiano",
+    "updatedAt": 1792864745957
+  },
+  {
+    "name": "Insieme_e_piu_bello_Julie_3D.html",
+    "path": "Julie/Italiano/Insieme_e_piu_bello_Julie_3D.html",
+    "category": "Italiano",
+    "updatedAt": 1792673915425
+  },
+  {
+    "name": "Senza_Amici_Avventura_3D_Julie.html",
+    "path": "Julie/Italiano/Senza_Amici_Avventura_3D_Julie.html",
+    "category": "Italiano",
+    "updatedAt": 1792587676415
+  },
+  {
+    "name": "Anna_Furiosa_Avventura_3D_Julie-2.html",
+    "path": "Julie/Italiano/Anna_Furiosa_Avventura_3D_Julie-2.html",
+    "category": "Italiano",
+    "updatedAt": 1792417523421
+  },
+  {
+    "name": "zero_gravity_roma_avventura_5_livelli.html",
+    "path": "Chris/zero_gravity_roma_avventura_5_livelli.html",
+    "category": "Chris",
+    "updatedAt": 1792353832254
+  },
+  {
+    "name": "Julie_Avventura_Sottrazioni_3D.html",
+    "path": "Julie/Matematica/Julie_Avventura_Sottrazioni_3D.html",
+    "category": "Matematica",
+    "updatedAt": 1792352149045
+  },
+  {
+    "name": "Julie_Un_Nuovo_Amico_3D.html",
+    "path": "Julie/Italiano/Julie_Un_Nuovo_Amico_3D.html",
+    "category": "Italiano",
+    "updatedAt": 1792180454479.1028
+  },
+  {
+    "name": "nuovo_amico_3d_fix.html",
+    "path": "Julie/Italiano/nuovo_amico_3d_fix.html",
+    "category": "Italiano",
+    "updatedAt": 1792180207806.7844
+  },
+  {
+    "name": "nuovo_amico_3d.html",
+    "path": "Julie/Italiano/nuovo_amico_3d.html",
+    "category": "Italiano",
+    "updatedAt": 1792179584815.233
+  },
+  {
     "name": "nuovo_amico.html",
     "path": "Julie/Italiano/nuovo_amico.html",
     "category": "Italiano",

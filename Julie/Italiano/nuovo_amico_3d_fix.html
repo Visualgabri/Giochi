@@ -1,0 +1,436 @@
+<!DOCTYPE html>
+<html lang="it">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Julie - Un Nuovo Amico 3D ⚽👫</title>
+    <link href="https://fonts.googleapis.com/css2?family=Nunito:wght@400;700;900&family=Fredoka+One&display=swap" rel="stylesheet">
+    <script src="https://cdn.jsdelivr.net/npm/canvas-confetti@1.6.0/dist/confetti.browser.min.js"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/three.js/r128/three.min.js"></script>
+    <style>
+        :root {
+            --primary: #10b981;
+            --secondary: #3b82f6;
+            --accent: #f59e0b;
+            --bg-gradient: linear-gradient(135deg, #a7f3d0 0%, #bfdbfe 100%);
+        }
+
+        body {
+            font-family: 'Nunito', sans-serif;
+            margin: 0;
+            min-height: 100vh;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            background: var(--bg-gradient);
+            overflow-x: hidden;
+            padding: 20px;
+        }
+
+        /* 3D Background Canvas */
+        #canvas-container {
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100vw;
+            height: 100vh;
+            z-index: -1;
+        }
+
+        /* Glassmorphism Container */
+        .glass-panel {
+            background: rgba(255, 255, 255, 0.75);
+            backdrop-filter: blur(16px);
+            -webkit-backdrop-filter: blur(16px);
+            border: 1px solid rgba(255, 255, 255, 0.5);
+            border-radius: 30px;
+            padding: 40px;
+            max-width: 800px;
+            width: 100%;
+            box-shadow: 0 25px 50px rgba(0, 0, 0, 0.1), inset 0 0 0 2px rgba(255,255,255,0.8);
+            transform-style: preserve-3d;
+            perspective: 1000px;
+            transition: transform 0.3s ease;
+            position: relative;
+            z-index: 10;
+        }
+
+        h1 {
+            font-family: 'Fredoka One', cursive;
+            text-align: center;
+            font-size: 3rem;
+            background: linear-gradient(to right, #10b981, #3b82f6);
+            -webkit-background-clip: text;
+            -webkit-text-fill-color: transparent;
+            margin-top: 0;
+            margin-bottom: 30px;
+            text-shadow: 2px 2px 4px rgba(0,0,0,0.05);
+        }
+
+        .story-box {
+            font-size: 1.6rem;
+            line-height: 1.8;
+            color: #1e293b;
+            font-weight: 700;
+            white-space: pre-line; /* Mantieni a capo originali */
+        }
+
+        /* Interactive 3D Words */
+        .interactive-word {
+            display: inline-block;
+            position: relative;
+            cursor: pointer;
+            padding: 2px 6px;
+            border-radius: 8px;
+            transition: all 0.3s cubic-bezier(0.175, 0.885, 0.32, 1.275);
+            background: rgba(255,255,255,0.5);
+            box-shadow: 0 4px 6px rgba(0,0,0,0.05);
+        }
+
+        .interactive-word:hover {
+            transform: translateY(-5px) scale(1.1) rotate(-2deg);
+            background: #fff;
+            color: var(--primary);
+            box-shadow: 0 10px 15px rgba(16, 185, 129, 0.2);
+            z-index: 10;
+        }
+
+        .word-tooltip {
+            position: absolute;
+            bottom: 130%;
+            left: 50%;
+            transform: translateX(-50%) translateY(20px) scale(0.8);
+            font-size: 4rem;
+            opacity: 0;
+            visibility: hidden;
+            transition: all 0.3s cubic-bezier(0.68, -0.55, 0.265, 1.55);
+            filter: drop-shadow(0 10px 15px rgba(0,0,0,0.2));
+            pointer-events: none;
+        }
+
+        .interactive-word:hover .word-tooltip {
+            opacity: 1;
+            visibility: visible;
+            transform: translateX(-50%) translateY(0) scale(1);
+        }
+
+        /* Controls & Stars */
+        .controls {
+            margin-top: 40px;
+            text-align: center;
+            background: rgba(255,255,255,0.9);
+            padding: 20px;
+            border-radius: 20px;
+            box-shadow: 0 10px 20px rgba(0,0,0,0.05);
+        }
+
+        #msg {
+            font-size: 1.4rem;
+            color: var(--secondary);
+            font-weight: 900;
+            margin-bottom: 15px;
+            min-height: 2em;
+        }
+
+        .stars-container {
+            display: flex;
+            justify-content: center;
+            gap: 20px;
+        }
+
+        .star {
+            font-size: 4rem;
+            color: #cbd5e1;
+            cursor: pointer;
+            transition: all 0.4s cubic-bezier(0.175, 0.885, 0.32, 1.275);
+            text-shadow: 0 4px 6px rgba(0,0,0,0.1);
+        }
+
+        .star:hover {
+            transform: scale(1.2) translateY(-5px);
+            color: #fbbf24;
+        }
+
+        .star.active {
+            color: var(--accent);
+            transform: scale(1.3) rotate(72deg);
+            text-shadow: 0 0 25px rgba(245, 158, 11, 0.8);
+        }
+
+    </style>
+</head>
+<body>
+
+    <div id="canvas-container"></div>
+
+    <div class="glass-panel" id="panel">
+        <h1>UN NUOVO AMICO ⚽</h1>
+        
+        <div class="story-box" id="textDisplay"></div>
+
+        <div class="controls">
+            <div id="msg">Julie, leggi una parte e tocca la stella per attivare la magia 3D! ✨</div>
+            <div class="stars-container">
+                <div class="star" onclick="registerRead(1)" id="s1">★</div>
+                <div class="star" onclick="registerRead(2)" id="s2">★</div>
+                <div class="star" onclick="registerRead(3)" id="s3">★</div>
+                <div class="star" onclick="registerRead(4)" id="s4">★</div>
+                <div class="star" onclick="registerRead(5)" id="s5">★</div>
+            </div>
+        </div>
+    </div>
+
+    <script>
+        // --- 1. SETUP TESTO E DIZIONARIO ---
+        const dictionary = {
+            "BAMBINA": "👧", "GIARDINI": "🌳", "RAGAZZI": "👦", "RAGAZZINO": "👦",
+            "PALLONE": "⚽", "PALLA": "⚽", "GIOCATORE": "🏃", "CORRERE": "🏃‍♀️",
+            "CALCI": "🦶", "PARTITA": "🏟️", "FIATONE": "😮‍💨", "MARGHERITA": "🌼",
+            "MACELLO": "🌪️", "ALDO": "👦", "AMICO": "🤝", "SIMPATICA": "😊"
+        };
+
+        const storyText = `Da bambina andavo sempre a giocare ai giardini pubblici e chiedevo ai gruppetti di ragazzi: - Posso giocare con voi?
+- No, tu no!
+Finché, un giorno, un ragazzino più grande venne da me e chiese: - Sai giocare a pallone? Siamo quattro contro cinque, ci serve un giocatore in più.
+Non sapevo niente di pallone. Ma se ci giocavano tutti, non doveva essere così difficile.
+- Sono bravissima! - risposi.
+E cominciai a correre dietro la palla, tirando calci qua e là.
+Alla fine della partita il ragazzino si avvicinò: - Come ti chiami? - domandò, ancora con il fiatone.
+- Margherita.
+- Va bene, Margherita. Da oggi giochi con noi. A pallone sei un macello, però almeno sei simpatica. Comunque, io mi chiamo Aldo.
+Aldo fu il mio primo vero amico.`;
+
+        function buildText() {
+            const display = document.getElementById('textDisplay');
+            // Mantengo gli spazi e gli "a capo" usando una regex che splitta catturando i whitespaces
+            display.innerHTML = storyText.split(/(\s+)/).map(word => {
+                if (!word.trim()) return word; // Restituisce lo spazio o il 'a capo' così com'è
+                const clean = word.replace(/[.,!'’!?…—"()\-:]/g, '').toUpperCase();
+                const emoji = dictionary[clean];
+                if (emoji) {
+                    return `<span class="interactive-word">${word}<div class="word-tooltip">${emoji}</div></span>`;
+                }
+                return `<span>${word}</span>`;
+            }).join('');
+        }
+        
+        buildText();
+
+        // --- 2. SETUP SCENA 3D (Three.js) ---
+        const container = document.getElementById('canvas-container');
+        const scene = new THREE.Scene();
+        // Nebbia per dare profondità
+        scene.fog = new THREE.FogExp2(0xa7f3d0, 0.02);
+
+        const camera = new THREE.PerspectiveCamera(60, window.innerWidth / window.innerHeight, 0.1, 1000);
+        camera.position.set(0, 5, 15);
+        camera.lookAt(0, 0, 0);
+
+        const renderer = new THREE.WebGLRenderer({ alpha: true, antialias: true });
+        renderer.setSize(window.innerWidth, window.innerHeight);
+        renderer.setPixelRatio(window.devicePixelRatio);
+        renderer.shadowMap.enabled = true;
+        container.appendChild(renderer.domElement);
+
+        // Luci
+        const ambientLight = new THREE.AmbientLight(0xffffff, 0.6);
+        scene.add(ambientLight);
+        
+        const dirLight = new THREE.DirectionalLight(0xffffff, 0.8);
+        dirLight.position.set(10, 20, 10);
+        dirLight.castShadow = true;
+        scene.add(dirLight);
+
+        // Oggetti 3D
+        const worldGroup = new THREE.Group();
+        scene.add(worldGroup);
+
+        // Terreno
+        const groundGeo = new THREE.CylinderGeometry(15, 15, 1, 32);
+        const groundMat = new THREE.MeshStandardMaterial({ color: 0x4ade80, roughness: 0.8 });
+        const ground = new THREE.Mesh(groundGeo, groundMat);
+        ground.position.y = -0.5;
+        ground.receiveShadow = true;
+        worldGroup.add(ground);
+
+        // Variabili di stato animazione 3D
+        let ball = null;
+        let trees = [];
+        let isBouncing = false;
+        let isCrazy = false;
+        let ballVelocityY = 0;
+        let targetRotation = 0;
+
+        // --- 3. LOGICA DI PROGRESSIONE ---
+        let count = 0;
+        const messages = [
+            "Che bel giardino! Ma i ragazzi non vogliono farla giocare... 🌳👧",
+            "Wow, appare un pallone! Aldo le chiede di giocare ⚽👦",
+            "Boing boing! Margherita corre e tira calci! 🏃‍♀️🦶",
+            "Attenzione! La palla impazzisce, è un vero macello! 🌪️😆",
+            "MAGIA! 🎆 Aldo e Margherita sono amici! Bravissima Julie! 💖"
+        ];
+
+        function createTree(x, z) {
+            const treeGroup = new THREE.Group();
+            const trunkGeo = new THREE.CylinderGeometry(0.2, 0.3, 1.5);
+            const trunkMat = new THREE.MeshStandardMaterial({ color: 0x78350f });
+            const trunk = new THREE.Mesh(trunkGeo, trunkMat);
+            trunk.position.y = 0.75;
+            trunk.castShadow = true;
+            
+            const leavesGeo = new THREE.DodecahedronGeometry(1.2);
+            const leavesMat = new THREE.MeshStandardMaterial({ color: 0x15803d, flatShading: true });
+            const leaves = new THREE.Mesh(leavesGeo, leavesMat);
+            leaves.position.y = 2;
+            leaves.castShadow = true;
+
+            treeGroup.add(trunk);
+            treeGroup.add(leaves);
+            treeGroup.position.set(x, -5, z); // Parte dal basso
+            worldGroup.add(treeGroup);
+            trees.push({ obj: treeGroup, targetY: 0 });
+        }
+
+        function createBall() {
+            // Un Icosaedro sembra un pallone da calcio stilizzato
+            const ballGeo = new THREE.IcosahedronGeometry(0.8, 1);
+            const ballMat = new THREE.MeshStandardMaterial({ color: 0xffffff, flatShading: true, roughness: 0.4 });
+            ball = new THREE.Mesh(ballGeo, ballMat);
+            
+            // Aggiungiamo dei pentagoni neri finti colorando le facce
+            const colors = [];
+            const position = ballGeo.attributes.position;
+            for(let i=0; i<position.count; i+=3) {
+                const color = Math.random() > 0.7 ? new THREE.Color(0x111111) : new THREE.Color(0xffffff);
+                colors.push(color.r, color.g, color.b);
+                colors.push(color.r, color.g, color.b);
+                colors.push(color.r, color.g, color.b);
+            }
+            ballGeo.setAttribute('color', new THREE.Float32BufferAttribute(colors, 3));
+            ball.material.vertexColors = true;
+
+            ball.position.set(0, 10, 0); // Cade dall'alto
+            ball.castShadow = true;
+            worldGroup.add(ball);
+        }
+
+        function registerRead(num) {
+            if (num !== count + 1) return;
+            count = num;
+            
+            document.getElementById(`s${count}`).classList.add('active');
+            document.getElementById('msg').innerText = messages[count-1];
+
+            // Effetto sonoro
+            const audioCtx = new (window.AudioContext || window.webkitAudioContext)();
+            const osc = audioCtx.createOscillator();
+            const gain = audioCtx.createGain();
+            osc.type = 'sine';
+            osc.connect(gain);
+            gain.connect(audioCtx.destination);
+            osc.frequency.setValueAtTime(400 + (count * 150), audioCtx.currentTime);
+            osc.frequency.exponentialRampToValueAtTime(800 + (count*200), audioCtx.currentTime + 0.1);
+            gain.gain.setValueAtTime(0.1, audioCtx.currentTime);
+            gain.gain.exponentialRampToValueAtTime(0.01, audioCtx.currentTime + 0.3);
+            osc.start(); osc.stop(audioCtx.currentTime + 0.3);
+
+            // Cambiamenti Scena 3D
+            if(count === 1) {
+                createTree(-5, -3);
+                createTree(6, -5);
+                createTree(-7, 2);
+                createTree(5, 4);
+            }
+            else if(count === 2) {
+                createBall();
+            }
+            else if(count === 3) {
+                isBouncing = true;
+            }
+            else if(count === 4) {
+                isCrazy = true;
+                targetRotation += Math.PI; 
+            }
+            else if(count === 5) {
+                targetRotation += Math.PI * 2;
+                confetti({ 
+                    particleCount: 200, 
+                    spread: 120, 
+                    origin: { y: 0.5 },
+                    colors: ['#10b981', '#3b82f6', '#f59e0b', '#ec4899']
+                });
+                document.getElementById('panel').style.transform = 'scale(1.02)';
+                setTimeout(() => document.getElementById('panel').style.transform = 'scale(1)', 300);
+            }
+        }
+
+        // --- 4. RENDER LOOP ---
+        const clock = new THREE.Clock();
+
+        function animate() {
+            requestAnimationFrame(animate);
+            const delta = clock.getDelta();
+            const time = clock.getElapsedTime();
+
+            // Rotazione fluida del mondo
+            worldGroup.rotation.y += (targetRotation - worldGroup.rotation.y) * 0.05;
+            worldGroup.rotation.y += 0.002; 
+
+            // Animazione Alberi 
+            trees.forEach(tree => {
+                tree.obj.position.y += (tree.targetY - tree.obj.position.y) * 0.1;
+                tree.obj.rotation.z = Math.sin(time * 2 + tree.obj.position.x) * 0.05;
+            });
+
+            // Animazione Pallone
+            if (ball) {
+                if (isCrazy) {
+                    ball.position.x = Math.sin(time * 5) * 4;
+                    ball.position.z = Math.cos(time * 4) * 4;
+                    ball.position.y = Math.abs(Math.sin(time * 8)) * 5 + 0.8;
+                    ball.rotation.x += 0.2;
+                    ball.rotation.y += 0.3;
+                } else if (isBouncing) {
+                    ball.position.y = Math.abs(Math.sin(time * 4)) * 3 + 0.8;
+                    ball.rotation.x += 0.05;
+                    ball.rotation.z -= 0.05;
+                    ball.position.x += (0 - ball.position.x) * 0.1;
+                    ball.position.z += (0 - ball.position.z) * 0.1;
+                } else {
+                    if (ball.position.y > 0.8) {
+                        ballVelocityY -= 9.8 * delta;
+                        ball.position.y += ballVelocityY * delta;
+                    } else {
+                        ball.position.y = 0.8;
+                        ballVelocityY = 0;
+                    }
+                }
+            }
+
+            // Movimento camera leggero con il mouse (Parallasse)
+            camera.position.x += (mouseX * 5 - camera.position.x) * 0.05;
+            camera.position.y += (mouseY * 2 + 5 - camera.position.y) * 0.05;
+            camera.lookAt(0, 2, 0);
+
+            renderer.render(scene, camera);
+        }
+
+        // Parallasse del mouse
+        let mouseX = 0;
+        let mouseY = 0;
+        document.addEventListener('mousemove', (e) => {
+            mouseX = (e.clientX / window.innerWidth) * 2 - 1;
+            mouseY = -(e.clientY / window.innerHeight) * 2 + 1;
+        });
+
+        window.addEventListener('resize', () => {
+            camera.aspect = window.innerWidth / window.innerHeight;
+            camera.updateProjectionMatrix();
+            renderer.setSize(window.innerWidth, window.innerHeight);
+        });
+
+        animate();
+    </script>
+</body>
+</html>
