@@ -1,5 +1,11 @@
 const GIOCHI_DATA = [
   {
+    "name": "Che_meraviglia_il_mondo_Julie_3D.html",
+    "path": "Julie/Italiano/Che_meraviglia_il_mondo_Julie_3D.html",
+    "category": "Italiano",
+    "updatedAt": 1794762310286
+  },
+  {
     "name": "Magica_stagione_Julie_3D.html",
     "path": "Julie/Italiano/Magica_stagione_Julie_3D.html",
     "category": "Italiano",
